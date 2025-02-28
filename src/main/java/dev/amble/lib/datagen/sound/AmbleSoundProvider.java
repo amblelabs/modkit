@@ -7,16 +7,17 @@ import java.util.stream.Stream;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import dev.amble.lib.AmbleKit;
-import dev.amble.lib.util.StringCursor;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.data.DataOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.DataWriter;
 import net.minecraft.registry.Registries;
 import net.minecraft.sound.SoundEvent;
-import org.jetbrains.annotations.Nullable;
+
+import dev.amble.lib.AmbleKit;
+import dev.amble.lib.util.StringCursor;
 
 /**
  * Datagen Provider for sounds, this class is used to generate the sounds.json file for the mod
@@ -114,8 +115,7 @@ public class AmbleSoundProvider implements DataProvider {
         return obj;
     }
 
-    @Nullable
-    private static String extractPath(String path) {
+    @Nullable private static String extractPath(String path) {
         StringCursor cursor = new StringCursor(path, path.length() - 1, -1);
 
         while (true) {
