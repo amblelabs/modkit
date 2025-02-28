@@ -1,12 +1,14 @@
 package dev.amble.lib.datagen.sound;
 
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import dev.amble.lib.AmbleKit;
+import dev.amble.lib.util.StringCursor;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 
 import net.minecraft.data.DataOutput;
@@ -14,59 +16,80 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.DataWriter;
 import net.minecraft.registry.Registries;
 import net.minecraft.sound.SoundEvent;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Datagen Provider for sounds, this class is used to generate the sounds.json file for the mod
  */
 public class AmbleSoundProvider implements DataProvider {
+
     protected final FabricDataOutput dataOutput;
-    private final HashMap<String, SoundEvent[]> sounds = new HashMap<>();
+    private final Map<String, List<SoundEvent>> sounds = new HashMap<>();
+    private final boolean extractVariants;
 
     public AmbleSoundProvider(FabricDataOutput dataOutput) {
-        this.dataOutput = dataOutput;
+        this(dataOutput, true);
     }
 
-    public void generateSoundsData(SoundBuilder builder) {
-        sounds.forEach(builder::add);
+    public AmbleSoundProvider(FabricDataOutput dataOutput, boolean extractVariants) {
+        this.dataOutput = dataOutput;
+        this.extractVariants = extractVariants;
     }
+
+    private boolean checkDuplicate(String name) {
+        if (sounds.containsKey(name)) {
+            AmbleKit.LOGGER.error("Duplicate sound event: {} - Duplicate will be ignored!", name);
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean canAdd(String name, boolean check) {
+        // you can't have duplicates in registries, nor bad ids.
+        return check && !checkDuplicate(name) && !checkName(name);
+    }
+
     public void addSound(String name, SoundEvent event) {
-        sounds.put(name, new SoundEvent[]{event});
+        this.addSound(name, true, event);
     }
+
+    public void addSound(String name, boolean check, SoundEvent event) {
+        if (canAdd(name, check))
+            return;
+
+        sounds.computeIfAbsent(name, s -> new ArrayList<>()).add(event);
+    }
+
     public void addSound(String name, SoundEvent... events) {
-        sounds.put(name, events);
+        this.addSound(name, true, events);
+    }
+
+    public void addSound(String name, boolean check, SoundEvent... events) {
+        if (canAdd(name, check))
+            return;
+
+        Collections.addAll(sounds.computeIfAbsent(name, s -> new ArrayList<>()), events);
     }
 
     @Override
     public CompletableFuture<?> run(DataWriter writer) {
-        for (SoundEvent sound : getSoundsFromMod(dataOutput.getModId())) {
-            addSound(sound.getId().getPath(), sound);
-        }
+        getSoundsFromMod(dataOutput.getModId()).forEach(sound -> {
+            String path = sound.getId().getPath();
 
-        HashMap<String, SoundEvent[]> soundEventsHashMap = new HashMap<>();
+            addSound(path, false, sound);
 
-        generateSoundsData(((soundName, soundEvents) -> {
-            if (soundEventsHashMap.containsKey(soundName)) {
-                throw new RuntimeException("Duplicate sound event: " + soundName + " - Duplicate will be ignored!");
-            } else if (soundName.contains(" ")) {
-                throw new RuntimeException("Sound event name cannot contain spaces: " + soundName);
-            } else {
-                for (Character character : soundName.toCharArray()) {
-                    if (Character.isTitleCase(character)) {
-                        throw new RuntimeException("Sound event name cannot contain capital letters: " + soundName);
-                    } else if (Character.isUpperCase(character)) {
-                        throw new RuntimeException("Sound event name cannot contain capital letters: " + soundName);
-                    }
-                }
-                soundEventsHashMap.put(soundName, soundEvents);
+            if (extractVariants) {
+                path = extractPath(path);
+                addSound(path, false, sound);
             }
-        }));
-        JsonObject soundJsonObject = new JsonObject();
-
-        soundEventsHashMap.forEach((soundName, soundEvents) -> {
-            soundJsonObject.add(soundName, createJsonObjectForSoundEvent(soundEvents));
         });
 
-        return DataProvider.writeToPath(writer, soundJsonObject, getOutputPath());
+        JsonObject soundsJson = new JsonObject();
+        sounds.forEach((soundName, soundEvents) ->
+                soundsJson.add(soundName, serializeSounds(soundEvents)));
+
+        return DataProvider.writeToPath(writer, soundsJson, getOutputPath());
     }
 
     public Path getOutputPath() {
@@ -79,19 +102,47 @@ public class AmbleSoundProvider implements DataProvider {
         return "Sound Definitions";
     }
 
-    public JsonObject createJsonObjectForSoundEvent(SoundEvent[] soundEvents) {
-        JsonObject soundEventJsonObject = new JsonObject();
-        JsonArray soundsJsonObject = new JsonArray();
+    private static JsonObject serializeSounds(Iterable<SoundEvent> soundEvents) {
+        JsonObject obj = new JsonObject();
+        JsonArray sounds = new JsonArray();
 
         for (SoundEvent soundEvent : soundEvents) {
-            soundsJsonObject.add(soundEvent.getId().toString());
+            sounds.add(soundEvent.getId().toString());
         }
 
-        soundEventJsonObject.add("sounds", soundsJsonObject);
-        return soundEventJsonObject;
+        obj.add("sounds", sounds);
+        return obj;
     }
 
-    public static List<SoundEvent> getSoundsFromMod(String modid) {
-        return Registries.SOUND_EVENT.stream().filter(sound -> sound.getId().getNamespace().equals(modid)).toList();
+    @Nullable
+    private static String extractPath(String path) {
+        StringCursor cursor = new StringCursor(path, path.length() - 1, -1);
+
+        while (true) {
+            if (!Character.isDigit(cursor.peek()))
+                return cursor.substring();
+
+            cursor.next();
+        }
+    }
+
+    private static boolean checkName(String name) {
+        if (name.contains(" ")) {
+            AmbleKit.LOGGER.error("Sound event name cannot contain spaces: {}", name);
+            return false;
+        }
+
+        for (Character character : name.toCharArray()) {
+            if (Character.isUpperCase(character)) {
+                AmbleKit.LOGGER.error("Sound event name cannot contain capital letters: {}", name);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static Stream<SoundEvent> getSoundsFromMod(String namespace) {
+        return Registries.SOUND_EVENT.stream().filter(sound -> sound.getId().getNamespace().equals(namespace));
     }
 }
