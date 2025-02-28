@@ -25,7 +25,7 @@ import dev.amble.lib.util.StringCursor;
 public class AmbleSoundProvider implements DataProvider {
 
     protected final FabricDataOutput dataOutput;
-    private final Map<String, List<SoundEvent>> sounds = new HashMap<>();
+    private final Map<String, Set<SoundEventWrapper>> sounds = new HashMap<>();
     private final boolean extractVariants;
 
     public AmbleSoundProvider(FabricDataOutput dataOutput) {
@@ -37,18 +37,9 @@ public class AmbleSoundProvider implements DataProvider {
         this.extractVariants = extractVariants;
     }
 
-    private boolean checkDuplicate(String name) {
-        if (sounds.containsKey(name)) {
-            AmbleKit.LOGGER.error("Duplicate sound event: {} - Duplicate will be ignored!", name);
-            return false;
-        }
-
-        return true;
-    }
-
     private boolean canAdd(String name, boolean check) {
         // you can't have duplicates in registries, nor bad ids.
-        return check && !checkDuplicate(name) && !checkName(name);
+        return check && !checkName(name);
     }
 
     public void addSound(String name, SoundEvent event) {
@@ -59,7 +50,7 @@ public class AmbleSoundProvider implements DataProvider {
         if (canAdd(name, check))
             return;
 
-        sounds.computeIfAbsent(name, s -> new ArrayList<>()).add(event);
+        sounds.computeIfAbsent(name, s -> new HashSet<>()).add(new SoundEventWrapper(event));
     }
 
     public void addSound(String name, SoundEvent... events) {
@@ -70,7 +61,11 @@ public class AmbleSoundProvider implements DataProvider {
         if (canAdd(name, check))
             return;
 
-        Collections.addAll(sounds.computeIfAbsent(name, s -> new ArrayList<>()), events);
+        Set<SoundEventWrapper> set = sounds.computeIfAbsent(name, s -> new HashSet<>());
+
+        for (SoundEvent event : events) {
+            set.add(new SoundEventWrapper(event));
+        }
     }
 
     @Override
@@ -81,8 +76,13 @@ public class AmbleSoundProvider implements DataProvider {
             addSound(path, false, sound);
 
             if (extractVariants) {
-                path = extractPath(path);
-                addSound(path, false, sound);
+                String newPath = extractPath(path);
+
+                // event is not a variant!
+                if (newPath == null)
+                    return;
+
+                addSound(newPath, false, sound);
             }
         });
 
@@ -103,12 +103,14 @@ public class AmbleSoundProvider implements DataProvider {
         return "Sound Definitions";
     }
 
-    private static JsonObject serializeSounds(Iterable<SoundEvent> soundEvents) {
+    private static JsonObject serializeSounds(Iterable<SoundEventWrapper> wrappers) {
         JsonObject obj = new JsonObject();
         JsonArray sounds = new JsonArray();
 
-        for (SoundEvent soundEvent : soundEvents) {
-            sounds.add(soundEvent.getId().toString());
+        //tardis/moody/moody,tardis/moody/moody1,tardis/moody/moody2 =>
+        //tardis/moody/moody:[tardis/moody/moody, tardis/moody/moody1, tardis/moody/moody2]
+        for (SoundEventWrapper wrapper : wrappers) {
+            sounds.add(wrapper.event.getId().toString());
         }
 
         obj.add("sounds", sounds);
@@ -144,5 +146,19 @@ public class AmbleSoundProvider implements DataProvider {
 
     public static Stream<SoundEvent> getSoundsFromMod(String namespace) {
         return Registries.SOUND_EVENT.stream().filter(sound -> sound.getId().getNamespace().equals(namespace));
+    }
+
+    static class SoundEventWrapper {
+
+        private final SoundEvent event;
+
+        public SoundEventWrapper(SoundEvent event) {
+            this.event = event;
+        }
+
+        @Override
+        public int hashCode() {
+            return event.getId().hashCode();
+        }
     }
 }

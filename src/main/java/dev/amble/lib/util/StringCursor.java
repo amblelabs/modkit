@@ -1,5 +1,6 @@
 package dev.amble.lib.util;
 
+
 public class StringCursor {
 
     private final String str;
@@ -24,13 +25,24 @@ public class StringCursor {
         return this.str.charAt(cursor + step);
     }
 
+    /**
+     * @return {null} if no change was made.
+     */
     public String substring() {
-        if (step > 0)
+        if (step > 0) {
+            if (cursor == 0)
+                return null;
+
             return str.substring(this.cursor);
+        }
 
-        if (step < 0)
+        if (step < 0) {
+            if (cursor + 1 == str.length())
+                return null;
+
             return str.substring(0, this.cursor + 1);
+        }
 
-        return "";
+        return null;
     }
 }
