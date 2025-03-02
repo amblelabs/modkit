@@ -27,6 +27,13 @@ By simply creating an instance of `AmbleLanguageProvider` and passing in your `B
 
 There are more datagen utilities akin to this.
 
+### Embedded Libraries
+We have a few useful libraries embedded within this mod.
+
+- [mc-queue](https://github.com/DrTheodor/mc-queue)
+- [mc-multidim](https://github.com/DrTheodor/mc-multidim/)
+- [mc-scheduler](https://github.com/DrTheodor/mc-scheduler)
+
 ### Much more!
 
 ### For your readmes

@@ -15,7 +15,13 @@ base {
 }
 
 repositories {
+    maven {
+        url "https://jitpack.io"
 
+        metadataSources {
+            artifact() // Look directly for artifact
+        }
+    }
 }
 
 loom {
@@ -53,6 +59,16 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    include(modImplementation("com.github.DrTheodor:mc-multidim:${project.multidim_version}")) {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    include(modImplementation("com.github.DrTheodor:mc-scheduler:${project.scheduler_version}")) {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    include(modImplementation("com.github.DrTheodor:mc-queue:${project.queue_version}")) {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
 }
 
 processResources {
