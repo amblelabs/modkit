@@ -15,6 +15,7 @@ import net.minecraft.server.MinecraftServer;
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.api.sync.Exclude;
 import dev.amble.lib.api.sync.RootComponent;
+import dev.amble.lib.api.sync.manager.SyncManager;
 import dev.amble.lib.data.enummap.EnumMap;
 
 public class ComponentManager extends SyncComponent implements TickingComponent {
@@ -28,6 +29,9 @@ public class ComponentManager extends SyncComponent implements TickingComponent 
         this.registry = registry;
         handlers = new EnumMap<>(registry::lookup,
                 size -> (SyncComponent[]) Array.newInstance(SyncComponent.class, size));
+    }
+    public ComponentManager(SyncManager manager) {
+        this(manager.getHandlersId(), manager.getRegistry());
     }
 
     @Override

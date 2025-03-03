@@ -1,8 +1,8 @@
 package dev.amble.lib.api.sync.properties;
 
-import dev.amble.lib.api.sync.Disposable;
-
 import java.util.HashMap;
+
+import dev.amble.lib.api.sync.Disposable;
 
 public class PropertyMap extends HashMap<String, Value<?>> implements Disposable {
 

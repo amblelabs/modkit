@@ -21,7 +21,8 @@
 			"dev.amble.lib.test.KitTestMod"
 		],
 		"client": [
-			"dev.amble.lib.client.AmbleKitClient"
+			"dev.amble.lib.client.AmbleKitClient",
+			"dev.amble.lib.test.client.KitTestModClient"
 		]
 	},
 	"mixins": [

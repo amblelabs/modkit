@@ -5,10 +5,11 @@ import java.lang.reflect.Type;
 import com.google.gson.*;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
-import dev.amble.lib.AmbleKit;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.nbt.visitor.StringNbtWriter;
+
+import dev.amble.lib.AmbleKit;
 
 public class NbtSerializer implements JsonSerializer<NbtCompound>, JsonDeserializer<NbtCompound> {
     @Override

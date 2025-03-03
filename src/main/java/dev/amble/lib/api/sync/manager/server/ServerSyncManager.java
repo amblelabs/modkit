@@ -7,7 +7,6 @@ import java.util.function.Consumer;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import dev.amble.lib.api.sync.properties.Value;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -22,6 +21,7 @@ import dev.amble.lib.api.KitEvents;
 import dev.amble.lib.api.sync.RootComponent;
 import dev.amble.lib.api.sync.handler.SyncComponent;
 import dev.amble.lib.api.sync.manager.SyncManager;
+import dev.amble.lib.api.sync.properties.Value;
 import dev.amble.lib.events.ServerCrashEvent;
 import dev.amble.lib.events.WorldSaveEvent;
 
@@ -265,26 +265,26 @@ public abstract class ServerSyncManager<T extends RootComponent & ServerRootComp
             );
         }
     }
-	public void markComponentDirty(SyncComponent component) {
-		if (this.fileManager.isLocked())
-			return;
+    public void markComponentDirty(SyncComponent component) {
+        if (this.fileManager.isLocked())
+            return;
 
-		if (!(component.parent() instanceof RootComponent))
-			return;
+        if (!(component.parent() instanceof RootComponent))
+            return;
 
-		@SuppressWarnings("unchecked")
-		T tardis = (T) component.parent();
+        @SuppressWarnings("unchecked")
+        T tardis = (T) component.parent();
 
-		if (isInvalid(tardis))
-			return;
+        if (isInvalid(tardis))
+            return;
 
-		tardis.data().markDirty(component);
-		this.delta.add(tardis);
-	}
+        tardis.data().markDirty(component);
+        this.delta.add(tardis);
+    }
 
-	public void markPropertyDirty(T tardis, Value<?> value) {
-		this.markComponentDirty(value.getHolder());
-	}
+    public void markPropertyDirty(T tardis, Value<?> value) {
+        this.markComponentDirty(value.getHolder());
+    }
 
     public abstract Set<ServerPlayerEntity> getSubscribedPlayers(T root);
 

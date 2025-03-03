@@ -1,25 +1,23 @@
 package dev.amble.lib.api.sync.properties;
 
-import com.google.gson.*;
-import dev.amble.lib.api.sync.Disposable;
-import dev.amble.lib.api.sync.Exclude;
-import dev.amble.lib.api.sync.RootComponent;
-import dev.amble.lib.api.sync.handler.KeyedSyncComponent;
-import dev.amble.lib.api.sync.handler.SyncComponent;
-import dev.amble.lib.api.sync.manager.server.ServerRootComponent;
-import dev.amble.lib.api.sync.manager.server.ServerSyncManager;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.network.PacketByteBuf;
-import org.apache.commons.lang3.NotImplementedException;
-
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import com.google.gson.*;
+import org.apache.commons.lang3.NotImplementedException;
+
+import net.minecraft.network.PacketByteBuf;
+
+import dev.amble.lib.api.sync.Disposable;
+import dev.amble.lib.api.sync.Exclude;
+import dev.amble.lib.api.sync.handler.KeyedSyncComponent;
+import dev.amble.lib.api.sync.handler.SyncComponent;
+import dev.amble.lib.api.sync.manager.server.ServerRootComponent;
+import dev.amble.lib.api.sync.manager.server.ServerSyncManager;
 
 public class Value<T> implements Disposable {
 

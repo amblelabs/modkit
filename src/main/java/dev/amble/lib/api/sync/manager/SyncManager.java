@@ -65,7 +65,7 @@ public abstract class SyncManager<P extends RootComponent, C> {
                 .registerTypeAdapter(GlobalPos.class, new GlobalPosSerializer())
                 .registerTypeAdapter(BlockPos.class, new BlockPosSerializer())
                 .registerTypeAdapter(RegistryKey.class, new RegistryKeySerializer())
-                .registerTypeAdapter(ComponentManager.class, ComponentManager.serializer(this.getRegistry(), this.getManagerId()))
+                .registerTypeAdapter(ComponentManager.class, ComponentManager.serializer(this.getRegistry(), this.getHandlersId()))
                 .registerTypeAdapter(SyncComponent.IdLike.class, getRegistry().idSerializer());
     }
 
@@ -172,7 +172,7 @@ public abstract class SyncManager<P extends RootComponent, C> {
     }
 
     public abstract ComponentRegistry getRegistry();
-    public abstract SyncComponent.IdLike getManagerId();
+    public abstract SyncComponent.IdLike getHandlersId();
     public abstract String modId();
     public abstract String name();
 }

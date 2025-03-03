@@ -1,12 +1,14 @@
 package dev.amble.lib.api.sync.properties.integer.ranged;
 
 
-import dev.amble.lib.api.sync.handler.KeyedSyncComponent;
-import dev.amble.lib.api.sync.properties.Property;
+import java.util.function.Function;
+
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.math.MathHelper;
 
-import java.util.function.Function;
+import dev.amble.lib.api.sync.handler.KeyedSyncComponent;
+import dev.amble.lib.api.sync.manager.server.ServerSyncManager;
+import dev.amble.lib.api.sync.properties.Property;
 
 public class RangedIntProperty extends Property<Integer> {
 
@@ -15,30 +17,30 @@ public class RangedIntProperty extends Property<Integer> {
     private final int min;
     private final int max;
 
-    public RangedIntProperty(String name, int max) {
-        this(name, 0, max, 0);
+    public RangedIntProperty(String name, int max, ServerSyncManager manager) {
+        this(name, 0, max, 0, manager);
     }
 
-    public RangedIntProperty(String name, int max, Integer def) {
-        this(name, 0, max, normalize(0, max, def));
+    public RangedIntProperty(String name, int max, Integer def, ServerSyncManager manager) {
+        this(name, 0, max, normalize(0, max, def), manager);
     }
 
-    public RangedIntProperty(String name, int min, int max, Integer def) {
-        super(TYPE, name, normalize(min, max, def));
+    public RangedIntProperty(String name, int min, int max, Integer def, ServerSyncManager manager) {
+        super(TYPE, name, normalize(min, max, def), manager);
 
         this.min = min;
         this.max = max;
     }
 
-    public RangedIntProperty(String name, int max, int def) {
-        super(TYPE, name, def);
+    public RangedIntProperty(String name, int max, int def, ServerSyncManager manager) {
+        super(TYPE, name, def, manager);
 
         this.min = 0;
         this.max = max;
     }
 
-    public RangedIntProperty(String name, int min, int max, Function<KeyedSyncComponent, Integer> def) {
-        super(TYPE, name, def.andThen(i -> RangedIntProperty.normalize(min, max, i)));
+    public RangedIntProperty(String name, int min, int max, Function<KeyedSyncComponent, Integer> def, ServerSyncManager manager) {
+        super(TYPE, name, def.andThen(i -> RangedIntProperty.normalize(min, max, i)), manager);
 
         this.min = min;
         this.max = max;

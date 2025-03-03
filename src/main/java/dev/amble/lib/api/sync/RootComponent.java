@@ -20,7 +20,7 @@ public abstract class RootComponent extends Initializable<SyncComponent.InitCont
 
     protected RootComponent(UUID uuid) {
         this.uuid = uuid;
-        this.manager = new ComponentManager(getSyncManager().getManagerId(), getSyncManager().getRegistry());
+        this.manager = new ComponentManager(getSyncManager().getHandlersId(), getSyncManager().getRegistry());
     }
 
     @Override

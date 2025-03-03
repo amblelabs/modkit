@@ -1,31 +1,33 @@
 package dev.amble.lib.api.sync.properties.flt;
 
 
-import dev.amble.lib.api.sync.handler.KeyedSyncComponent;
-import dev.amble.lib.api.sync.properties.Property;
+import java.util.function.Function;
+
 import net.minecraft.network.PacketByteBuf;
 
-import java.util.function.Function;
+import dev.amble.lib.api.sync.handler.KeyedSyncComponent;
+import dev.amble.lib.api.sync.manager.server.ServerSyncManager;
+import dev.amble.lib.api.sync.properties.Property;
 
 public class FloatProperty extends Property<Float> {
 
     public static final Type<Float> TYPE = new Type<>(Float.class, PacketByteBuf::writeFloat,
             PacketByteBuf::readFloat);
 
-    public FloatProperty(String name) {
-        this(name, 0);
+    public FloatProperty(String name, ServerSyncManager manager) {
+        this(name, 0, manager);
     }
 
-    public FloatProperty(String name, Float def) {
-        this(name, normalize(def));
+    public FloatProperty(String name, Float def, ServerSyncManager manager) {
+        this(name, normalize(def), manager);
     }
 
-    public FloatProperty(String name, float def) {
-        super(TYPE, name, def);
+    public FloatProperty(String name, float def, ServerSyncManager manager) {
+        super(TYPE, name, def, manager);
     }
 
-    public FloatProperty(String name, Function<KeyedSyncComponent, Float> def) {
-        super(TYPE, name, def.andThen(FloatProperty::normalize));
+    public FloatProperty(String name, Function<KeyedSyncComponent, Float> def, ServerSyncManager manager) {
+        super(TYPE, name, def.andThen(FloatProperty::normalize), manager);
     }
 
     @Override

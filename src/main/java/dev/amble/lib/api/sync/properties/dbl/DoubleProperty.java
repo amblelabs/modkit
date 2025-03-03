@@ -1,31 +1,33 @@
 package dev.amble.lib.api.sync.properties.dbl;
 
 
-import dev.amble.lib.api.sync.handler.KeyedSyncComponent;
-import dev.amble.lib.api.sync.properties.Property;
+import java.util.function.Function;
+
 import net.minecraft.network.PacketByteBuf;
 
-import java.util.function.Function;
+import dev.amble.lib.api.sync.handler.KeyedSyncComponent;
+import dev.amble.lib.api.sync.manager.server.ServerSyncManager;
+import dev.amble.lib.api.sync.properties.Property;
 
 public class DoubleProperty extends Property<Double> {
 
     public static final Type<Double> TYPE = new Type<>(Double.class, PacketByteBuf::writeDouble,
             PacketByteBuf::readDouble);
 
-    public DoubleProperty(String name) {
-        this(name, 0);
+    public DoubleProperty(String name, ServerSyncManager manager) {
+        this(name, 0, manager);
     }
 
-    public DoubleProperty(String name, Double def) {
-        this(name, normalize(def));
+    public DoubleProperty(String name, Double def, ServerSyncManager manager) {
+        this(name, normalize(def), manager);
     }
 
-    public DoubleProperty(String name, double def) {
-        super(TYPE, name, def);
+    public DoubleProperty(String name, double def, ServerSyncManager manager) {
+        super(TYPE, name, def, manager);
     }
 
-    public DoubleProperty(String name, Function<KeyedSyncComponent, Double> def) {
-        super(TYPE, name, def.andThen(DoubleProperty::normalize));
+    public DoubleProperty(String name, Function<KeyedSyncComponent, Double> def, ServerSyncManager manager) {
+        super(TYPE, name, def.andThen(DoubleProperty::normalize), manager);
     }
 
     @Override

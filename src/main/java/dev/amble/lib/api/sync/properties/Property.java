@@ -1,8 +1,12 @@
 package dev.amble.lib.api.sync.properties;
 
-import dev.amble.lib.api.sync.handler.KeyedSyncComponent;
-import dev.amble.lib.data.CachedDirectedGlobalPos;
-import dev.amble.lib.data.DirectedGlobalPos;
+import java.util.HashSet;
+import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
+import org.joml.Vector2i;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.RegistryKey;
@@ -11,28 +15,29 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
-import org.joml.Vector2i;
 
-import java.util.HashSet;
-import java.util.UUID;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
+import dev.amble.lib.api.sync.handler.KeyedSyncComponent;
+import dev.amble.lib.api.sync.manager.server.ServerSyncManager;
+import dev.amble.lib.data.CachedDirectedGlobalPos;
+import dev.amble.lib.data.DirectedGlobalPos;
 
 public class Property<T> {
 
     private final Type<T> type;
     private final String name;
+    private final ServerSyncManager manager;
 
     protected final Function<KeyedSyncComponent, T> def;
 
-    public Property(Type<T> type, String name, Function<KeyedSyncComponent, T> def) {
+    public Property(Type<T> type, String name, Function<KeyedSyncComponent, T> def, ServerSyncManager manager) {
         this.type = type;
         this.name = name;
         this.def = def;
+        this.manager = manager;
     }
 
-    public Property(Type<T> type, String name, T def) {
-        this(type, name, o -> def);
+    public Property(Type<T> type, String name, T def, ServerSyncManager manager) {
+        this(type, name, o -> def, manager);
     }
 
     public Value<T> create(KeyedSyncComponent holder) {
@@ -40,6 +45,8 @@ public class Property<T> {
         Value<T> result = this.create(t);
 
         result.of(holder, this);
+        result.with(manager);
+
         return result;
     }
 
@@ -56,15 +63,15 @@ public class Property<T> {
     }
 
     public Property<T> copy(String name) {
-        return new Property<>(this.type, name, this.def);
+        return new Property<>(this.type, name, this.def, this.manager);
     }
 
     public Property<T> copy(String name, T def) {
-        return new Property<>(this.type, name, def);
+        return new Property<>(this.type, name, def, this.manager);
     }
 
-    public static <T extends Enum<T>> Property<T> forEnum(String name, Class<T> clazz, T def) {
-        return new Property<>(Type.forEnum(clazz), name, def);
+    public static <T extends Enum<T>> Property<T> forEnum(String name, Class<T> clazz, T def, ServerSyncManager manager) {
+        return new Property<>(Type.forEnum(clazz), name, def, manager);
     }
 
     public static class Type<T> {
