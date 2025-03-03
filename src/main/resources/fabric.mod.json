@@ -17,7 +17,8 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"dev.amble.lib.AmbleKit"
+			"dev.amble.lib.AmbleKit",
+			"dev.amble.lib.test.KitTestMod"
 		],
 		"client": [
 			"dev.amble.lib.client.AmbleKitClient"

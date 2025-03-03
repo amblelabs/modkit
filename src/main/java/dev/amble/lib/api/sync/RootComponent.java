@@ -61,6 +61,11 @@ public abstract class RootComponent extends Initializable<SyncComponent.InitCont
     public abstract SyncManager<?, ?> getSyncManager();
 
     @Override
+    public void dispose() {
+        this.getHandlers().dispose();
+    }
+
+    @Override
     public void tick(MinecraftServer server) {
         this.getHandlers().tick(server);
     }
