@@ -4,11 +4,26 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dev.amble.lib.api.sync.manager.client.ClientSyncManager;
+import dev.amble.lib.api.sync.manager.server.ServerSyncManager;
+import dev.amble.lib.api.sync.properties.Value;
+import dev.amble.lib.api.sync.properties.bool.BoolValue;
+import dev.amble.lib.api.sync.properties.dbl.DoubleValue;
+import dev.amble.lib.api.sync.properties.integer.IntValue;
+import dev.amble.lib.api.sync.properties.integer.ranged.RangedIntValue;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.item.ItemStack;
@@ -65,7 +80,7 @@ public abstract class SyncManager<P extends RootComponent, C> {
                 .registerTypeAdapter(GlobalPos.class, new GlobalPosSerializer())
                 .registerTypeAdapter(BlockPos.class, new BlockPosSerializer())
                 .registerTypeAdapter(RegistryKey.class, new RegistryKeySerializer())
-                .registerTypeAdapter(ComponentManager.class, ComponentManager.serializer(this.getRegistry(), this.getHandlersId()))
+                .registerTypeHierarchyAdapter(ComponentManager.class, ComponentManager.serializer(this.getRegistry(), this.getHandlersId()))
                 .registerTypeAdapter(SyncComponent.IdLike.class, getRegistry().idSerializer());
     }
 
@@ -80,12 +95,11 @@ public abstract class SyncManager<P extends RootComponent, C> {
         // /\
         builder.setPrettyPrinting();
 
-        return builder;
-//		return builder.registerTypeAdapter(Value.class, Value.serializer())
-//				.registerTypeAdapter(BoolValue.class, BoolValue.serializer())
-//				.registerTypeAdapter(IntValue.class, IntValue.serializer())
-//				.registerTypeAdapter(RangedIntValue.class, RangedIntValue.serializer())
-//				.registerTypeAdapter(DoubleValue.class, DoubleValue.serializer());
+		return builder.registerTypeAdapter(Value.class, Value.serializer())
+				.registerTypeAdapter(BoolValue.class, BoolValue.serializer())
+				.registerTypeAdapter(IntValue.class, IntValue.serializer())
+				.registerTypeAdapter(RangedIntValue.class, RangedIntValue.serializer())
+				.registerTypeAdapter(DoubleValue.class, DoubleValue.serializer());
     }
 
     public void get(C c, UUID uuid, Consumer<P> consumer) {
@@ -146,11 +160,6 @@ public abstract class SyncManager<P extends RootComponent, C> {
         return fileGson;
     }
 
-    @FunctionalInterface
-    public interface ContextManager<C, R> {
-        R run(C c, SyncManager<?, C> manager);
-    }
-
     public Identifier askPacket() {
         return createPacket("ask");
     }
@@ -175,4 +184,35 @@ public abstract class SyncManager<P extends RootComponent, C> {
     public abstract SyncComponent.IdLike getHandlersId();
     public abstract String modId();
     public abstract String name();
+	public abstract ServerSyncManager<?> asServer();
+	@Environment(EnvType.CLIENT)
+	public abstract ClientSyncManager<?> asClient();
+
+    public <M, R> R with(BlockEntity entity, ContextManager<M, R> consumer) {
+        return this.with(entity.getWorld(), consumer);
+    }
+
+    public <M, R> R with(Entity entity, ContextManager<M, R> consumer) {
+        return this.with(entity.getWorld(), consumer);
+    }
+
+    public <M, R> R with(World world, ContextManager<M, R> consumer) {
+        return this.with(world.isClient(), consumer, world::getServer);
+    }
+
+	public <M,R> R with(boolean isClient, ContextManager<M,R> consumer, Supplier<MinecraftServer> server) {
+		SyncManager<?, M> manager = (SyncManager<?, M>) (isClient ? this.asClient() : this.asServer());
+
+		if (isClient) {
+			return consumer.run((M) MinecraftClient.getInstance(), manager);
+		} else {
+			return consumer.run((M) server.get(), manager);
+		}
+	}
+
+
+	@FunctionalInterface
+	public interface ContextManager<C, R> {
+		R run(C c, SyncManager<?, C> manager);
+	}
 }

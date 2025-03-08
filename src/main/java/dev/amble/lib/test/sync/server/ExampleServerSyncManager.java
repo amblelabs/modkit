@@ -3,6 +3,11 @@ package dev.amble.lib.test.sync.server;
 import java.util.HashSet;
 import java.util.Set;
 
+import dev.amble.lib.api.sync.manager.client.ClientSyncManager;
+import dev.amble.lib.test.sync.client.ExampleClientRoot;
+import dev.amble.lib.test.sync.client.ExampleClientSyncManager;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -50,6 +55,18 @@ public class ExampleServerSyncManager extends ServerSyncManager<ExampleServerRoo
     public String name() {
         return "example";
     }
+
+    @Override
+    public ServerSyncManager<ExampleServerRoot> asServer() {
+        return this;
+    }
+
+    @Environment(EnvType.CLIENT)
+    @Override
+    public ClientSyncManager<ExampleClientRoot> asClient() {
+        return ExampleClientSyncManager.getInstance();
+    }
+
     public static ExampleServerSyncManager getInstance() {
         return instance;
     }

@@ -1,5 +1,11 @@
 package dev.amble.lib.test;
 
+import dev.amble.lib.container.RegistryContainer;
+import dev.amble.lib.register.AmbleRegistries;
+import dev.amble.lib.register.Registry;
+import dev.amble.lib.test.core.block.TestBlocks;
+import dev.amble.lib.test.core.block.entities.TestBlockEntities;
+import dev.amble.lib.test.sync.handler.ExampleComponentRegistry;
 import net.fabricmc.api.ModInitializer;
 import org.jetbrains.annotations.TestOnly;
 import org.slf4j.Logger;
@@ -24,10 +30,16 @@ public class KitTestMod implements ModInitializer {
         if (TEST_SYNCING) {
             initSyncing();
         }
+
+        LOGGER.info("Registry Tests Enabled!");
+        RegistryContainer.register(TestBlocks.class, MOD_ID);
+        RegistryContainer.register(TestBlockEntities.class, MOD_ID);
     }
 
     private static void initSyncing() {
         LOGGER.info("Syncing Tests Enabled!");
+
+        AmbleRegistries.getInstance().registerAll(ExampleComponentRegistry.getInstance());
 
         ExampleServerSyncManager.init();
     }

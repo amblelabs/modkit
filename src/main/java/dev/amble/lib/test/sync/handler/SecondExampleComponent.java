@@ -19,7 +19,7 @@ public class SecondExampleComponent extends KeyedSyncComponent {
     public void onLoaded() {
         super.onLoaded();
 
-        KitTestMod.LOGGER.info("FirstExampleComponent loaded");
+        KitTestMod.LOGGER.info("SecondExampleComponent loaded");
 
         isEpic.of(this, IS_EPIC_PROPERTY);
     }

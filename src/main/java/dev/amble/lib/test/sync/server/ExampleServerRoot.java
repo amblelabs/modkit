@@ -11,10 +11,10 @@ import dev.amble.lib.api.sync.manager.server.ServerRootComponent;
 import dev.amble.lib.test.sync.ExampleRoot;
 
 public class ExampleServerRoot extends ExampleRoot implements ServerRootComponent {
-    @Exclude
+    @Exclude(strategy = Exclude.Strategy.NETWORK)
     private final ServerComponentData data = new ServerComponentData();
 
-    protected ExampleServerRoot(UUID uuid) {
+    public ExampleServerRoot(UUID uuid) {
         super(uuid);
     }
 

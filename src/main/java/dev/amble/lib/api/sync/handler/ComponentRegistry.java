@@ -71,6 +71,10 @@ public abstract class ComponentRegistry implements Registry {
         return REGISTRY.values();
     }
     public SyncComponent.IdLike[] lookup() {
+        if (LOOKUP == null) {
+            throw new UnsupportedOperationException("Registry not initialized! Dont forget to register the registry in your mod init.");
+        }
+
         return LOOKUP;
     }
 

@@ -131,7 +131,7 @@ public abstract class SyncComponent extends Initializable<SyncComponent.InitCont
     public record InitContext(@Nullable CachedDirectedGlobalPos pos,
                               boolean deserialized) implements Initializable.Context {
 
-        public static InitContext createdAt(CachedDirectedGlobalPos pos) {
+        public static InitContext createdAt(@Nullable CachedDirectedGlobalPos pos) {
             return new InitContext(pos, false);
         }
 

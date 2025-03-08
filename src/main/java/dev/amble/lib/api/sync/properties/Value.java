@@ -35,6 +35,7 @@ public class Value<T> implements Disposable {
     private List<Consumer<T>> listeners;
 
     private T value;
+    @Exclude
     private ServerSyncManager manager;
 
     protected Value(T value) {

@@ -54,6 +54,8 @@ public class ComponentManager extends SyncComponent implements TickingComponent 
         for (SyncComponent component : this.handlers.getValues()) {
             if (component == null)
                 continue;
+            if (component == this || component.getId() == this.getId())
+                continue;
 
             consumer.accept(component);
         }

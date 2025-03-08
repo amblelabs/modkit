@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import dev.amble.lib.api.sync.Initializable;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -284,6 +285,18 @@ public abstract class ServerSyncManager<T extends RootComponent & ServerRootComp
 
     public void markPropertyDirty(T tardis, Value<?> value) {
         this.markComponentDirty(value.getHolder());
+    }
+
+    public boolean add(T val) {
+        if (this.lookup.containsValue(val)) {
+            return false;
+        }
+
+        this.lookup.put(val);
+
+        Initializable.init(val, SyncComponent.InitContext.createdAt(null));
+
+        return true;
     }
 
     public abstract Set<ServerPlayerEntity> getSubscribedPlayers(T root);

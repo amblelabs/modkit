@@ -3,8 +3,11 @@ package dev.amble.lib.test.sync.client;
 import dev.amble.lib.api.sync.handler.ComponentRegistry;
 import dev.amble.lib.api.sync.handler.SyncComponent;
 import dev.amble.lib.api.sync.manager.client.ClientSyncManager;
+import dev.amble.lib.api.sync.manager.server.ServerSyncManager;
 import dev.amble.lib.test.KitTestMod;
 import dev.amble.lib.test.sync.handler.ExampleComponentRegistry;
+import dev.amble.lib.test.sync.server.ExampleServerRoot;
+import dev.amble.lib.test.sync.server.ExampleServerSyncManager;
 
 public class ExampleClientSyncManager extends ClientSyncManager<ExampleClientRoot> {
     private static ExampleClientSyncManager instance;
@@ -40,5 +43,15 @@ public class ExampleClientSyncManager extends ClientSyncManager<ExampleClientRoo
     @Override
     public String name() {
         return "example";
+    }
+
+    @Override
+    public ServerSyncManager<ExampleServerRoot> asServer() {
+        return ExampleServerSyncManager.getInstance();
+    }
+
+    @Override
+    public ClientSyncManager<ExampleClientRoot> asClient() {
+        return this;
     }
 }

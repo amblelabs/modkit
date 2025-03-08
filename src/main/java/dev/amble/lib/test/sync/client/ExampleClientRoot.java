@@ -11,10 +11,10 @@ import dev.amble.lib.api.sync.manager.client.ClientRootComponent;
 import dev.amble.lib.test.sync.ExampleRoot;
 
 public class ExampleClientRoot extends ExampleRoot implements ClientRootComponent {
-    @Exclude
-    private final ClientComponentData data = new ClientComponentData();
+    @Exclude(strategy = Exclude.Strategy.NETWORK)
+    private ClientComponentData data = new ClientComponentData();
 
-    protected ExampleClientRoot(UUID uuid) {
+    private ExampleClientRoot(UUID uuid) {
         super(uuid);
     }
 
@@ -25,6 +25,8 @@ public class ExampleClientRoot extends ExampleRoot implements ClientRootComponen
 
     @Override
     public ClientComponentData data() {
+        if (data == null) data = new ClientComponentData();
+
         return data;
     }
 }
