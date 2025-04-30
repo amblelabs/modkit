@@ -11,6 +11,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
 public class DirectedBlockPos {
@@ -34,6 +35,16 @@ public class DirectedBlockPos {
 
     public DirectedBlockPos pos(BlockPos pos) {
         return DirectedBlockPos.create(pos, this.rotation);
+    }
+
+    public static Vec3d offsetPos(DirectedBlockPos directed, float value) {
+        BlockPos pos = directed.getPos();
+
+        return new Vec3d(
+                pos.getX() + value * directed.getVector().getX(),
+                pos.getY() + value * directed.getVector().getY(),
+                pos.getZ() + value * directed.getVector().getZ()
+        );
     }
 
     public DirectedBlockPos offset(int x, int y, int z) {
