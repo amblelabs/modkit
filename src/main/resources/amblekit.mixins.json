@@ -5,9 +5,11 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "AbstractBlockAccessor",
+    "ItemGroupAccessors",
     "ItemMixin",
     "SaveLoadingMixin",
-    "ServerPlayerInteractionManagerMixin"
+    "ServerPlayerInteractionManagerMixin",
+    "client.ItemModelGeneratorAccessor"
   ],
   "client": [
     "client.ClientPlayerInteractionManagerMixin"

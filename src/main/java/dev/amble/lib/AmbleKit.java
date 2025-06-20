@@ -1,7 +1,5 @@
 package dev.amble.lib;
 
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,9 +16,6 @@ public class AmbleKit {
     public void onInitialize() {
         AmbleRegistries.getInstance();
         ServerLifecycleHooks.init();
-
-        FabricLoader.getInstance().invokeEntrypoints("amblekit-main", AmbleKitInitializer.class,
-                AmbleKitInitializer::onInitialize);
     }
 
     public static Identifier id(String path) {

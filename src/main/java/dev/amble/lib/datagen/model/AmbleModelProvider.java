@@ -2,6 +2,7 @@ package dev.amble.lib.datagen.model;
 
 import java.util.*;
 
+import dev.amble.lib.mixin.client.ItemModelGeneratorAccessor;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 
@@ -80,7 +81,7 @@ public class AmbleModelProvider extends FabricModelProvider {
     }
     private void registerItem(ItemModelGenerator generator, Item item, String modid) {
         Model model = item(TextureKey.LAYER0);
-        model.upload(ModelIds.getItemModelId(item), createTextureMap(item, modid), generator.writer);
+        model.upload(ModelIds.getItemModelId(item), createTextureMap(item, modid), ((ItemModelGeneratorAccessor) generator).getWriter());
     }
     private TextureMap createTextureMap(Item item, String modid) {
         Identifier texture = new Identifier(modid, "item/" + getItemName(item));

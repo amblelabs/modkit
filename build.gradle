@@ -16,8 +16,8 @@ base {
 
 repositories {
     maven {
-        name = 'Modrinth'
-        url = "https://api.modrinth.com/maven"
+        name = "Su5eD"
+        url = uri("https://maven.su5ed.dev/releases")
     }
 }
 
@@ -56,7 +56,7 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 
     forge "net.minecraftforge:forge:${project.forge_version}"
-    modImplementation "maven.modrinth:forgified-fabric-api:${project.fabric_version}"
+    modImplementation "dev.su5ed.sinytra.fabric-api:fabric-api:${project.fabric_version}"
 }
 
 processResources {

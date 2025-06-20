@@ -2,12 +2,13 @@ package dev.amble.lib.itemgroup;
 
 import java.util.function.Supplier;
 
-import net.minecraft.item.ItemGroup;
+import dev.amble.lib.mixin.ItemGroupAccessors;
+import net.minecraft.item.InternalItemGroup0;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-public class AItemGroup extends ItemGroup {
+public class AItemGroup extends InternalItemGroup0 {
 
     private final Identifier id;
 
@@ -94,10 +95,10 @@ public class AItemGroup extends ItemGroup {
 
             AItemGroup itemGroup = new AItemGroup(this.id, null, -1, this.type, this.displayName, this.iconSupplier, this.entryCollector);
 
-            itemGroup.special = this.special;
-            itemGroup.renderName = this.renderName;
-            itemGroup.scrollbar = this.scrollbar;
-            itemGroup.texture = this.texture;
+            ((ItemGroupAccessors) itemGroup).setSpecial(this.special);
+            ((ItemGroupAccessors) itemGroup).setRenderName(this.renderName);
+            ((ItemGroupAccessors) itemGroup).setScrollbar(this.scrollbar);
+            ((ItemGroupAccessors) itemGroup).setTexture(this.texture);
             return itemGroup;
         }
     }
