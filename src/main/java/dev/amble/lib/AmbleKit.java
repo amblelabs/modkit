@@ -11,11 +11,10 @@ import dev.amble.lib.api.AmbleKitInitializer;
 import dev.amble.lib.register.AmbleRegistries;
 import dev.amble.lib.util.ServerLifecycleHooks;
 
-public class AmbleKit implements ModInitializer {
+public class AmbleKit {
     public static final String MOD_ID = "amblekit";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    @Override
     public void onInitialize() {
         AmbleRegistries.getInstance();
         ServerLifecycleHooks.init();

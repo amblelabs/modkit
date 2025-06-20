@@ -1,5 +1,5 @@
 plugins {
-    id "fabric-loom" version "1.9-SNAPSHOT"
+    id "dev.architectury.loom" version "1.10-SNAPSHOT"
     id "maven-publish"
 
     id "com.diffplug.spotless" version "6.20.0"
@@ -15,11 +15,16 @@ base {
 }
 
 repositories {
-
+    maven {
+        name = 'Modrinth'
+        url = "https://api.modrinth.com/maven"
+    }
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/${project.mod_id}.accesswidener")
+    forge {
+        mixinConfig 'amblekit.mixins.json'
+    }
 
     runs {
         // This adds a new gradle task that runs the datagen API
@@ -45,14 +50,13 @@ sourceSets {
         }
     }
 }
+
 dependencies {
-    // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-    // Fabric API. This is technically optional, but you probably want it anyway.
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    forge "net.minecraftforge:forge:${project.forge_version}"
+    modImplementation "maven.modrinth:forgified-fabric-api:${project.fabric_version}"
 }
 
 processResources {
@@ -62,7 +66,7 @@ processResources {
     inputs.property "loader_version", project.loader_version
     filteringCharset "UTF-8"
 
-    filesMatching("fabric.mod.json") {
+    filesMatching("mods.toml") {
         expand "version": project.version,
                 "minecraft_version": project.minecraft_version,
                 "loader_version": project.loader_version
