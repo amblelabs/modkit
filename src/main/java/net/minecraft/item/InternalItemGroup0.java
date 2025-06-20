@@ -1,15 +1,19 @@
 package net.minecraft.item;
 
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import java.util.ArrayList;
+import java.util.function.Supplier;
+
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.List;
-import java.util.function.Supplier;
+import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 @ApiStatus.Internal
 public class InternalItemGroup0 extends ItemGroup {
-    public InternalItemGroup0(Row arg, int i, Type arg2, Text arg3, Supplier<ItemStack> supplier, EntryCollector arg4, Identifier backgroundLocation, boolean hasSearchBar, int searchBarWidth, Identifier tabsImage, int labelColor, int slotColor, List<Identifier> tabsBefore, List<Identifier> tabsAfter) {
-        super(arg, i, arg2, arg3, supplier, arg4, backgroundLocation, hasSearchBar, searchBarWidth, tabsImage, labelColor, slotColor, tabsBefore, tabsAfter);
+    private static final Identifier CREATIVE_INVENTORY_TABS_IMAGE = new Identifier("textures/gui/container/creative_inventory/tabs.png");
+    private static final Identifier BACKGROUND = new Identifier("textures/gui/container/creative_inventory/tab_items.png");
+
+    public InternalItemGroup0(Row row, int column, Type type, Text displayName, Supplier<ItemStack> icon, EntryCollector entryCollector) {
+        super(row, column, type, displayName, icon, entryCollector, BACKGROUND, false, 0, CREATIVE_INVENTORY_TABS_IMAGE, 4210752, -2130706433, new ArrayList<>(), new ArrayList<>());
     }
 }

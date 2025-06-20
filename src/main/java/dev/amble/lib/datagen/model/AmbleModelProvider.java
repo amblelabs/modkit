@@ -2,7 +2,6 @@ package dev.amble.lib.datagen.model;
 
 import java.util.*;
 
-import dev.amble.lib.mixin.client.ItemModelGeneratorAccessor;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider;
 
@@ -15,6 +14,7 @@ import dev.amble.lib.AmbleKit;
 import dev.amble.lib.container.impl.BlockContainer;
 import dev.amble.lib.container.impl.ItemContainer;
 import dev.amble.lib.datagen.util.AutomaticModel;
+import dev.amble.lib.mixin.client.ItemModelGeneratorAccessor;
 import dev.amble.lib.util.ReflectionUtil;
 
 public class AmbleModelProvider extends FabricModelProvider {

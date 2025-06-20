@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import net.minecraft.util.Identifier;
 
-import dev.amble.lib.api.AmbleKitInitializer;
 import dev.amble.lib.register.AmbleRegistries;
 import dev.amble.lib.util.ServerLifecycleHooks;
 

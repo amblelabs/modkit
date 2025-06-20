@@ -2,11 +2,12 @@ package dev.amble.lib.itemgroup;
 
 import java.util.function.Supplier;
 
-import dev.amble.lib.mixin.ItemGroupAccessors;
 import net.minecraft.item.InternalItemGroup0;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+
+import dev.amble.lib.mixin.ItemGroupAccessors;
 
 public class AItemGroup extends InternalItemGroup0 {
 
