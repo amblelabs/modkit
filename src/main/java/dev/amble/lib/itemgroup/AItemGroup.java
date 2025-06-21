@@ -2,19 +2,17 @@ package dev.amble.lib.itemgroup;
 
 import java.util.function.Supplier;
 
-import net.minecraft.item.InternalItemGroup0;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-import dev.amble.lib.mixin.ItemGroupAccessors;
-
-public class AItemGroup extends InternalItemGroup0 {
+public class AItemGroup extends ItemGroup {
 
     private final Identifier id;
 
-    protected AItemGroup(Identifier id, Row row, int column, Type type, Text displayName, Supplier<ItemStack> iconSupplier, EntryCollector entryCollector) {
-        super(row, column, type, displayName, iconSupplier, entryCollector);
+    protected AItemGroup(Identifier id, ItemGroup.Builder builder) {
+        super(builder);
 
         this.id = id;
     }
@@ -94,13 +92,24 @@ public class AItemGroup extends InternalItemGroup0 {
             if (this.displayName == null)
                 this.displayName = Text.translatable("itemGroup." + id.getNamespace() + "." + id.getPath());
 
-            AItemGroup itemGroup = new AItemGroup(this.id, null, -1, this.type, this.displayName, this.iconSupplier, this.entryCollector);
+            ItemGroup.Builder builder = new ItemGroup.Builder(null, -1);
 
-            ((ItemGroupAccessors) itemGroup).setSpecial(this.special);
-            ((ItemGroupAccessors) itemGroup).setRenderName(this.renderName);
-            ((ItemGroupAccessors) itemGroup).setScrollbar(this.scrollbar);
-            ((ItemGroupAccessors) itemGroup).setTexture(this.texture);
-            return itemGroup;
+            if (this.special)
+                builder = builder.special();
+
+            if (!this.renderName)
+                builder = builder.noRenderedName();
+
+            if (!this.scrollbar)
+                builder = builder.noScrollbar();
+
+            builder = builder.texture(this.texture)
+                    .displayName(this.displayName)
+                    .icon(this.iconSupplier)
+                    .entries(this.entryCollector)
+                    .withTabFactory(b -> new AItemGroup(id, b));
+
+            return (AItemGroup) builder.build();
         }
     }
 }
