@@ -12,5 +12,5 @@ ext.getCurrentVersion = {
     }
 
     return project.mod_version + (patch != null ? ("." + patch) : "")\
-        + "-" + project.minecraft_version + "-" + project.mod_version_qualifier + (branch != null ? ("-" + branch) : "")
+        + "-" + project.minecraft_version + "+forge" + "-" + project.mod_version_qualifier + (branch != null ? ("-" + branch) : "")
 }
