@@ -7,6 +7,7 @@ license = "LGPL-3.0-or-later"
 modId = "amblekit"
 version = "${version}"
 displayName = "AmbleKit"
+logoFile = "assets/amblekit/icon.png"
 authors = "Loqor, Theo"
 description = '''
 AmbleKit is a mod that provides a set of tools and utilities for AmbleLabs' assorted Minecraft mods (this one is for Forge!!).
