@@ -52,6 +52,44 @@ There are more datagen utilities akin to this.
 ### Much more!
 
 <h2>
+  <img src="https://cdn.modrinth.com/data/cached_images/808c7934614530076d21dd0cf5c5e2e992595985.png"
+       alt="Where can I start with this?"
+       width="25"
+       height="25"
+       style="vertical-align: middle; margin-right: 8px;">
+  Where can I start with this?
+</h2>
+
+### You can start with our template for amblekit!
+
+  [Github Template for Fabric 1.20.1 Modkit](https://github.com/amblelabs/modkit-template)
+
+### If you have an already existing mod and want the amblekit then add this to your **build.gradle**!
+
+
+  ```
+  dependencies {
+      // To change the versions see the gradle.properties file
+      minecraft "com.mojang:minecraft:${project.minecraft_version}"
+      mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+      modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+  
+      // Fabric API. This is technically optional, but you probably want it anyway.
+      modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+      modImplementation("com.github.amblelabs:modkit:${project.modkit_version}") {
+          exclude(group: "net.fabricmc.fabric-api")
+      }
+      include(modImplementation("com.github.DrTheodor:mc-scheduler:${project.scheduler_version}")) {
+          exclude(group: "net.fabricmc.fabric-api")
+      }
+  }
+  ```
+
+
+
+
+
+<h2>
   <img src="https://cdn.modrinth.com/data/cached_images/23b97ecfe49586f70c6a7d4e4ca63ac14d47e6e1.png"
        alt="Links & Community"
        width="25"
