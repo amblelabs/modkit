@@ -68,24 +68,39 @@ There are more datagen utilities akin to this.
 
 
   ```
-  dependencies {
-      // To change the versions see the gradle.properties file
-      minecraft "com.mojang:minecraft:${project.minecraft_version}"
-      mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-      modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+  repositories {
+      maven {
+          url "https://jitpack.io"
   
-      // Fabric API. This is technically optional, but you probably want it anyway.
-      modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-      modImplementation("com.github.amblelabs:modkit:${project.modkit_version}") {
-          exclude(group: "net.fabricmc.fabric-api")
+          metadataSources {
+              artifact() // Look directly for artifact
+          }
       }
-      include(modImplementation("com.github.DrTheodor:mc-scheduler:${project.scheduler_version}")) {
+  }
+
+  dependencies {
+      modImplementation("com.github.amblelabs:modkit:${project.modkit_version}") {
           exclude(group: "net.fabricmc.fabric-api")
       }
   }
   ```
-
-
+  or if you are using kotlin
+  ```
+    repositories {
+      maven {
+          url = uri("https://jitpack.io")
+          metadataSources {
+              artifact() // Look directly for artifact
+          }
+      }
+      mavenCentral()
+  }
+  
+  
+  dependencies {
+      modImplementation("com.github.amblelabs:modkit:${project.property("modkit_version")}")
+  }
+  ```
 
 
 
