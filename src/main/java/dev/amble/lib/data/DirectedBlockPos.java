@@ -37,13 +37,13 @@ public class DirectedBlockPos {
         return DirectedBlockPos.create(pos, this.rotation);
     }
 
-    public static Vec3d offsetPos(DirectedBlockPos directed, float value) {
-        BlockPos pos = directed.getPos();
+    public Vec3d offsetPos(float value) {
+        BlockPos pos = this.getPos();
 
         return new Vec3d(
-                pos.getX() + value * directed.getVector().getX(),
-                pos.getY() + value * directed.getVector().getY(),
-                pos.getZ() + value * directed.getVector().getZ()
+                pos.getX() + value * this.getVector().getX(),
+                pos.getY() + value * this.getVector().getY(),
+                pos.getZ() + value * this.getVector().getZ()
         );
     }
 
