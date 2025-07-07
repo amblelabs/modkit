@@ -89,9 +89,7 @@ dependencies {
     // 1) modApi (downstream compile+runtime)
     modApi "dev.drtheo:multidim:${project.multidim_version}"
     // 2) include (embed/remap into your ModKit jar)
-    include("dev.drtheo:multidim:${project.multidim_version}") {
-        exclude group: "net.fabricmc.fabric-api"
-    }
+
     // 3) shaded (isolate for Shadow packaging)
     shaded("dev.drtheo:multidim:${project.multidim_version}") {
         exclude group: "net.fabricmc.fabric-api"
@@ -100,9 +98,7 @@ dependencies {
     }
 
     modApi   "dev.drtheo:scheduler:${project.scheduler_version}"
-    include("dev.drtheo:scheduler:${project.scheduler_version}") {
-        exclude group: "net.fabricmc.fabric-api"
-    }
+
     shaded("dev.drtheo:scheduler:${project.scheduler_version}") {
         exclude group: "net.fabricmc.fabric-api"
         exclude group: "net.fabricmc.loader"
@@ -110,9 +106,7 @@ dependencies {
     }
 
     modApi   "dev.drtheo:queue:${project.queue_version}"
-    include("dev.drtheo:queue:${project.queue_version}") {
-        exclude group: "net.fabricmc.fabric-api"
-    }
+
     shaded("dev.drtheo:queue:${project.queue_version}") {
         exclude group: "net.fabricmc.fabric-api"
         exclude group: "net.fabricmc.loader"
@@ -123,9 +117,7 @@ dependencies {
     // Duzo’s library
     // ────────────────────────────────────────────────────────────────────
     modApi   "maven.modrinth:animator:${project.animation_version}"
-    include("maven.modrinth:animator:${project.animation_version}") {
-        exclude group: "net.fabricmc.fabric-api"
-    }
+
     shaded("maven.modrinth:animator:${project.animation_version}") {
         exclude group: "net.fabricmc.fabric-api"
         exclude group: "net.fabricmc.loader"
