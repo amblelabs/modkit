@@ -1,8 +1,9 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id "fabric-loom" version "1.9-SNAPSHOT"
     id "maven-publish"
-
-    id "com.diffplug.spotless" version "6.20.0"
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 apply from: 'versioning.gradle'
@@ -28,6 +29,15 @@ repositories {
     }
     // Scheduler, Queue, MultiDim, AutoJSON
     maven { url "https://theo.is-a.dev/maven-repo/" }
+}
+
+tasks.named("remapJar") {
+    dependsOn(tasks.named("shadowJar"))
+    inputFile.set(
+            tasks.named("shadowJar", ShadowJar.class)
+                    .flatMap { it.archiveFile }
+    )
+    archiveClassifier.set("") // makes the remapped shadow jar the default artifact
 }
 
 loom {
@@ -57,6 +67,11 @@ sourceSets {
         }
     }
 }
+
+configurations {
+    shaded
+}
+
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -67,20 +82,35 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
     // Theo's libraries
-    include(modImplementation("dev.drtheo:multidim:${project.multidim_version}")) {
-        exclude(group: "net.fabricmc.fabric-api")
+    shaded(include("dev.drtheo:multidim:${project.multidim_version}")) {
+        exclude group: "net.fabricmc.fabric-api"
+        exclude group: "net.fabricmc.loader"
+        exclude group: "org.spongepowered.asm"
     }
-    include(modImplementation("dev.drtheo:scheduler:${project.scheduler_version}")) {
-        exclude(group: "net.fabricmc.fabric-api")
+    shaded(include("dev.drtheo:scheduler:${project.scheduler_version}")) {
+        exclude group: "net.fabricmc.fabric-api"
+        exclude group: "net.fabricmc.loader"
+        exclude group: "org.spongepowered.asm"
     }
-    include(modImplementation("dev.drtheo:queue:${project.queue_version}")) {
-        exclude(group: "net.fabricmc.fabric-api")
+    shaded(include("dev.drtheo:queue:${project.queue_version}")) {
+        exclude group: "net.fabricmc.fabric-api"
+        exclude group: "net.fabricmc.loader"
+        exclude group: "org.spongepowered.asm"
     }
 
     // Duzo's libaries
-    include(modImplementation("maven.modrinth:animator:${project.animation_version}")) {
-        exclude(group: "net.fabricmc.fabric-api")
+    include(shaded("maven.modrinth:animator:${project.animation_version}")) {
+        exclude group: "net.fabricmc.fabric-api"
+        exclude group: "net.fabricmc.loader"
+        exclude group: "org.spongepowered.asm"
     }
+}
+
+shadowJar {
+    configurations = [project.configurations.shaded]
+    archiveClassifier.set('')
+    exclude 'net/fabricmc/**'
+    exclude 'org/spongepowered/asm/**'
 }
 
 processResources {
@@ -109,30 +139,6 @@ tasks.withType(JavaCompile).configureEach {
     }
 }
 
-spotless {
-    format 'misc', {
-        // define the files to apply `misc` to
-        target '*.gradle', '.gitattributes', '.gitignore'
-
-        // define the steps to apply to those files
-        trimTrailingWhitespace()
-        indentWithSpaces()
-        endWithNewline()
-    }
-
-    java {
-        //eclipse()
-
-        removeUnusedImports()
-        importOrder('java', 'javax', '', 'net.minecraft', group)
-
-        indentWithSpaces()
-        trimTrailingWhitespace()
-
-        formatAnnotations()
-    }
-}
-
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
     if (JavaVersion.current() < javaVersion) {
@@ -143,6 +149,7 @@ java {
 }
 
 jar {
+    enabled = false
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}" }
     }
@@ -152,6 +159,11 @@ jar {
         processResources.exclude("assets")
     }
 }
+
+artifacts {
+    archives shadowJar
+}
+
 
 // configure the maven publication
 publishing {
