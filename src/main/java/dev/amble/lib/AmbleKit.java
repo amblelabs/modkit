@@ -1,5 +1,8 @@
 package dev.amble.lib;
 
+import dev.drtheo.multidim.MultiDimMod;
+import dev.drtheo.scheduler.SchedulerMod;
+import mc.duzo.animation.DuzoAnimationMod;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
@@ -17,6 +20,10 @@ public class AmbleKit implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        new DuzoAnimationMod().onInitialize();
+        new SchedulerMod().onInitialize();
+        new MultiDimMod().onInitialize();
+
         AmbleRegistries.getInstance();
         ServerLifecycleHooks.init();
 
