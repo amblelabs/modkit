@@ -15,7 +15,19 @@ base {
 }
 
 repositories {
-
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
+    // Scheduler, Queue, MultiDim, AutoJSON
+    maven { url "https://theo.is-a.dev/maven-repo/" }
 }
 
 loom {
@@ -53,6 +65,22 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    // Theo's libraries
+    include(modImplementation("dev.drtheo:multidim:${project.multidim_version}")) {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    include(modImplementation("dev.drtheo:scheduler:${project.scheduler_version}")) {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    include(modImplementation("dev.drtheo:queue:${project.queue_version}")) {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+
+    // Duzo's libaries
+    include(modImplementation("maven.modrinth:animator:${project.animation_version}")) {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
 }
 
 processResources {
