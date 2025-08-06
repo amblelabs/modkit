@@ -20,10 +20,6 @@ public class AmbleKit implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        new DuzoAnimationMod().onInitialize();
-        new SchedulerMod().onInitialize();
-        new MultiDimMod().onInitialize();
-
         AmbleRegistries.getInstance();
         ServerLifecycleHooks.init();
 
