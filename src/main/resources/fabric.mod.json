@@ -24,10 +24,7 @@
 		]
 	},
 	"mixins": [
-		"amblekit.mixins.json",
-		"animation.mixins.json",
-		"multidim.mixins.json",
-		"queue.mixins.json"
+		"amblekit.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.16.10",
