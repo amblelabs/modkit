@@ -82,49 +82,10 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    include(implementation "net.objecthunter:exp4j:0.4.8")
-
-    // Theo's libraries
-    // ────────────────────────────────────────────────────────────────────
-    // Theo’s libraries
-    // ────────────────────────────────────────────────────────────────────
-    // 1) modApi (downstream compile+runtime)
-    modApi "dev.drtheo:multidim:${project.multidim_version}"
-    // 2) include (embed/remap into your ModKit jar)
-
-    // 3) shaded (isolate for Shadow packaging)
-    shaded("dev.drtheo:multidim:${project.multidim_version}") {
-        exclude group: "net.fabricmc.fabric-api"
-        exclude group: "net.fabricmc.loader"
-        exclude group: "org.spongepowered.asm"
-    }
-
-    modApi   "dev.drtheo:scheduler:${project.scheduler_version}"
-
-    shaded("dev.drtheo:scheduler:${project.scheduler_version}") {
-        exclude group: "net.fabricmc.fabric-api"
-        exclude group: "net.fabricmc.loader"
-        exclude group: "org.spongepowered.asm"
-    }
-
-    modApi   "dev.drtheo:queue:${project.queue_version}"
-
-    shaded("dev.drtheo:queue:${project.queue_version}") {
-        exclude group: "net.fabricmc.fabric-api"
-        exclude group: "net.fabricmc.loader"
-        exclude group: "org.spongepowered.asm"
-    }
-
-    // ────────────────────────────────────────────────────────────────────
-    // Duzo’s library
-    // ────────────────────────────────────────────────────────────────────
-    modApi   "maven.modrinth:animator:${project.animation_version}"
-
-    shaded("maven.modrinth:animator:${project.animation_version}") {
-        exclude group: "net.fabricmc.fabric-api"
-        exclude group: "net.fabricmc.loader"
-        exclude group: "org.spongepowered.asm"
-    }
+    include(modImplementation("dev.drtheo:multidim:${project.multidim_version}"))
+    include(modImplementation("dev.drtheo:scheduler:${project.scheduler_version}"))
+    include(modImplementation("dev.drtheo:queue:${project.queue_version}"))
+    include(modImplementation("maven.modrinth:animator:${project.animation_version}"))
 }
 
 shadowJar {

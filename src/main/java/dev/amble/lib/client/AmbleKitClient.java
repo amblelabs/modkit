@@ -14,9 +14,6 @@ import dev.amble.lib.api.AmbleKitClientInitializer;
 public class AmbleKitClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-        new DuzoAnimationClient().onInitializeClient();
-        new SchedulerClientMod().onInitializeClient();
-
         FabricLoader.getInstance().invokeEntrypoints("amblekit-client", AmbleKitClientInitializer.class,
                 AmbleKitClientInitializer::onInitialize);
 
