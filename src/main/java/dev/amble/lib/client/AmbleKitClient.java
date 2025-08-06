@@ -1,5 +1,9 @@
 package dev.amble.lib.client;
 
+import dev.amble.lib.client.bedrock.BedrockAnimationRegistry;
+import dev.amble.lib.client.bedrock.BedrockModel;
+import dev.amble.lib.client.bedrock.BedrockModelRegistry;
+import dev.amble.lib.register.AmbleRegistries;
 import dev.drtheo.scheduler.client.SchedulerClientMod;
 import mc.duzo.animation.client.DuzoAnimationClient;
 import net.fabricmc.api.ClientModInitializer;
@@ -15,5 +19,10 @@ public class AmbleKitClient implements ClientModInitializer {
 
         FabricLoader.getInstance().invokeEntrypoints("amblekit-client", AmbleKitClientInitializer.class,
                 AmbleKitClientInitializer::onInitialize);
+
+        AmbleRegistries.getInstance().registerAll(
+                BedrockModelRegistry.getInstance(),
+                BedrockAnimationRegistry.getInstance()
+        );
     }
 }
