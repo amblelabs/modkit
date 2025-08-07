@@ -46,7 +46,10 @@ public class BedrockAnimation {
 	}
 
 	@Environment(EnvType.CLIENT)
-	public void apply(ModelPart root, int ticks, float delta) {
+	public void apply(ModelPart root, int totalTicks, float rawDelta) {
+		float ticks = (float) ((totalTicks / 20F) % (this.animationLength)) * 20;
+		float delta = rawDelta / 10F;
+
 		this.boneTimelines.forEach((boneName, timeline) -> {
 			try {
 				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
@@ -58,24 +61,28 @@ public class BedrockAnimation {
 					}
 				}
 
-				// TODO - tick delta causes jittering.
-
 				if (!timeline.position.isEmpty()) {
-					Vec3d position = timeline.position.resolve((ticks + delta) / 20.0);
-					bone.setPivot((float) position.x, (float) position.y, (float) position.z);
+					Vec3d position = timeline.position.resolve(((ticks) / 20.0) + delta);
+
+					bone.pivotX += (float) position.x;
+					bone.pivotY += (float) position.y;
+					bone.pivotZ += (float) position.z;
 				}
 
 				if (!timeline.rotation.isEmpty()) {
-					Vec3d rotation = timeline.rotation.resolve((ticks + delta) / 20.0);
-					bone.setAngles((float) Math.toRadians((float) rotation.x), (float) Math.toRadians((float) rotation.y), (float) Math.toRadians((float) rotation.z));
+					Vec3d rotation = timeline.rotation.resolve(((ticks) / 20.0) + delta);
+
+					bone.pitch += (float) Math.toRadians((float) rotation.x);
+					bone.yaw += (float) Math.toRadians((float) rotation.y);
+					bone.roll += (float) Math.toRadians((float) rotation.z);
 				}
 
 				if (!timeline.scale.isEmpty()) {
-					Vec3d scale = timeline.scale.resolve((ticks + delta) / 20.0);
+					Vec3d scale = timeline.scale.resolve(((ticks) / 20.0) + delta);
 
-					bone.xScale = (float) scale.x;
-					bone.yScale = (float) scale.y;
-					bone.zScale = (float) scale.z;
+					bone.xScale *= (float) scale.x;
+					bone.yScale *= (float) scale.y;
+					bone.zScale *= (float) scale.z;
 				}
 			} catch (Exception e) {
 				AmbleKit.LOGGER.error("Failed apply animation to {} in model. Skipping animation application for this bone.", boneName, e);
