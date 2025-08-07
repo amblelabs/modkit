@@ -82,10 +82,10 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-    include(modImplementation("dev.drtheo:multidim:${project.multidim_version}"))
-    include(modImplementation("dev.drtheo:scheduler:${project.scheduler_version}"))
-    include(modImplementation("dev.drtheo:queue:${project.queue_version}"))
-    include(modImplementation("maven.modrinth:animator:${project.animation_version}"))
+    include(modApi("dev.drtheo:multidim:${project.multidim_version}"))
+    include(modApi("dev.drtheo:scheduler:${project.scheduler_version}"))
+    include(modApi("dev.drtheo:queue:${project.queue_version}"))
+    include(modApi("maven.modrinth:animator:${project.animation_version}"))
 }
 
 shadowJar {
