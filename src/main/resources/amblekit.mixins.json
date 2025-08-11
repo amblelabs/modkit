@@ -6,8 +6,11 @@
   "mixins": [
     "AbstractBlockAccessor",
     "ItemMixin",
+    "MinecraftServerMixin",
     "SaveLoadingMixin",
-    "ServerPlayerInteractionManagerMixin"
+    "ServerPlayerInteractionManagerMixin",
+    "ServerWorldMixin",
+    "networking.ThreadedAnvilChunkStorageMixin"
   ],
   "client": [
     "client.ClientPlayerInteractionManagerMixin"
