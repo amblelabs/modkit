@@ -22,7 +22,5 @@ public interface ICantBreak {
      *
      * @param player The player who attempted to break the block, or null if not available.
      */
-    default void onTryBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
-        this.onTryBreak(world, pos, state);
-    }
+    default void onTryBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) { }
 }
