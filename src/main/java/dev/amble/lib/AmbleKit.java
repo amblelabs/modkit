@@ -1,5 +1,10 @@
 package dev.amble.lib;
 
+import dev.drtheo.multidim.MultiDimMod;
+import dev.drtheo.scheduler.SchedulerMod;
+import mc.duzo.animation.DuzoAnimationMod;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

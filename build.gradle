@@ -1,8 +1,6 @@
 plugins {
     id "dev.architectury.loom" version "1.10-SNAPSHOT"
     id "maven-publish"
-
-    id "com.diffplug.spotless" version "6.20.0"
 }
 
 apply from: 'versioning.gradle'
@@ -19,6 +17,28 @@ repositories {
         name = "Su5eD"
         url = uri("https://maven.su5ed.dev/releases")
     }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
+    // Scheduler, Queue, MultiDim, AutoJSON
+    maven { url "https://theo.is-a.dev/maven/" }
+}
+
+tasks.named("remapJar") {
+    dependsOn(tasks.named("shadowJar"))
+    inputFile.set(
+            tasks.named("shadowJar", ShadowJar.class)
+                    .flatMap { it.archiveFile }
+    )
+    archiveClassifier.set("") // makes the remapped shadow jar the default artifact
 }
 
 loom {
@@ -57,6 +77,20 @@ dependencies {
 
     forge "net.minecraftforge:forge:${project.forge_version}"
     modImplementation "dev.su5ed.sinytra.fabric-api:fabric-api:${project.fabric_version}"
+
+    include(implementation "net.objecthunter:exp4j:0.4.8")
+
+    include(modApi("dev.drtheo:multidim:${project.multidim_version}"))
+    include(modApi("dev.drtheo:scheduler:${project.scheduler_version}"))
+    include(modApi("dev.drtheo:queue:${project.queue_version}"))
+    include(modApi("maven.modrinth:animator:${project.animation_version}"))
+}
+
+shadowJar {
+    configurations = [project.configurations.shaded]
+    archiveClassifier.set('')
+    exclude 'net/fabricmc/**'
+    exclude 'org/spongepowered/asm/**'
 }
 
 processResources {
@@ -82,30 +116,6 @@ tasks.withType(JavaCompile).configureEach {
     it.options.encoding = "UTF-8"
     if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
         it.options.release = targetJavaVersion
-    }
-}
-
-spotless {
-    format 'misc', {
-        // define the files to apply `misc` to
-        target '*.gradle', '.gitattributes', '.gitignore'
-
-        // define the steps to apply to those files
-        trimTrailingWhitespace()
-        indentWithSpaces()
-        endWithNewline()
-    }
-
-    java {
-        //eclipse()
-
-        removeUnusedImports()
-        importOrder('java', 'javax', '', 'net.minecraft', group)
-
-        indentWithSpaces()
-        trimTrailingWhitespace()
-
-        formatAnnotations()
     }
 }
 
