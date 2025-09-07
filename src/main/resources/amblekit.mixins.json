@@ -9,7 +9,8 @@
     "ItemMixin",
     "SaveLoadingMixin",
     "ServerPlayerInteractionManagerMixin",
-    "client.ItemModelGeneratorAccessor"
+    "client.ItemModelGeneratorAccessor",
+    "fix.WorldCacheResetFix"
   ],
   "client": [
     "client.ClientPlayerInteractionManagerMixin"
