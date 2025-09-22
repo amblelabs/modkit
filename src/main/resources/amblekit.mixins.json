@@ -10,6 +10,7 @@
     "ServerPlayerInteractionManagerMixin"
   ],
   "client": [
+    "client.AbstractClientPlayerMixin",
     "client.ClientPlayerInteractionManagerMixin"
   ],
   "injectors": {

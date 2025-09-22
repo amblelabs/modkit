@@ -1,4 +1,4 @@
-package dev.amble.lib.skin;
+package dev.amble.lib.skin.client;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
