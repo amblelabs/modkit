@@ -25,4 +25,16 @@ public class AbstractClientPlayerMixin {
 
 		cir.setReturnValue(id);
 	}
+
+	@Inject(method="getModel", at=@At("HEAD"), cancellable = true)
+	private void amblekit$getModel(CallbackInfoReturnable<String> cir) {
+		AbstractClientPlayerEntity player = (AbstractClientPlayerEntity) (Object) this;
+
+		SkinTracker tracker = SkinTracker.getInstance();
+
+		SkinData data = tracker.get(player.getUuid());
+		if (data == null) return;
+
+		cir.setReturnValue(data.slim() ? "slim" : "default");
+	}
 }

@@ -65,7 +65,7 @@ public class SkinTracker extends HashMap<UUID, SkinData> {
 	@Nullable
 	public SkinData removeSynced(UUID id) {
 		SkinData previous = this.remove(id);
-		sync(toBuf(id, new SkinData("supersecretcodeword", null)));
+		sync(toBuf(id, SkinData.clear()));
 		return previous;
 	}
 
@@ -79,11 +79,7 @@ public class SkinTracker extends HashMap<UUID, SkinData> {
 		buf.writeInt(1);
 
 		buf.writeUuid(id);
-		buf.writeString(data.key());
-		buf.writeBoolean(data.url() != null);
-		if (data.url() != null) {
-			buf.writeString(data.url());
-		}
+		data.writeBuf(buf);
 
 		return buf;
 	}
@@ -99,11 +95,8 @@ public class SkinTracker extends HashMap<UUID, SkinData> {
 
 		for (Map.Entry<UUID, SkinData> entry : map.entrySet()) {
 			buf.writeUuid(entry.getKey());
-			buf.writeString(entry.getValue().key());
-			buf.writeBoolean(entry.getValue().url() != null);
-			if (entry.getValue().url() != null) {
-				buf.writeString(entry.getValue().url());
-			}
+
+			entry.getValue().writeBuf(buf);
 		}
 
 		return buf;
@@ -121,15 +114,9 @@ public class SkinTracker extends HashMap<UUID, SkinData> {
 		int count = buf.readInt();
 		for (int i = 0; i < count; i++) {
 			UUID id = buf.readUuid();
-			String key = buf.readString();
-
-			if (key == "supersecretcodeword") continue;
-
-			String url = null;
-			if (buf.readBoolean()) {
-				url = buf.readString();
-			}
-			this.put(id, new SkinData(key, url));
+			SkinData val = SkinData.readBuf(buf);
+			if (val == null) continue;
+			this.put(id, val);
 		}
 	}
 

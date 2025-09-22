@@ -4,32 +4,48 @@ import dev.amble.lib.skin.client.SkinGrabber;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public record SkinData(String key, @Nullable String url) {
-	public static SkinData username(String username) {
-		return new SkinData(username, SkinConstants.SKIN_URL + username);
+public record SkinData(String key, @Nullable String url, boolean slim) {
+	private static final SkinData CLEAR = new SkinData("supersecretcodeword", null, false);
+
+	public static SkinData username(String username, boolean slim) {
+		return new SkinData(username, SkinConstants.SKIN_URL + username, slim);
 	}
 
-	public static SkinData url(String url) {
-		return new SkinData(SkinConstants.encodeURL(url), url);
+	public static SkinData url(String url, boolean slim) {
+		return new SkinData(SkinConstants.encodeURL(url), url, slim);
 	}
 
-	public static SkinData fromNbt(NbtCompound nbt) {
-		String key = nbt.getString("Key");
-		String url = nbt.contains("URL") ? nbt.getString("URL") : null;
-		return new SkinData(key, url);
+	public static SkinData clear() {
+		return CLEAR;
 	}
 
-	public NbtCompound toNbt() {
-		NbtCompound nbt = new NbtCompound();
-		nbt.putString("Key", key);
-		if (url != null) nbt.putString("URL", url);
-		return nbt;
+	public static SkinData readBuf(PacketByteBuf buf) {
+		String key = buf.readString();
+		String url = buf.readBoolean() ? buf.readString() : null;
+		boolean slim = buf.readBoolean();
+
+
+		if (key.equalsIgnoreCase(CLEAR.key())) return null;
+
+		return new SkinData(key, url, slim);
+	}
+
+	public void writeBuf(PacketByteBuf buf) {
+		buf.writeString(key);
+		buf.writeBoolean(url != null);
+		if (url != null) buf.writeString(url);
+		buf.writeBoolean(slim);
+	}
+
+	public SkinData withSlim(boolean slim) {
+		return new SkinData(key, url, slim);
 	}
 
 	@Environment(EnvType.CLIENT)
