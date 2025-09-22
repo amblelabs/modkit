@@ -24,6 +24,10 @@ public class SetSkinCommand {
 
 		SkinData data = SkinData.username(name);
 
+		if (context.getSource().getPlayer() == null) {
+			context.getSource().sendError(Text.literal("This command can only be run by a player."));
+			return 0;
+		}
 		SkinTracker.getInstance().add(context.getSource().getPlayer().getUuid(), data);
 
 		context.getSource().sendFeedback(() -> Text.literal("Set skin to " + name), true);
