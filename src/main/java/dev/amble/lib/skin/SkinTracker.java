@@ -6,7 +6,6 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -57,9 +56,16 @@ public class SkinTracker extends HashMap<UUID, SkinData> {
 	}
 
 	@Nullable
-	public SkinData add(UUID id, SkinData data) {
+	public SkinData putSynced(UUID id, SkinData data) {
 		SkinData previous = this.put(id, data);
 		sync(toBuf(id, data));
+		return previous;
+	}
+
+	@Nullable
+	public SkinData removeSynced(UUID id) {
+		SkinData previous = this.remove(id);
+		sync(toBuf(id, new SkinData("supersecretcodeword", null)));
 		return previous;
 	}
 
@@ -116,6 +122,9 @@ public class SkinTracker extends HashMap<UUID, SkinData> {
 		for (int i = 0; i < count; i++) {
 			UUID id = buf.readUuid();
 			String key = buf.readString();
+
+			if (key == "supersecretcodeword") continue;
+
 			String url = null;
 			if (buf.readBoolean()) {
 				url = buf.readString();

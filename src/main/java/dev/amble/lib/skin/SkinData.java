@@ -15,6 +15,10 @@ public record SkinData(String key, @Nullable String url) {
 		return new SkinData(username, SkinConstants.SKIN_URL + username);
 	}
 
+	public static SkinData url(String url) {
+		return new SkinData(SkinConstants.encodeURL(url), url);
+	}
+
 	public static SkinData fromNbt(NbtCompound nbt) {
 		String key = nbt.getString("Key");
 		String url = nbt.contains("URL") ? nbt.getString("URL") : null;
@@ -42,7 +46,7 @@ public record SkinData(String key, @Nullable String url) {
 	 * @param uuid the players UUID
 	 */
 	public void upload(UUID uuid) {
-		SkinTracker.getInstance().add(uuid, this);
+		SkinTracker.getInstance().putSynced(uuid, this);
 	}
 
 	/**
