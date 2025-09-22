@@ -60,6 +60,9 @@ public class SkinGrabber {
     }
 
     public static Identifier missing() {
+        if (MinecraftClient.getInstance().player == null) {
+            return MISSING;
+        }
         return DefaultSkinHelper.getTexture(MinecraftClient.getInstance().player.getUuid());
     }
 
