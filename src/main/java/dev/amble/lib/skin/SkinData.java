@@ -11,15 +11,19 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public record SkinData(String key, @Nullable String url, boolean slim) {
-	private static final SkinData CLEAR = new SkinData("supersecretcodeword", null, false);
+public record SkinData(String key, @Nullable String url, @Nullable Identifier localTexture, boolean slim) {
+	private static final SkinData CLEAR = new SkinData("supersecretcodeword", null, null, false);
 
 	public static SkinData username(String username, boolean slim) {
-		return new SkinData(username, SkinConstants.SKIN_URL + username, slim);
+		return new SkinData(username, SkinConstants.SKIN_URL + username, null, slim);
 	}
 
 	public static SkinData url(String url, boolean slim) {
-		return new SkinData(SkinConstants.encodeURL(url), url, slim);
+		return new SkinData(SkinConstants.encodeURL(url), url, null, slim);
+	}
+
+	public static SkinData texture(Identifier texture, boolean slim) {
+		return new SkinData(texture.toString(), null, texture, slim);
 	}
 
 	public static SkinData clear() {
@@ -29,27 +33,32 @@ public record SkinData(String key, @Nullable String url, boolean slim) {
 	public static SkinData readBuf(PacketByteBuf buf) {
 		String key = buf.readString();
 		String url = buf.readBoolean() ? buf.readString() : null;
+		Identifier localTexture = buf.readBoolean() ? buf.readIdentifier() : null;
 		boolean slim = buf.readBoolean();
 
 
 		if (key.equalsIgnoreCase(CLEAR.key())) return null;
 
-		return new SkinData(key, url, slim);
+		return new SkinData(key, url, localTexture, slim);
 	}
 
 	public void writeBuf(PacketByteBuf buf) {
 		buf.writeString(key);
 		buf.writeBoolean(url != null);
 		if (url != null) buf.writeString(url);
+		buf.writeBoolean(localTexture != null);
+		if (localTexture != null) buf.writeIdentifier(localTexture);
 		buf.writeBoolean(slim);
 	}
 
 	public SkinData withSlim(boolean slim) {
-		return new SkinData(key, url, slim);
+		return new SkinData(key, url, localTexture, slim);
 	}
 
 	@Environment(EnvType.CLIENT)
 	public Identifier get() {
+		if (localTexture != null) return localTexture;
+
 		SkinGrabber grabber = SkinGrabber.INSTANCE;
 
 		if (url == null) return grabber.getPossibleSkin(key).orElse(null);
