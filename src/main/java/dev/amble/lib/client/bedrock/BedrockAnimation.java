@@ -98,6 +98,11 @@ public class BedrockAnimation {
 				AmbleKit.LOGGER.error("Failed apply animation to {} in model. Skipping animation application for this bone.", boneName, e);
 			}
 		});
+
+		boolean isComplete = !this.shouldLoop && runningSeconds >= this.animationLength;
+		if (isComplete) {
+			this.resetBones(root, runningSeconds);
+		}
 	}
 
 	@Environment(EnvType.CLIENT)
