@@ -76,7 +76,7 @@ public class BedrockAnimation {
 				}
 
 				if (!timeline.rotation.isEmpty()) {
-					Vec3d rotation = timeline.rotation.resolve(runningSeconds);;
+					Vec3d rotation = timeline.rotation.resolve(runningSeconds);
 
 					bone.traverse().forEach(child -> {
 						child.pitch += (float) Math.toRadians((float) rotation.x);
@@ -142,7 +142,7 @@ public class BedrockAnimation {
 			try {
 				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
 				if (bone == null) {
-					if (boneName == "root") {
+					if ("root".equals(boneName)) {
 						bone = root;
 					} else {
 						throw new IllegalStateException("Bone " + boneName + " not found in model. If this is the root part, ensure it is named 'root'.");
