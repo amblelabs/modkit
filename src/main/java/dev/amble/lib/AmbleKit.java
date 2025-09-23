@@ -20,6 +20,7 @@ import dev.amble.lib.util.ServerLifecycleHooks;
 public class AmbleKit implements ModInitializer {
     public static final String MOD_ID = "amblekit";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    private static final boolean TESTS_ENABLED = true;
 
     @Override
     public void onInitialize() {
@@ -37,5 +38,8 @@ public class AmbleKit implements ModInitializer {
 
     public static Identifier id(String path) {
         return new Identifier(MOD_ID, path);
+    }
+    public static boolean isTestingEnabled() {
+        return FabricLoader.getInstance().isDevelopmentEnvironment() && TESTS_ENABLED;
     }
 }
