@@ -87,7 +87,6 @@ dependencies {
     include(modApi("dev.drtheo:multidim:${project.multidim_version}"))
     include(modApi("dev.drtheo:scheduler:${project.scheduler_version}"))
     include(modApi("dev.drtheo:queue:${project.queue_version}"))
-    include(modApi("maven.modrinth:animator:${project.animation_version}"))
 }
 
 shadowJar {
