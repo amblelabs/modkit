@@ -46,10 +46,7 @@ public class BedrockAnimation {
 	}
 
 	@Environment(EnvType.CLIENT)
-	public void apply(ModelPart root, int totalTicks, float rawDelta) {
-		float ticks = (float) ((totalTicks / 20F) % (this.animationLength)) * 20;
-		float delta = rawDelta / 10F;
-
+	public void apply(ModelPart root, double runningSeconds) {
 		this.boneTimelines.forEach((boneName, timeline) -> {
 			try {
 				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
@@ -62,7 +59,7 @@ public class BedrockAnimation {
 				}
 
 				if (!timeline.position.isEmpty()) {
-					Vec3d position = timeline.position.resolve(((ticks) / 20.0) + delta);
+					Vec3d position = timeline.position.resolve(runningSeconds);
 
 					bone.pivotX += (float) position.x;
 					bone.pivotY += (float) position.y;
@@ -70,7 +67,7 @@ public class BedrockAnimation {
 				}
 
 				if (!timeline.rotation.isEmpty()) {
-					Vec3d rotation = timeline.rotation.resolve(((ticks) / 20.0) + delta);
+					Vec3d rotation = timeline.rotation.resolve(runningSeconds);
 
 					bone.pitch += (float) Math.toRadians((float) rotation.x);
 					bone.yaw += (float) Math.toRadians((float) rotation.y);
@@ -78,7 +75,7 @@ public class BedrockAnimation {
 				}
 
 				if (!timeline.scale.isEmpty()) {
-					Vec3d scale = timeline.scale.resolve(((ticks) / 20.0) + delta);
+					Vec3d scale = timeline.scale.resolve(runningSeconds);
 
 					bone.xScale *= (float) scale.x;
 					bone.yScale *= (float) scale.y;
@@ -92,16 +89,49 @@ public class BedrockAnimation {
 
 	@Environment(EnvType.CLIENT)
 	public void apply(ModelPart root, AnimationState state, float progress, float speedMultiplier) {
+		double seconds = getRunningSeconds(state, progress, speedMultiplier);
+		state.run(s -> apply(root, seconds));
+	}
+
+	public void apply(ModelPart root, int totalTicks, float rawDelta) {
+		float ticks = (float) ((totalTicks / 20F) % (this.animationLength)) * 20;
+		float delta = rawDelta / 10F;
+
+		apply(root, (ticks / 20) + delta);
+	}
+
+	public double getRunningSeconds(AnimationState state, float progress, float speedMultiplier) {
 		state.update(progress, speedMultiplier);
 
-		float ticks;
-		if (this.shouldLoop) {
-			ticks = (float) ((state.getTimeRunning() / 1000F) % (this.animationLength)) * 20;
-		} else {
-			ticks = state.getTimeRunning();
-		}
+		float f = (float)state.getTimeRunning() / 1000.0F;
+		double seconds = this.shouldLoop ? f % this.animationLength : f;
 
-		state.run(s -> apply(root, (int) ticks, 0));
+		return seconds;
+	}
+
+	public boolean isFinished(AnimationState state) {
+		if (this.shouldLoop) return false;
+
+		return state.getTimeRunning() / 1000.0F >= this.animationLength;
+	}
+
+	public void resetBones(ModelPart root, double runningSeconds) {
+		this.boneTimelines.forEach((boneName, timeline) -> {
+			try {
+				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
+				if (bone == null) {
+					if (boneName == "root") {
+						bone = root;
+					} else {
+						throw new IllegalStateException("Bone " + boneName + " not found in model. If this is the root part, ensure it is named 'root'.");
+					}
+				}
+
+				bone.resetTransform();
+			} catch (Exception e) {
+				AmbleKit.LOGGER.error("Failed to reset animation on {} in model. Skipping animation reset for this bone.", boneName, e);
+			}
+		});
 	}
 
 	public static class Group {
