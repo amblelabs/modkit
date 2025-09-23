@@ -6,12 +6,14 @@ import dev.amble.lib.client.bedrock.BedrockAnimationReference;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.entity.AnimationState;
+import net.minecraft.entity.Entity;
 
 import java.util.Optional;
 
 @Environment(EnvType.CLIENT)
-public interface AnimatedEntityRenderer<T extends AnimatedEntity> {
+public interface AnimatedEntityModel<T extends AnimatedEntity> {
 	/**
 	 * @return the root modelpart of the renderer
 	 */
@@ -24,6 +26,9 @@ public interface AnimatedEntityRenderer<T extends AnimatedEntity> {
 		return this.getPart().traverse().filter(part -> part.hasChild(name)).findFirst().map(part -> part.getChild(name));
 	}
 
+	/**
+	 * Call this in {@link EntityModel#setAngles(Entity, float, float, float, float, float)} where progress is usually named 'h'
+	 */
 	default void applyAnimation(T entity, float progress) {
 		BedrockAnimationReference reference = entity.getCurrentAnimation();
 		if (reference == null) return;
@@ -32,15 +37,18 @@ public interface AnimatedEntityRenderer<T extends AnimatedEntity> {
 		if (animation == null) return;
 
 		AnimationState state = entity.getAnimationState();
-		if (animation.isFinished(state)) return;
 
 		if (entity.isAnimationDirty()) {
 			state.stop();
+			state.startIfNotRunning(entity.getAge());
 		}
+
+		if (animation.isFinished(state)) return;
 
 		state.startIfNotRunning(entity.getAge());
 
-		animation.resetBones(this.getPart(), animation.getRunningSeconds(state, progress, 1.0F));
+		// todo - allow animations to define whether they reset bones or not
+		// animation.resetBones(this.getPart(), animation.getRunningSeconds(state, progress, 1.0F));
 		animation.apply(this.getPart(), state, progress, 1.0F);
 	}
 }

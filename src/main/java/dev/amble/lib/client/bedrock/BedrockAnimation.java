@@ -61,25 +61,32 @@ public class BedrockAnimation {
 				if (!timeline.position.isEmpty()) {
 					Vec3d position = timeline.position.resolve(runningSeconds);
 
-					bone.pivotX += (float) position.x;
-					bone.pivotY += (float) position.y;
-					bone.pivotZ += (float) position.z;
+					// traverse includes self
+					bone.traverse().forEach(child -> {
+						child.pivotX += (float) position.x;
+						child.pivotY += (float) position.y;
+						child.pivotZ += (float) position.z;
+					});
 				}
 
 				if (!timeline.rotation.isEmpty()) {
-					Vec3d rotation = timeline.rotation.resolve(runningSeconds);
+					Vec3d rotation = timeline.rotation.resolve(runningSeconds);;
 
-					bone.pitch += (float) Math.toRadians((float) rotation.x);
-					bone.yaw += (float) Math.toRadians((float) rotation.y);
-					bone.roll += (float) Math.toRadians((float) rotation.z);
+					bone.traverse().forEach(child -> {
+						child.pitch += (float) Math.toRadians((float) rotation.x);
+						child.yaw += (float) Math.toRadians((float) rotation.y);
+						child.roll += (float) Math.toRadians((float) rotation.z);
+					});
 				}
 
 				if (!timeline.scale.isEmpty()) {
 					Vec3d scale = timeline.scale.resolve(runningSeconds);
 
-					bone.xScale *= (float) scale.x;
-					bone.yScale *= (float) scale.y;
-					bone.zScale *= (float) scale.z;
+					bone.traverse().forEach(child -> {
+						child.xScale *= (float) scale.x;
+						child.yScale *= (float) scale.y;
+						child.zScale *= (float) scale.z;
+					});
 				}
 			} catch (Exception e) {
 				AmbleKit.LOGGER.error("Failed apply animation to {} in model. Skipping animation application for this bone.", boneName, e);
@@ -103,6 +110,10 @@ public class BedrockAnimation {
 	public double getRunningSeconds(AnimationState state, float progress, float speedMultiplier) {
 		state.update(progress, speedMultiplier);
 
+		return getRunningSeconds(state);
+	}
+
+	public double getRunningSeconds(AnimationState state) {
 		float f = (float)state.getTimeRunning() / 1000.0F;
 		double seconds = this.shouldLoop ? f % this.animationLength : f;
 
@@ -112,7 +123,7 @@ public class BedrockAnimation {
 	public boolean isFinished(AnimationState state) {
 		if (this.shouldLoop) return false;
 
-		return state.getTimeRunning() / 1000.0F >= this.animationLength;
+		return getRunningSeconds(state) >= this.animationLength;
 	}
 
 	public void resetBones(ModelPart root, double runningSeconds) {
@@ -127,7 +138,7 @@ public class BedrockAnimation {
 					}
 				}
 
-				bone.resetTransform();
+				bone.traverse().forEach(ModelPart::resetTransform);
 			} catch (Exception e) {
 				AmbleKit.LOGGER.error("Failed to reset animation on {} in model. Skipping animation reset for this bone.", boneName, e);
 			}

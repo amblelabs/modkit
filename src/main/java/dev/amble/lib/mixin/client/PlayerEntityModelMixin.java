@@ -1,30 +1,20 @@
 package dev.amble.lib.mixin.client;
 
 import dev.amble.lib.animation.AnimatedEntity;
-import dev.amble.lib.animation.client.AnimatedEntityRenderer;
-import mc.duzo.animation.generic.AnimationInfo;
-import mc.duzo.animation.player.PlayerAnimationHelper;
-import mc.duzo.animation.player.PlayerModelHook;
-import mc.duzo.animation.util.AnimationUtil;
+import dev.amble.lib.animation.client.AnimatedEntityModel;
 import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
 import net.minecraft.entity.LivingEntity;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.List;
-import java.util.Optional;
-
 @Mixin(PlayerEntityModel.class)
 public abstract class PlayerEntityModelMixin<T extends LivingEntity>
-        extends BipedEntityModel<T> implements AnimatedEntityRenderer<AnimatedEntity> {
+        extends BipedEntityModel<T> implements AnimatedEntityModel<AnimatedEntity> {
 
     @Unique
     ModelPart root;
@@ -43,6 +33,14 @@ public abstract class PlayerEntityModelMixin<T extends LivingEntity>
         if (!(livingEntity instanceof AnimatedEntity player)) return;
 
 		this.applyAnimation(player, h);
+
+		PlayerEntityModel model = (PlayerEntityModel)(Object)this;
+	    model.hat.copyTransform(model.head);
+	    model.leftPants.copyTransform(model.leftLeg);
+	    model.rightPants.copyTransform(model.rightLeg);
+	    model.leftSleeve.copyTransform(model.leftArm);
+	    model.rightSleeve.copyTransform(model.rightArm);
+	    model.jacket.copyTransform(model.body);
     }
 
     @Override
