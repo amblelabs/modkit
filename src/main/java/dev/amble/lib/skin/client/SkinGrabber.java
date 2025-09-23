@@ -1,11 +1,9 @@
-package dev.amble.lib.skin;
+package dev.amble.lib.skin.client;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -16,8 +14,11 @@ import javax.imageio.ImageIO;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.mojang.datafixers.util.Pair;
+import dev.amble.lib.skin.ConcurrentQueueMap;
+import dev.amble.lib.skin.SkinConstants;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.util.DefaultSkinHelper;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.MinecraftClient;
@@ -34,8 +35,7 @@ import dev.amble.lib.AmbleKit;
 @Environment(EnvType.CLIENT)
 public class SkinGrabber {
     public static final SkinGrabber INSTANCE = new SkinGrabber();
-    public static final String SKIN_URL = "https://mineskin.eu/skin/";
-    public static final String DEFAULT_DIR = "./" + AmbleKit.MOD_ID + "/";
+	public static final String DEFAULT_DIR = "./" + AmbleKit.MOD_ID + "/";
     public static final String SKIN_DIR = DEFAULT_DIR + "/skins/";
     private static final Identifier MISSING = new Identifier(AmbleKit.MOD_ID, "textures/skins/error.png");
     private static final String USER_AGENT = AmbleKit.MOD_ID + "/1.0";
@@ -58,26 +58,13 @@ public class SkinGrabber {
     }
 
     public static Identifier missing() {
-        return MISSING;
-    }
-
-    public static String encodeURL(String input) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hash = md.digest(input.getBytes());
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+        if (MinecraftClient.getInstance().player == null) {
+            return MISSING;
         }
+        return DefaultSkinHelper.getTexture(MinecraftClient.getInstance().player.getUuid());
     }
 
-    public List<String> getAllKeys() {
+	public List<String> getAllKeys() {
         return List.copyOf(downloads.keySet());
     }
 
@@ -156,7 +143,7 @@ public class SkinGrabber {
      * @return The skin, or a missing texture if it doesn't exist / is downloading
      */
     public Identifier getSkin(String name) {
-        return getSkinOrDownload(name, SKIN_URL + name);
+        return getSkinOrDownload(name, SkinConstants.SKIN_URL + name);
     }
 
     public Optional<Identifier> getPossibleSkin(String id) {
@@ -269,7 +256,7 @@ public class SkinGrabber {
     private void enqueueDownload(String id, String url) {
         this.downloadQueue.put(id, url);
 
-        AmbleKit.LOGGER.debug("Enqueued Download {} for {}", url, id);
+        AmbleKit.LOGGER.info("Enqueued Download {} for {}", url, id);
     }
 
     private void downloadNext() {
@@ -283,7 +270,7 @@ public class SkinGrabber {
     }
 
     private void download(String id, String url) {
-        AmbleKit.LOGGER.debug("Downloading {} for {}", url, id);
+        AmbleKit.LOGGER.info("Downloading {} for {}", url, id);
 
         if (!(isValidUrl(url))) {
             AmbleKit.LOGGER.error("Discarding Invalid URL: {}", url);
@@ -296,7 +283,7 @@ public class SkinGrabber {
         SkinCache.CacheData data = cache.get(id).orElse(null);
         if (data != null) {
             try {
-                AmbleKit.LOGGER.debug("Using cached skin for {}", id);
+                AmbleKit.LOGGER.info("Using cached skin for {}", id);
                 urls.put(id, data.url());
                 this.registerSkin(id);
                 connection = false;
@@ -313,7 +300,7 @@ public class SkinGrabber {
                 this.downloadImageFromURL(id, new File(SKIN_DIR), url);
                 this.registerSkin(id);
                 this.cache.add(id, url);
-                AmbleKit.LOGGER.debug("Downloaded {} for {}!", url, id);
+                AmbleKit.LOGGER.info("Downloaded {} for {}!", url, id);
             } catch (Exception exception) {
                 AmbleKit.LOGGER.error("Failed to download {} for {}", url, id, exception);
             } finally {
@@ -337,7 +324,7 @@ public class SkinGrabber {
 
     public interface IDownloadSource {
         default void download() {
-            AmbleKit.LOGGER.debug("Downloading {}", getId());
+            AmbleKit.LOGGER.info("Downloading {}", getId());
 
             getTracker().connection = true;
 
@@ -384,7 +371,7 @@ public class SkinGrabber {
         public void downloadThreaded() {
             try {
                 if (this.isDownloaded()) {
-                    AmbleKit.LOGGER.debug("JerynSkins is already downloaded");
+                    AmbleKit.LOGGER.info("JerynSkins is already downloaded");
                     return;
                 }
 
@@ -419,7 +406,7 @@ public class SkinGrabber {
                     }
 
                     String url = element.getAsJsonObject().get("link").getAsString();
-                    String id = encodeURL(url);
+                    String id = SkinConstants.encodeURL(url);
 
                     skins.put(id, url);
                 });

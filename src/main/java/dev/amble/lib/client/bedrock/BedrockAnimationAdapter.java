@@ -38,6 +38,7 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 		JsonObject jsonObj = json.getAsJsonObject();
 		double animationLength = jsonObj.has("animation_length") ? jsonObj.get("animation_length").getAsDouble() : -1.0;
 		boolean shouldLoop = animationLength > 0 && jsonObj.has("loop") && jsonObj.get("loop").getAsBoolean();
+		boolean overrideBones = jsonObj.has("override_previous_animation") && jsonObj.get("override_previous_animation").getAsBoolean();
 
 		Map<String, BedrockAnimation.BoneTimeline> boneTimelines = new HashMap<>();
 
@@ -47,7 +48,7 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 			}
 		}
 
-		return new BedrockAnimation(shouldLoop, animationLength, boneTimelines);
+		return new BedrockAnimation(shouldLoop, animationLength, overrideBones, boneTimelines);
 	}
 
 	private BedrockAnimation.BoneTimeline deserializeBoneTimeline(JsonObject bone) {
