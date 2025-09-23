@@ -142,7 +142,7 @@ public class BedrockAnimation {
 			try {
 				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
 				if (bone == null) {
-					if (boneName == "root") {
+					if ("root".equals(boneName)) {
 						bone = root;
 					} else {
 						throw new IllegalStateException("Bone " + boneName + " not found in model. If this is the root part, ensure it is named 'root'.");
