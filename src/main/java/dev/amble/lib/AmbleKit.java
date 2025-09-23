@@ -6,7 +6,6 @@ import dev.amble.lib.command.SetSkinCommand;
 import dev.amble.lib.skin.SkinTracker;
 import dev.drtheo.multidim.MultiDimMod;
 import dev.drtheo.scheduler.SchedulerMod;
-import mc.duzo.animation.DuzoAnimationMod;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
