@@ -6,12 +6,14 @@
   "mixins": [
     "AbstractBlockAccessor",
     "ItemMixin",
+    "PlayerEntityMixin",
     "SaveLoadingMixin",
     "ServerPlayerInteractionManagerMixin"
   ],
   "client": [
     "client.AbstractClientPlayerMixin",
-    "client.ClientPlayerInteractionManagerMixin"
+    "client.ClientPlayerInteractionManagerMixin",
+    "client.PlayerEntityModelMixin"
   ],
   "injectors": {
     "defaultRequire": 1

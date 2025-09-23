@@ -12,6 +12,11 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 
 import dev.amble.lib.api.AmbleKitClientInitializer;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public class AmbleKitClient implements ClientModInitializer {
     @Override

@@ -1,5 +1,7 @@
 package dev.amble.lib;
 
+import dev.amble.lib.animation.AnimationTracker;
+import dev.amble.lib.command.PlayAnimationCommand;
 import dev.amble.lib.command.SetSkinCommand;
 import dev.amble.lib.skin.SkinTracker;
 import dev.drtheo.multidim.MultiDimMod;
@@ -26,9 +28,11 @@ public class AmbleKit implements ModInitializer {
         AmbleRegistries.getInstance();
         ServerLifecycleHooks.init();
 		SkinTracker.init();
+		AnimationTracker.init();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> {
 			SetSkinCommand.register(dispatcher);
+			PlayAnimationCommand.register(dispatcher);
 		});
 
         FabricLoader.getInstance().invokeEntrypoints("amblekit-main", AmbleKitInitializer.class,
