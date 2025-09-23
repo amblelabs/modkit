@@ -47,8 +47,6 @@ public interface AnimatedEntityModel<T extends AnimatedEntity> {
 
 		state.startIfNotRunning(entity.getAge());
 
-		// todo - allow animations to define whether they reset bones or not
-		// animation.resetBones(this.getPart(), animation.getRunningSeconds(state, progress, 1.0F));
 		animation.apply(this.getPart(), state, progress, 1.0F);
 	}
 }

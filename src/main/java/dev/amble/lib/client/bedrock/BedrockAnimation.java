@@ -37,16 +37,22 @@ public class BedrockAnimation {
 	public final boolean shouldLoop;
 	public final double animationLength;
 	public final Map<String, BoneTimeline> boneTimelines;
+	public final boolean overrideBones;
 	public String name;
 
-	public BedrockAnimation(boolean shouldLoop, double animationLength, Map<String, BoneTimeline> boneTimelines) {
+	public BedrockAnimation(boolean shouldLoop, double animationLength, boolean overrideBones, Map<String, BoneTimeline> boneTimelines) {
 		this.shouldLoop = shouldLoop;
 		this.animationLength = animationLength;
 		this.boneTimelines = boneTimelines;
+		this.overrideBones = overrideBones;
 	}
 
 	@Environment(EnvType.CLIENT)
 	public void apply(ModelPart root, double runningSeconds) {
+		if (this.overrideBones) {
+			this.resetBones(root, runningSeconds);
+		}
+
 		this.boneTimelines.forEach((boneName, timeline) -> {
 			try {
 				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);

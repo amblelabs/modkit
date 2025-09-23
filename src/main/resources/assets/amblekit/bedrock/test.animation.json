@@ -2,7 +2,8 @@
 	"format_version": "1.8.0",
 	"animations": {
 		"awakening": {
-			"animation_length": 14.4583,
+          "animation_length": 14.4583,
+          "override_previous_animation": true,
 			"bones": {
 				"head": {
 					"rotation": {
