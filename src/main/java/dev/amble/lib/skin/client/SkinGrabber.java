@@ -64,6 +64,10 @@ public class SkinGrabber {
         return DefaultSkinHelper.getTexture(MinecraftClient.getInstance().player.getUuid());
     }
 
+	public static boolean isMissingTexture(Identifier id) {
+		return id == null || id.equals(missing());
+	}
+
 	public List<String> getAllKeys() {
         return List.copyOf(downloads.keySet());
     }
