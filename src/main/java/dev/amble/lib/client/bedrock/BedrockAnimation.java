@@ -76,7 +76,7 @@ public class BedrockAnimation {
 				}
 
 				if (!timeline.rotation.isEmpty()) {
-					Vec3d rotation = timeline.rotation.resolve(runningSeconds);;
+					Vec3d rotation = timeline.rotation.resolve(runningSeconds);
 
 					bone.traverse().forEach(child -> {
 						child.pitch += (float) Math.toRadians((float) rotation.x);
