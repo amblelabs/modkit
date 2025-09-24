@@ -84,6 +84,7 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 
 			if (jsonMetadata.has("movement")) {
 				metadata = metadata.withMovement(jsonMetadata.get("movement").getAsBoolean());
+				jsonMetadata.remove("movement");
 			}
 
 			try {
@@ -92,13 +93,18 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 					AnimationMetadata.Perspective perspective = AnimationMetadata.Perspective.valueOf(perspectiveStr.toUpperCase());
 					metadata = metadata.withPerspective(perspective);
 				}
+
+				jsonMetadata.remove("perspective");
 			} catch (IllegalArgumentException e) {
 				// ignore invalid perspective
 			}
 
 			if (jsonMetadata.has("fps_camera")) {
 				metadata = metadata.withFpsCamera(jsonMetadata.get("fps_camera").getAsBoolean());
+				jsonMetadata.remove("fps_camera");
 			}
+
+			metadata = metadata.withExcess(jsonMetadata);
 		}
 
 		return new BedrockAnimation(shouldLoop, animationLength, boneTimelines, overrideBones, metadata, sounds);

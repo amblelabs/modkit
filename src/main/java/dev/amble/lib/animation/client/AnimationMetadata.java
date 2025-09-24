@@ -1,5 +1,6 @@
 package dev.amble.lib.animation.client;
 
+import com.google.gson.JsonObject;
 import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.client.bedrock.BedrockAnimation;
 import dev.amble.lib.client.bedrock.BedrockAnimationReference;
@@ -8,8 +9,17 @@ import lombok.With;
 import net.minecraft.entity.AnimationState;
 import org.jetbrains.annotations.Nullable;
 
-public record AnimationMetadata(@With boolean movement, @With Perspective perspective, @With boolean fpsCamera) {
-	public static final AnimationMetadata DEFAULT = new AnimationMetadata(true, null, true);
+/**
+ * Metadata for animations, controlling how they behave in certain situations.
+ * in "filename.metadata.json"
+ * @param movement Whether the animation should allow player movement. Default: true
+ * @param perspective The perspective the animation should play in. Default: null (all perspectives)
+ * @param fpsCamera Whether the animation should have FPS camera controls. Default: true
+ * @param excess Any excess metadata not used by AmbleKit.
+ */
+public record AnimationMetadata(@With boolean movement, @With Perspective perspective, @With boolean fpsCamera, @With
+                                JsonObject excess) {
+	public static final AnimationMetadata DEFAULT = new AnimationMetadata(true, null, true, new JsonObject());
 
 	@Nullable
 	public static AnimationMetadata getFor(AnimatedEntity animated) {
