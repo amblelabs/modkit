@@ -1,6 +1,7 @@
 package dev.amble.lib.animation.client;
 
 import dev.amble.lib.animation.AnimatedEntity;
+import dev.amble.lib.animation.AnimationTracker;
 import dev.amble.lib.client.bedrock.BedrockAnimation;
 import dev.amble.lib.client.bedrock.BedrockAnimationReference;
 import net.fabricmc.api.EnvType;
@@ -43,7 +44,10 @@ public interface AnimatedEntityModel<T extends Entity & AnimatedEntity> {
 			state.startIfNotRunning(entity.getAge());
 		}
 
-		if (animation.isFinished(state)) return;
+		if (animation.isFinished(state)) {
+			AnimationTracker.getInstance().removeLocal(entity);
+			return;
+		}
 
 		state.startIfNotRunning(entity.getAge());
 

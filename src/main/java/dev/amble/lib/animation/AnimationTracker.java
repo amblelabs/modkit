@@ -73,8 +73,18 @@ public class AnimationTracker {
 		this.add(entity.getUuid(), animation);
 	}
 
-	public void remove(UUID id) {
+	public void removeLocal(UUID id) {
 		this.animations.remove(id);
+	}
+
+	public void removeLocal(EntityLike entity) {
+		if (!(entity instanceof AnimatedEntity)) return;
+
+		this.removeLocal(entity.getUuid());
+	}
+
+	public void remove(UUID id) {
+		this.removeLocal(id);
 
 		sync(toRemovalBuf(id));
 	}
