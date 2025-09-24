@@ -35,8 +35,6 @@ public abstract class PlayerEntityModelMixin<T extends LivingEntity>
     public void animation$setAngles(T livingEntity, float f, float g, float h, float i, float j, CallbackInfo ci) {
         if (!(livingEntity instanceof AnimatedEntity player)) return;
 
-		this.applyAnimation((Entity) player, h);
-
 		PlayerEntityModel model = (PlayerEntityModel)(Object)this;
 	    model.hat.copyTransform(model.head);
 	    model.leftPants.copyTransform(model.leftLeg);
