@@ -36,7 +36,10 @@ public class BipedEntityModelMixin<T extends LivingEntity> implements AnimatedEn
 
 		this.applyAnimation((Entity) player, h);
 
-		if (!BedrockAnimation.isRenderingPlayer || livingEntity != MinecraftClient.getInstance().cameraEntity) return;
+		if (!BedrockAnimation.isRenderingPlayer || livingEntity != MinecraftClient.getInstance().cameraEntity) {
+			head.visible = true;
+			return;
+		}
 
 		head.visible = false;
 	}
