@@ -12,7 +12,9 @@
   ],
   "client": [
     "client.AbstractClientPlayerMixin",
+    "client.ClientPlayerEntityMixin",
     "client.ClientPlayerInteractionManagerMixin",
+    "client.PerspectiveMixin",
     "client.PlayerEntityModelMixin"
   ],
   "injectors": {

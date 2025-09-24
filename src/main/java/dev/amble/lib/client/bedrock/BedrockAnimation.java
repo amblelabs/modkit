@@ -16,6 +16,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
 import dev.amble.lib.AmbleKit;
+import dev.amble.lib.animation.client.AnimationMetadata;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.ModelPart;
@@ -27,6 +30,9 @@ import java.util.*;
 
 import static net.minecraft.util.math.MathHelper.catmullRom;
 
+
+@AllArgsConstructor
+@RequiredArgsConstructor
 @Environment(EnvType.CLIENT)
 public class BedrockAnimation {
 	public static final Gson GSON = new GsonBuilder()
@@ -38,14 +44,8 @@ public class BedrockAnimation {
 	public final double animationLength;
 	public final Map<String, BoneTimeline> boneTimelines;
 	public final boolean overrideBones;
+	public final AnimationMetadata metadata;
 	public String name;
-
-	public BedrockAnimation(boolean shouldLoop, double animationLength, boolean overrideBones, Map<String, BoneTimeline> boneTimelines) {
-		this.shouldLoop = shouldLoop;
-		this.animationLength = animationLength;
-		this.boneTimelines = boneTimelines;
-		this.overrideBones = overrideBones;
-	}
 
 	@Environment(EnvType.CLIENT)
 	public void apply(ModelPart root, double runningSeconds) {

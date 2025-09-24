@@ -12,6 +12,7 @@
 package dev.amble.lib.client.bedrock;
 
 import com.google.gson.*;
+import dev.amble.lib.animation.client.AnimationMetadata;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.util.math.Vec3d;
@@ -48,7 +49,27 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 			}
 		}
 
-		return new BedrockAnimation(shouldLoop, animationLength, overrideBones, boneTimelines);
+		AnimationMetadata metadata = AnimationMetadata.DEFAULT;
+
+		if (jsonObj.has("metadata")) {
+			JsonObject jsonMetadata = jsonObj.getAsJsonObject("metadata");
+
+			if (jsonMetadata.has("movement")) {
+				metadata = metadata.withMovement(jsonMetadata.get("movement").getAsBoolean());
+			}
+
+			try {
+				if (jsonMetadata.has("perspective")) {
+					String perspectiveStr = jsonMetadata.get("perspective").getAsString();
+					AnimationMetadata.Perspective perspective = AnimationMetadata.Perspective.valueOf(perspectiveStr.toUpperCase());
+					metadata = metadata.withPerspective(perspective);
+				}
+			} catch (IllegalArgumentException e) {
+				// ignore invalid perspective
+			}
+		}
+
+		return new BedrockAnimation(shouldLoop, animationLength, boneTimelines, overrideBones, metadata);
 	}
 
 	private BedrockAnimation.BoneTimeline deserializeBoneTimeline(JsonObject bone) {

@@ -12,6 +12,7 @@ public interface AnimatedEntity extends EntityLike {
 		AnimationTracker.getInstance().add(this.getUuid(), animation);
 	}
 
+	@Nullable
 	default BedrockAnimationReference getCurrentAnimation() {
 		return AnimationTracker.getInstance().get(this);
 	}

@@ -17,6 +17,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.entity.EntityLike;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -53,6 +54,7 @@ public class AnimationTracker {
 	private final HashMap<UUID, BedrockAnimationReference> animations = new HashMap<>();
 	private final Set<UUID> updated = new HashSet<>(); // entities which have been updated recently
 
+	@Nullable
 	public BedrockAnimationReference get(EntityLike entity) {
 		if (!(entity instanceof AnimatedEntity)) return null;
 

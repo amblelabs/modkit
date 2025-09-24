@@ -1,0 +1,42 @@
+package dev.amble.lib.animation.client;
+
+import dev.amble.lib.animation.AnimatedEntity;
+import dev.amble.lib.client.bedrock.BedrockAnimation;
+import dev.amble.lib.client.bedrock.BedrockAnimationReference;
+import lombok.Getter;
+import lombok.With;
+import net.minecraft.entity.AnimationState;
+import org.jetbrains.annotations.Nullable;
+
+public record AnimationMetadata(@With boolean movement, @With Perspective perspective) {
+	public static final AnimationMetadata DEFAULT = new AnimationMetadata(true, null);
+
+	@Nullable
+	public static AnimationMetadata getFor(AnimatedEntity animated) {
+		BedrockAnimationReference ref = animated.getCurrentAnimation();
+		if (ref == null) return null;
+
+		BedrockAnimation anim = ref.get().orElse(null);
+		if (anim == null) return null;
+		AnimationState state = animated.getAnimationState();
+		if (state == null || anim.isFinished(state)) return null;
+
+		AnimationMetadata metadata = anim.metadata;
+		return metadata;
+	}
+
+	public enum Perspective {
+		FIRST_PERSON(true, false),
+		THIRD_PERSON_BACK(false, false),
+		THIRD_PERSON_FRONT(false, true);
+		@Getter
+		private final boolean firstPerson;
+		@Getter
+		private final boolean frontView;
+
+		Perspective(boolean firstPerson, boolean frontView) {
+			this.firstPerson = firstPerson;
+			this.frontView = frontView;
+		}
+	}
+}

@@ -22,6 +22,7 @@ import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -63,6 +64,26 @@ public class BedrockAnimationRegistry implements SimpleSynchronousResourceReload
 		for (Identifier rawId : manager.findResources("bedrock", filename -> filename.getPath().endsWith(".animation.json")).keySet()) {
 			try (InputStream stream = manager.getResource(rawId).get().getInputStream()) {
 				JsonObject json = JsonParser.parseReader(new InputStreamReader(stream)).getAsJsonObject();
+
+				@Nullable JsonObject metadata = null;
+				Identifier metadataId = Identifier.of(rawId.getNamespace(), rawId.getPath().replaceFirst("\\.animation\\.json$", ".metadata.json"));
+				if (manager.getResource(metadataId).isPresent()) {
+					try (InputStream metaStream = manager.getResource(metadataId).get().getInputStream()) {
+						metadata = JsonParser.parseReader(new InputStreamReader(metaStream)).getAsJsonObject();
+					} catch (Exception e) {
+						AmbleKit.LOGGER.error("Error occurred while loading metadata for bedrock model {}", rawId.toString(), e);
+					}
+				}
+
+				if (metadata != null) {
+					// each key will be anim id
+					for (String key : metadata.keySet()) {
+						if (json.has("animations") && json.getAsJsonObject("animations").has(key)) {
+							json.getAsJsonObject("animations").getAsJsonObject(key).add("metadata", metadata.getAsJsonObject(key));
+						}
+					}
+				}
+
 				BedrockAnimation.Group group = BedrockAnimation.GSON.fromJson(json, BedrockAnimation.Group.class);
 
 				group.animations.forEach((name, animation) -> animation.name = name);

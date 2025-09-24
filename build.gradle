@@ -87,6 +87,12 @@ dependencies {
     include(modApi("dev.drtheo:multidim:${project.multidim_version}"))
     include(modApi("dev.drtheo:scheduler:${project.scheduler_version}"))
     include(modApi("dev.drtheo:queue:${project.queue_version}"))
+
+	// getter setter
+	compileOnly 'org.projectlombok:lombok:1.18.34'
+	annotationProcessor 'org.projectlombok:lombok:1.18.34'
+	testCompileOnly 'org.projectlombok:lombok:1.18.34'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 
 shadowJar {
