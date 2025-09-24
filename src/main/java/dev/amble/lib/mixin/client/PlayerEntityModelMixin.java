@@ -2,6 +2,8 @@ package dev.amble.lib.mixin.client;
 
 import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.animation.client.AnimatedEntityModel;
+import dev.amble.lib.client.bedrock.BedrockAnimation;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
@@ -42,6 +44,10 @@ public abstract class PlayerEntityModelMixin<T extends LivingEntity>
 	    model.leftSleeve.copyTransform(model.leftArm);
 	    model.rightSleeve.copyTransform(model.rightArm);
 	    model.jacket.copyTransform(model.body);
+
+	    if (!BedrockAnimation.isRenderingPlayer || livingEntity != MinecraftClient.getInstance().cameraEntity) return;
+
+	    hat.visible = false;
     }
 
     @Override
