@@ -49,4 +49,29 @@ public interface AnimatedEntityModel<T extends Entity & AnimatedEntity> {
 
 		animation.apply(this.getPart(), state, progress, 1.0F, entity);
 	}
+
+	default void applyAnimationPre(T entity, float progress) {
+		BedrockAnimationReference reference = entity.getCurrentAnimation();
+		if (reference == null) {
+			this.getPart().traverse().forEach(ModelPart::resetTransform);
+			return;
+		}
+
+		BedrockAnimation animation = reference.get().orElse(null);
+		if (animation == null) {
+			this.getPart().traverse().forEach(ModelPart::resetTransform);
+			return;
+		}
+
+		AnimationState state = entity.getAnimationState();
+		if (state == null || animation.isFinished(state)) {
+			this.getPart().traverse().forEach(ModelPart::resetTransform);
+			return;
+		}
+
+		if (animation.metadata != null && !animation.metadata.movement()) {
+			this.getPart().traverse().forEach(ModelPart::resetTransform);
+			return;
+		}
+	}
 }

@@ -11,7 +11,9 @@
     "SaveLoadingMixin",
     "ServerPlayerInteractionManagerMixin",
     "SkeletonEntityMixin",
-    "ZombieEntityMixin"
+    "ZombieEntityMixin",
+    "client.HeldItemFeatureRendererMixin",
+    "client.HeldItemRendererMixin"
   ],
   "client": [
     "client.AbstractClientPlayerMixin",

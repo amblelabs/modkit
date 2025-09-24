@@ -104,6 +104,11 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 				jsonMetadata.remove("fps_camera");
 			}
 
+			if (jsonMetadata.has("hide_hand_items")) {
+				metadata = metadata.withHideHandItems(jsonMetadata.get("hide_hand_items").getAsBoolean());
+				jsonMetadata.remove("hide_hand_items");
+			}
+
 			metadata = metadata.withExcess(jsonMetadata);
 		}
 

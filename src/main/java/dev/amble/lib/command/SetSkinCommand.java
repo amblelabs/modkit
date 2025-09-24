@@ -23,7 +23,7 @@ public class SetSkinCommand {
 				.then(literal("skin").then(argument("target", EntityArgumentType.player())
 								.then(literal("clear").executes(SetSkinCommand::executeClear))
 								.then(literal("slim").then(argument("slim", BoolArgumentType.bool())
-										.executes(SetSkinCommand::executeSlim)))
+										.executes(SetSkinCommand::executeSlim).then(argument("value", StringArgumentType.greedyString()).executes(SetSkinCommand::executeWithSlim))))
 								.then(literal("set").then(argument("value", StringArgumentType.greedyString())
 												.executes(SetSkinCommand::execute))))));
 	}
@@ -96,6 +96,34 @@ public class SetSkinCommand {
 		boolean isUrl = value.startsWith("http://") || value.startsWith("https://");
 
 		SkinData data = isUrl ? SkinData.url(value, false) : SkinData.username(value, false);
+
+		if (player == null) {
+			context.getSource().sendError(Text.literal("Invalid Target"));
+			return 0;
+		}
+		SkinTracker.getInstance().putSynced(context.getSource().getPlayer().getUuid(), data);
+
+		String username = player.getEntityName();
+		context.getSource().sendFeedback(() -> Text.literal("Set skin of "+ username +" to " + value), true);
+
+		return 1;
+	}
+
+	private static int executeWithSlim(CommandContext<ServerCommandSource> context) {
+		String value = StringArgumentType.getString(context, "value");
+		boolean slim = BoolArgumentType.getBool(context, "slim");
+		ServerPlayerEntity player;
+
+		try {
+			player = EntityArgumentType.getPlayer(context, "target");
+		} catch (CommandSyntaxException e) {
+			context.getSource().sendError(Text.literal("Invalid Target, using self."));
+			player = context.getSource().getPlayer();
+		}
+
+		boolean isUrl = value.startsWith("http://") || value.startsWith("https://");
+
+		SkinData data = isUrl ? SkinData.url(value, false) : SkinData.username(value, slim);
 
 		if (player == null) {
 			context.getSource().sendError(Text.literal("Invalid Target"));
