@@ -5,6 +5,7 @@ import dev.amble.lib.animation.client.AnimatedEntityModel;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -14,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerEntityModel.class)
 public abstract class PlayerEntityModelMixin<T extends LivingEntity>
-        extends BipedEntityModel<T> implements AnimatedEntityModel<AnimatedEntity> {
+        extends BipedEntityModel<T> implements AnimatedEntityModel {
 
     @Unique
     ModelPart root;
@@ -32,7 +33,7 @@ public abstract class PlayerEntityModelMixin<T extends LivingEntity>
     public void animation$setAngles(T livingEntity, float f, float g, float h, float i, float j, CallbackInfo ci) {
         if (!(livingEntity instanceof AnimatedEntity player)) return;
 
-		this.applyAnimation(player, h);
+		this.applyAnimation((Entity) player, h);
 
 		PlayerEntityModel model = (PlayerEntityModel)(Object)this;
 	    model.hat.copyTransform(model.head);

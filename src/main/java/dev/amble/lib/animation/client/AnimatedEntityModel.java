@@ -13,7 +13,7 @@ import net.minecraft.entity.Entity;
 import java.util.Optional;
 
 @Environment(EnvType.CLIENT)
-public interface AnimatedEntityModel<T extends AnimatedEntity> {
+public interface AnimatedEntityModel<T extends Entity & AnimatedEntity> {
 	/**
 	 * @return the root modelpart of the renderer
 	 */
@@ -47,6 +47,6 @@ public interface AnimatedEntityModel<T extends AnimatedEntity> {
 
 		state.startIfNotRunning(entity.getAge());
 
-		animation.apply(this.getPart(), state, progress, 1.0F);
+		animation.apply(this.getPart(), state, progress, 1.0F, entity);
 	}
 }

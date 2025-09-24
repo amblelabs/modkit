@@ -15,6 +15,7 @@ import com.google.gson.*;
 import dev.amble.lib.animation.client.AnimationMetadata;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
@@ -49,6 +50,33 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 			}
 		}
 
+		Map<Double, Identifier> sounds = null;
+		if (jsonObj.has("sound_effects")) {
+			sounds = new HashMap<>();
+			JsonObject soundObj = jsonObj.getAsJsonObject("sound_effects");
+			for (String key : soundObj.keySet()) {
+				double time = parseMath(key);
+
+				if (time < 0 || time > animationLength) continue;
+				if (!(soundObj.get(key).isJsonObject())) continue;
+
+				JsonObject obj = soundObj.getAsJsonObject(key);
+
+				String stringId;
+
+				if (obj.has("effect")) {
+					stringId = obj.get("effect").getAsString();
+				} else if (obj.has("locator")) {
+					stringId = obj.get("locator").getAsString();
+				} else {
+					continue;
+				}
+
+				Identifier id = Identifier.tryParse(stringId);
+				sounds.put(time, id);
+			}
+		}
+
 		AnimationMetadata metadata = AnimationMetadata.DEFAULT;
 
 		if (jsonObj.has("metadata")) {
@@ -69,7 +97,7 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 			}
 		}
 
-		return new BedrockAnimation(shouldLoop, animationLength, boneTimelines, overrideBones, metadata);
+		return new BedrockAnimation(shouldLoop, animationLength, boneTimelines, overrideBones, metadata, sounds);
 	}
 
 	private BedrockAnimation.BoneTimeline deserializeBoneTimeline(JsonObject bone) {

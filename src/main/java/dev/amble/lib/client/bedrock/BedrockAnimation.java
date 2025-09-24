@@ -21,10 +21,16 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.AnimationState;
+import net.minecraft.entity.Entity;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -45,6 +51,7 @@ public class BedrockAnimation {
 	public final Map<String, BoneTimeline> boneTimelines;
 	public final boolean overrideBones;
 	public final AnimationMetadata metadata;
+	public final Map<Double, Identifier> sounds;
 	public String name;
 
 	@Environment(EnvType.CLIENT)
@@ -105,10 +112,35 @@ public class BedrockAnimation {
 		}
 	}
 
+	public void applyEffects(@Nullable Entity entity, double current, double previous) {
+		if (this.sounds == null || this.sounds.isEmpty()) return;
+
+		for (Map.Entry<Double, Identifier> entry : this.sounds.entrySet()) {
+			double time = entry.getKey();
+			Identifier soundId = entry.getValue();
+
+			if (previous <= time && current >= time) {
+				SoundEvent event = SoundEvent.of(soundId);
+
+				if (entity != null) {
+					if (!entity.isSilent()) {
+						entity.getWorld().playSoundFromEntity(MinecraftClient.getInstance().player, entity, event, entity.getSoundCategory(), 1F, 1F);
+					}
+				} else {
+					MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(event, 1F, 1F));
+				}
+			}
+		}
+	}
+
 	@Environment(EnvType.CLIENT)
-	public void apply(ModelPart root, AnimationState state, float progress, float speedMultiplier) {
+	public void apply(ModelPart root, AnimationState state, float progress, float speedMultiplier, @Nullable Entity source) {
+		double previous = getRunningSeconds(state);
 		double seconds = getRunningSeconds(state, progress, speedMultiplier);
-		state.run(s -> apply(root, seconds));
+		state.run(s -> {
+			apply(root, seconds);
+			applyEffects(source, seconds, previous);
+		});
 	}
 
 	public void apply(ModelPart root, int totalTicks, float rawDelta) {
