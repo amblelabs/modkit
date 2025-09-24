@@ -4,9 +4,11 @@ import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.client.bedrock.BedrockAnimation;
 import dev.amble.lib.client.bedrock.BedrockAnimationReference;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BlockView;
 import org.spongepowered.asm.mixin.Mixin;
@@ -48,7 +50,8 @@ public abstract class CameraMixin {
 		double progress = animation.getRunningSeconds(state, animated.getAge() + tickDelta, 1.0F);
 
 		Vec3d rotation = animation.boneTimelines.get("head").rotation().resolve(progress);
-		this.setRotation((float) rotation.y + focusedEntity.getBodyYaw(), (float) rotation.x);
+		float bodyYaw = (focusedEntity instanceof ClientPlayerEntity clientPlayer) ? (MathHelper.lerpAngleDegrees(tickDelta, clientPlayer.prevBodyYaw, clientPlayer.bodyYaw)) : focusedEntity.getBodyYaw();
+		this.setRotation((float) rotation.y + bodyYaw, (float) rotation.x);
 
 		Vec3d position = animation.boneTimelines.get("head").position().resolve(progress)
 				.rotateX((float)Math.toRadians(rotation.getX()))
