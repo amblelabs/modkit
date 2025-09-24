@@ -95,6 +95,10 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 			} catch (IllegalArgumentException e) {
 				// ignore invalid perspective
 			}
+
+			if (jsonMetadata.has("fps_camera")) {
+				metadata = metadata.withFpsCamera(jsonMetadata.get("fps_camera").getAsBoolean());
+			}
 		}
 
 		return new BedrockAnimation(shouldLoop, animationLength, boneTimelines, overrideBones, metadata, sounds);

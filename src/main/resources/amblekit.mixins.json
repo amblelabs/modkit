@@ -12,6 +12,7 @@
   ],
   "client": [
     "client.AbstractClientPlayerMixin",
+    "client.CameraMixin",
     "client.ClientPlayerEntityMixin",
     "client.ClientPlayerInteractionManagerMixin",
     "client.PerspectiveMixin",

@@ -8,8 +8,8 @@ import lombok.With;
 import net.minecraft.entity.AnimationState;
 import org.jetbrains.annotations.Nullable;
 
-public record AnimationMetadata(@With boolean movement, @With Perspective perspective) {
-	public static final AnimationMetadata DEFAULT = new AnimationMetadata(true, null);
+public record AnimationMetadata(@With boolean movement, @With Perspective perspective, @With boolean fpsCamera) {
+	public static final AnimationMetadata DEFAULT = new AnimationMetadata(true, null, true);
 
 	@Nullable
 	public static AnimationMetadata getFor(AnimatedEntity animated) {
