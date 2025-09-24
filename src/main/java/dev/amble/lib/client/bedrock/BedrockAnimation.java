@@ -46,6 +46,8 @@ public class BedrockAnimation {
 			.registerTypeAdapter(BedrockAnimation.class, new BedrockAnimationAdapter())
 			.create();
 
+	public static boolean isRenderingPlayer = false; // whether the fps camera is currently rendering the player
+
 	public final boolean shouldLoop;
 	public final double animationLength;
 	public final Map<String, BoneTimeline> boneTimelines;

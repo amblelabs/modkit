@@ -29,6 +29,9 @@ public abstract class CameraMixin {
 	@Shadow
 	public abstract float getYaw();
 
+	@Shadow
+	public abstract Vec3d getPos();
+
 	@Inject(method="update", at=@At("TAIL"))
 	private void amble$update(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo ci) {
 		if (thirdPerson || !(focusedEntity instanceof AnimatedEntity animated)) return;
@@ -45,12 +48,13 @@ public abstract class CameraMixin {
 		double progress = animation.getRunningSeconds(state, animated.getAge() + tickDelta, 1.0F);
 
 		Vec3d rotation = animation.boneTimelines.get("head").rotation().resolve(progress);
-		this.setRotation((float) rotation.y + this.getYaw(), (float) rotation.x);
+		this.setRotation((float) rotation.y + focusedEntity.getBodyYaw(), (float) rotation.x);
 
-		Vec3d position = animation.boneTimelines.get("head").position().resolve(progress).multiply(1/16F)
+		Vec3d position = animation.boneTimelines.get("head").position().resolve(progress)
 				.rotateX((float)Math.toRadians(rotation.getX()))
 				.rotateY((float)Math.toRadians(rotation.getY()))
-				.rotateZ((float)Math.toRadians(rotation.getZ()));
-		this.moveBy(position.x, position.y, position.z);
+				.rotateZ((float)Math.toRadians(rotation.getZ()))
+				.multiply(-1/16F).add(this.getPos());
+		this.setPos(position);
 	}
 }

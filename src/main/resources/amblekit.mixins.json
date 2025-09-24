@@ -12,11 +12,15 @@
   ],
   "client": [
     "client.AbstractClientPlayerMixin",
+    "client.ArmorFeatureRendererMixin",
+    "client.BipedEntityModelMixin",
     "client.CameraMixin",
     "client.ClientPlayerEntityMixin",
     "client.ClientPlayerInteractionManagerMixin",
     "client.PerspectiveMixin",
-    "client.PlayerEntityModelMixin"
+    "client.PlayerEntityModelMixin",
+    "client.PlayerEntityRendererMixin",
+    "client.WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
