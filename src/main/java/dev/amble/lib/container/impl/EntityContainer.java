@@ -1,6 +1,8 @@
 package dev.amble.lib.container.impl;
 
+import dev.amble.lib.AmbleKit;
 import dev.amble.lib.animation.AnimatedEntity;
+import dev.amble.lib.animation.AnimatedInstance;
 import dev.amble.lib.animation.client.BedrockEntityRenderer;
 import dev.amble.lib.animation.HasBedrockModel;
 import dev.amble.lib.util.RegistrationUtil;
@@ -27,7 +29,12 @@ public interface EntityContainer extends RegistryContainer<EntityType<?>> {
 		// automagically register bedrock renderer
 		if (!field.isAnnotationPresent(HasBedrockModel.class)) return;
 
-		RegistrationUtil.registerBedrockRenderer(value);
+		Class<?> cls = value.getClass();
+		if (AnimatedEntity.class.isAssignableFrom(cls)) {
+			RegistrationUtil.registerBedrockRenderer(value);
+		} else {
+			AmbleKit.LOGGER.error("Tried to register bedrock renderer for entity type {} but its class {} does not implement AnimatedEntity", identifier, cls);
+		}
 	}
 
 	@Override

@@ -1,8 +1,11 @@
 package dev.amble.lib.container.impl;
 
+import dev.amble.lib.AmbleKit;
 import dev.amble.lib.animation.AnimatedBlockEntity;
+import dev.amble.lib.animation.AnimatedInstance;
 import dev.amble.lib.animation.client.BedrockBlockEntityRenderer;
 import dev.amble.lib.animation.HasBedrockModel;
+import dev.amble.lib.util.RegistrationUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
@@ -24,7 +27,12 @@ public interface BlockEntityContainer extends RegistryContainer<BlockEntityType<
         // automagically register bedrock renderer
         if (!field.isAnnotationPresent(HasBedrockModel.class)) return;
 
-        registerRenderer((BlockEntityType<? extends AnimatedBlockEntity>) value);
+	    Class<?> cls = value.getClass();
+	    if (AnimatedBlockEntity.class.isAssignableFrom(cls)) {
+		    registerRenderer((BlockEntityType<? extends AnimatedBlockEntity>) value);
+	    } else {
+		    AmbleKit.LOGGER.error("Tried to register bedrock renderer for block entity type {} but its class {} does not implement AnimatedBlockEntity", identifier, cls);
+	    }
     }
 
     @Environment(EnvType.CLIENT)
