@@ -1,5 +1,6 @@
 package dev.amble.litmus.block.entity;
 
+import dev.amble.lib.animation.HasBedrockModel;
 import dev.amble.lib.container.impl.BlockEntityContainer;
 import dev.amble.litmus.block.LitmusBlocks;
 import dev.amble.litmus.block.entity.impl.TestBlockEntity;
@@ -7,5 +8,6 @@ import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityT
 import net.minecraft.block.entity.BlockEntityType;
 
 public class LitmusBlockEntityTypes implements BlockEntityContainer {
+	@HasBedrockModel
 	public static BlockEntityType<TestBlockEntity> TEST_BLOCK = FabricBlockEntityTypeBuilder.create(TestBlockEntity::new, LitmusBlocks.TEST_BLOCK).build();
 }

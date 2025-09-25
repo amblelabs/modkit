@@ -5,6 +5,8 @@ import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.client.bedrock.BedrockEntityModel;
 import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.client.bedrock.BedrockModelReference;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.RenderLayer;
@@ -20,6 +22,7 @@ import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
 
+@Environment(EnvType.CLIENT)
 public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEntity> implements BlockEntityRenderer<T> {
 	protected BedrockEntityModel model;
 

@@ -4,6 +4,8 @@ import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.client.bedrock.BedrockEntityModel;
 import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.client.bedrock.BedrockModelReference;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
@@ -12,6 +14,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
+@Environment(EnvType.CLIENT)
 public class BedrockEntityRenderer<T extends LivingEntity & AnimatedEntity> extends LivingEntityRenderer<T, BedrockEntityModel<T>> {
 	public BedrockEntityRenderer(EntityRendererFactory.Context ctx, float shadowRadius) {
 		super(ctx, null, shadowRadius);

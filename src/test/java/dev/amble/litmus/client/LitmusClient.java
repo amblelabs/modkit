@@ -12,7 +12,5 @@ import net.minecraft.client.render.entity.EntityRendererFactory;
 public class LitmusClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		BlockEntityRendererFactories.register(LitmusBlockEntityTypes.TEST_BLOCK, BedrockBlockEntityRenderer::new);
-		EntityRendererRegistry.register(LitmusEntities.TEST_ENTITY, BedrockEntityRenderer::new);
 	}
 }
