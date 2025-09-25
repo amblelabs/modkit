@@ -239,6 +239,13 @@ public class SkinGrabber {
         connection.setRequestProperty("User-Agent", USER_AGENT);
         connection.connect();
 
+        // Print all headers
+        Map<String, List<String>> headers = connection.getHeaderFields();
+        AmbleKit.LOGGER.info("Headers for {}:", filename);
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            AmbleKit.LOGGER.info("{}: {}", entry.getKey(), entry.getValue());
+        }
+
         String variant = connection.getHeaderField("variant");
         if (variant != null && (variant.equalsIgnoreCase("classic") || variant.equalsIgnoreCase("slim"))) {
             AmbleKit.LOGGER.info("Skin variant for {}: {}", filename, variant);
