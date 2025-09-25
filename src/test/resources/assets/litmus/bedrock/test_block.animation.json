@@ -1,0 +1,31 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"use": {
+			"animation_length": 2,
+			"override_previous_animation": true,
+			"bones": {
+				"bone84": {
+					"rotation": {
+						"0.0": {
+							"post": [0, 0, 0],
+							"lerp_mode": "catmullrom"
+						},
+						"2.0": {
+							"post": [0, 360, 0],
+							"lerp_mode": "catmullrom"
+						}
+					}
+				}
+			},
+			"sound_effects": {
+				"0.0": {
+					"effect": "block.iron_door.open"
+				},
+				"2.0": {
+					"effect": "block.iron_door.close"
+				}
+			}
+		}
+	}
+}

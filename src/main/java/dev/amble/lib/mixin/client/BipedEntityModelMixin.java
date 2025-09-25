@@ -38,14 +38,14 @@ public class BipedEntityModelMixin<T extends LivingEntity> implements AnimatedEn
 	private void animation$setAnglePre(T livingEntity, float f, float g, float h, float i, float j, CallbackInfo ci) {
 		if (!(livingEntity instanceof AnimatedEntity player)) return;
 
-		this.applyAnimationPre(livingEntity, h);
+		this.applyAnimationPre(player, h);
 	}
 
 	@Inject(method="setAngles(Lnet/minecraft/entity/LivingEntity;FFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/ModelPart;copyTransform(Lnet/minecraft/client/model/ModelPart;)V"))
 	private void animation$setAngle(T livingEntity, float f, float g, float h, float i, float j, CallbackInfo ci) {
 		if (!(livingEntity instanceof AnimatedEntity player)) return;
 
-		this.applyAnimation(livingEntity, h);
+		this.applyAnimation(player, h);
 
 		if (!BedrockAnimation.isRenderingPlayer || livingEntity != MinecraftClient.getInstance().cameraEntity) {
 			head.visible = true;

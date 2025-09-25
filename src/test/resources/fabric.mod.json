@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "litmus",
+	"version": "${version}",
+	"name": "Litmus",
+	"description": "AmbleKit testing mod - like a litmus test",
+	"authors": [
+		"Amble Labs"
+	],
+	"contact": {
+		"homepage": "https://amblelabs.github.io",
+		"sources": "https://github.com/amblelabs/modkit/",
+		"issues": "https://github.com/amblelabs/modkit/issues"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/amblekit/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"dev.amble.litmus.LitmusMod"
+		],
+		"client": [
+			"dev.amble.litmus.client.LitmusClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.10",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"ait": "*"
+	}
+}

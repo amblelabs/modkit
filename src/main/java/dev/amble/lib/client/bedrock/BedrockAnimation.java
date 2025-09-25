@@ -16,6 +16,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
 import dev.amble.lib.AmbleKit;
+import dev.amble.lib.animation.SoundProvider;
 import dev.amble.lib.animation.client.AnimationMetadata;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -87,11 +88,9 @@ public class BedrockAnimation {
 				if (!timeline.rotation.isEmpty()) {
 					Vec3d rotation = timeline.rotation.resolve(runningSeconds);
 
-					bone.traverse().forEach(child -> {
-						child.pitch += (float) Math.toRadians((float) rotation.x);
-						child.yaw += (float) Math.toRadians((float) rotation.y);
-						child.roll += (float) Math.toRadians((float) rotation.z);
-					});
+					bone.pitch += (float) Math.toRadians((float) rotation.x);
+					bone.yaw += (float) Math.toRadians((float) rotation.y);
+					bone.roll += (float) Math.toRadians((float) rotation.z);
 				}
 
 				if (!timeline.scale.isEmpty()) {
@@ -114,7 +113,7 @@ public class BedrockAnimation {
 		}
 	}
 
-	public void applyEffects(@Nullable Entity entity, double current, double previous) {
+	public void applyEffects(@Nullable SoundProvider entity, double current, double previous) {
 		if (this.sounds == null || this.sounds.isEmpty()) return;
 
 		for (Map.Entry<Double, Identifier> entry : this.sounds.entrySet()) {
@@ -126,7 +125,8 @@ public class BedrockAnimation {
 
 				if (entity != null) {
 					if (!entity.isSilent()) {
-						entity.getWorld().playSoundFromEntity(MinecraftClient.getInstance().player, entity, event, entity.getSoundCategory(), 1F, 1F);
+						Vec3d pos = entity.getSoundPosition();
+						entity.getWorld().playSound(MinecraftClient.getInstance().player, pos.x, pos.y, pos.z, event, entity.getSoundCategory(), 1F, 1F);
 					}
 				} else {
 					MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(event, 1F, 1F));
@@ -136,7 +136,7 @@ public class BedrockAnimation {
 	}
 
 	@Environment(EnvType.CLIENT)
-	public void apply(ModelPart root, AnimationState state, float progress, float speedMultiplier, @Nullable Entity source) {
+	public void apply(ModelPart root, AnimationState state, float progress, float speedMultiplier, @Nullable SoundProvider source) {
 		double previous = getRunningSeconds(state);
 		double seconds = getRunningSeconds(state, progress, speedMultiplier);
 		state.run(s -> {

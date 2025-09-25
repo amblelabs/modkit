@@ -1,11 +1,14 @@
 package dev.amble.lib.animation.client;
 
-import dev.amble.lib.animation.AnimatedEntity;
+import dev.amble.lib.AmbleKit;
+import dev.amble.lib.animation.AnimatedInstance;
 import dev.amble.lib.animation.AnimationTracker;
 import dev.amble.lib.client.bedrock.BedrockAnimation;
 import dev.amble.lib.client.bedrock.BedrockAnimationReference;
+import lombok.extern.slf4j.Slf4j;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.entity.AnimationState;
@@ -14,7 +17,7 @@ import net.minecraft.entity.Entity;
 import java.util.Optional;
 
 @Environment(EnvType.CLIENT)
-public interface AnimatedEntityModel<T extends Entity & AnimatedEntity> {
+public interface AnimatedEntityModel {
 	/**
 	 * @return the root modelpart of the renderer
 	 */
@@ -30,12 +33,17 @@ public interface AnimatedEntityModel<T extends Entity & AnimatedEntity> {
 	/**
 	 * Call this in {@link EntityModel#setAngles(Entity, float, float, float, float, float)} where progress is usually named 'h'
 	 */
-	default void applyAnimation(T entity, float progress) {
+	default void applyAnimation(AnimatedInstance entity, float progress) {
 		BedrockAnimationReference reference = entity.getCurrentAnimation();
+
 		if (reference == null) return;
 
 		BedrockAnimation animation = reference.get().orElse(null);
-		if (animation == null) return;
+		if (animation == null) {
+			AmbleKit.LOGGER.error("Got unknown animation reference: {}", reference.id());
+			AnimationTracker.getInstance().removeLocal(entity);
+			return;
+		}
 
 		AnimationState state = entity.getAnimationState();
 
@@ -54,8 +62,9 @@ public interface AnimatedEntityModel<T extends Entity & AnimatedEntity> {
 		animation.apply(this.getPart(), state, progress, 1.0F, entity);
 	}
 
-	default void applyAnimationPre(T entity, float progress) {
+	default void applyAnimationPre(AnimatedInstance entity, float progress) {
 		BedrockAnimationReference reference = entity.getCurrentAnimation();
+
 		if (reference == null) {
 			this.getPart().traverse().forEach(ModelPart::resetTransform);
 			return;
@@ -75,7 +84,6 @@ public interface AnimatedEntityModel<T extends Entity & AnimatedEntity> {
 
 		if (animation.metadata != null && !animation.metadata.movement()) {
 			this.getPart().traverse().forEach(ModelPart::resetTransform);
-			return;
 		}
 	}
 }

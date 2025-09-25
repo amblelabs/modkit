@@ -55,6 +55,19 @@ loom {
 
             runDir "build/datagen"
         }
+
+	    testmodClient {
+		    client()
+		    ideConfigGenerated project.rootProject == project
+		    name = "Testmod Client"
+		    source sourceSets.test
+	    }
+	    testmodServer {
+		    server()
+		    ideConfigGenerated project.rootProject == project
+		    name = "Testmod Server"
+		    source sourceSets.test
+	    }
     }
 }
 
@@ -67,6 +80,11 @@ sourceSets {
             ]
         }
     }
+
+	test {
+		runtimeClasspath += main.runtimeClasspath
+		compileClasspath += main.compileClasspath
+	}
 }
 
 configurations {

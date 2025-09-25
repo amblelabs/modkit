@@ -55,9 +55,7 @@ public class AnimationTracker {
 	private final Set<UUID> updated = new HashSet<>(); // entities which have been updated recently
 
 	@Nullable
-	public BedrockAnimationReference get(EntityLike entity) {
-		if (!(entity instanceof AnimatedEntity)) return null;
-
+	public BedrockAnimationReference get(AnimatedInstance entity) {
 		return this.animations.get(entity.getUuid());
 	}
 
@@ -67,9 +65,7 @@ public class AnimationTracker {
 		sync(toBuf(id, animation));
 	}
 
-	public void add(EntityLike entity, BedrockAnimationReference animation) {
-		if (!(entity instanceof AnimatedEntity)) return;
-
+	public void add(AnimatedInstance entity, BedrockAnimationReference animation) {
 		this.add(entity.getUuid(), animation);
 	}
 
@@ -77,9 +73,7 @@ public class AnimationTracker {
 		this.animations.remove(id);
 	}
 
-	public void removeLocal(EntityLike entity) {
-		if (!(entity instanceof AnimatedEntity)) return;
-
+	public void removeLocal(AnimatedInstance entity) {
 		this.removeLocal(entity.getUuid());
 	}
 
@@ -89,15 +83,11 @@ public class AnimationTracker {
 		sync(toRemovalBuf(id));
 	}
 
-	public void remove(EntityLike entity) {
-		if (!(entity instanceof AnimatedEntity)) return;
-
+	public void remove(AnimatedInstance entity) {
 		this.remove(entity.getUuid());
 	}
 
-	public boolean isDirty(EntityLike entity) {
-		if (!(entity instanceof AnimatedEntity)) return false;
-
+	public boolean isDirty(AnimatedInstance entity) {
 		return this.updated.remove(entity.getUuid());
 	}
 

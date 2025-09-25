@@ -49,6 +49,8 @@ public abstract class CameraMixin {
 
 		double progress = animation.getRunningSeconds(state, animated.getAge() + tickDelta, 1.0F);
 
+		if (!animation.boneTimelines.containsKey("head")) return;
+
 		Vec3d rotation = animation.boneTimelines.get("head").rotation().resolve(progress);
 		float bodyYaw = (focusedEntity instanceof ClientPlayerEntity clientPlayer) ? (MathHelper.lerpAngleDegrees(tickDelta, clientPlayer.prevBodyYaw, clientPlayer.bodyYaw)) : focusedEntity.getBodyYaw();
 		this.setRotation((float) rotation.y + bodyYaw, (float) rotation.x);
