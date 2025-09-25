@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 import com.mojang.datafixers.util.Pair;
 import dev.amble.lib.skin.ConcurrentQueueMap;
 import dev.amble.lib.skin.SkinConstants;
@@ -238,6 +239,14 @@ public class SkinGrabber {
         connection.setRequestProperty("User-Agent", USER_AGENT);
         connection.connect();
 
+        String variant = connection.getHeaderField("variant");
+        if (variant != null && (variant.equalsIgnoreCase("classic") || variant.equalsIgnoreCase("slim"))) {
+            AmbleKit.LOGGER.info("Skin variant for {}: {}", filename, variant);
+            writeVariantToJson(filename, variant);
+        } else {
+            writeVariantToJson(filename, "unknown");
+        }
+
         BufferedImage image = ImageIO.read(connection.getInputStream());
 
         if (!filepath.exists()) {
@@ -245,6 +254,36 @@ public class SkinGrabber {
         }
 
         ImageIO.write(image, "png", new File(filepath, filename + ".png"));
+    }
+
+    private void writeVariantToJson(String filename, String variant) {
+        File jsonFile = new File(SKIN_DIR, "variants.json");
+        Map<String, String> variants = new HashMap<>();
+        if (jsonFile.exists()) {
+            try (Reader reader = new FileReader(jsonFile)) {
+                variants.putAll(new GsonBuilder().create().fromJson(reader, new TypeToken<HashMap<String, String>>(){}.getType()));
+            } catch (IOException e) {
+                AmbleKit.LOGGER.error("Failed to read variants.json", e);
+            }
+        }
+        variants.put(filename, variant);
+        try (Writer writer = new FileWriter(jsonFile)) {
+            new GsonBuilder().setPrettyPrinting().create().toJson(variants, writer);
+        } catch (IOException e) {
+            AmbleKit.LOGGER.error("Failed to write variants.json", e);
+        }
+    }
+
+    public String getVariantFromName(String filename) {
+        File jsonFile = new File(SKIN_DIR, "variants.json");
+        if (!jsonFile.exists()) return "unknown";
+        try (Reader reader = new FileReader(jsonFile)) {
+            Map<String, String> variants = new GsonBuilder().create().fromJson(reader, new TypeToken<HashMap<String, String>>(){}.getType());
+            return variants.getOrDefault(filename, "unknown");
+        } catch (IOException e) {
+            AmbleKit.LOGGER.error("Failed to read variants.json", e);
+            return "unknown";
+        }
     }
 
     public void tick() {
