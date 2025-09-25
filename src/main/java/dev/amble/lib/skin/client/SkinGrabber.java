@@ -2,12 +2,8 @@ package dev.amble.lib.skin.client;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -17,8 +13,6 @@ import javax.imageio.ImageIO;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.mojang.datafixers.util.Pair;
 import dev.amble.lib.skin.ConcurrentQueueMap;
@@ -252,8 +246,6 @@ public class SkinGrabber {
             AmbleKit.LOGGER.info("{}: {}", entry.getKey(), entry.getValue());
         }
 
-        writeVariantToJson(filename, totallySimpleModelRetrieval(filename));
-
         BufferedImage image = ImageIO.read(connection.getInputStream());
 
         if (!filepath.exists()) {
@@ -261,88 +253,6 @@ public class SkinGrabber {
         }
 
         ImageIO.write(image, "png", new File(filepath, filename + ".png"));
-    }
-
-    // Mineskin is almost completely useless if we use Mojang's internal API. This took forever to figure out... - Loqor
-    /**
-     * Retrieves the model type (slim or classic) of a Minecraft skin using Mojang's public APIs.
-     * This method first fetches the UUID of the player based on their username, then retrieves
-     * the player's profile to extract the skin model information.
-     * @return "slim", "classic", or "unknown" if the model type cannot be determined.
-     * @author Loqor
-     */
-    public String totallySimpleModelRetrieval(String name) {
-        String uuid;
-        try {
-            HttpClient httpClient = HttpClient.newHttpClient();
-            HttpRequest uuidRequest = HttpRequest.newBuilder(
-                            URI.create("https://api.mojang.com/users/profiles/minecraft/" + name))
-                    .build();
-            HttpResponse<String> uuidResponse = httpClient.send(uuidRequest, HttpResponse.BodyHandlers.ofString());
-            JsonObject uuidJson = JsonParser.parseString(uuidResponse.body()).getAsJsonObject();
-            if (uuidJson.has("id")) {
-                uuid = uuidJson.get("id").getAsString();
-            } else {
-                return "unknown";
-            }
-
-            HttpRequest profileRequest = HttpRequest.newBuilder(
-                            URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid))
-                    .build();
-            HttpResponse<String> profileResponse = httpClient.send(profileRequest, HttpResponse.BodyHandlers.ofString());
-            JsonObject json = JsonParser.parseString(profileResponse.body()).getAsJsonObject();
-            String base64 = json.getAsJsonArray("properties").get(0).getAsJsonObject().get("value").getAsString();
-            String decodedJson = new String(Base64.getDecoder().decode(base64));
-            JsonObject decoded = JsonParser.parseString(decodedJson).getAsJsonObject();
-            String model = "unknown";
-            if (decoded.has("textures")) {
-                JsonObject textures = decoded.getAsJsonObject("textures");
-                if (textures.has("SKIN")) {
-                    JsonObject skin = textures.getAsJsonObject("SKIN");
-                    if (skin.has("metadata")) {
-                        JsonObject metadata = skin.getAsJsonObject("metadata");
-                        if (metadata.has("model")) {
-                            model = metadata.get("model").getAsString();
-                        }
-                    }
-                }
-            }
-            System.out.println(model);
-            return model;
-        } catch (InterruptedException | IOException e) {
-            AmbleKit.LOGGER.error(String.valueOf(e));
-        }
-        return "unknown";
-    }
-
-    private void writeVariantToJson(String filename, String variant) {
-        File jsonFile = new File(SKIN_DIR, "variants.json");
-        Map<String, String> variants = new HashMap<>();
-        if (jsonFile.exists()) {
-            try (Reader reader = new FileReader(jsonFile)) {
-                variants.putAll(new GsonBuilder().create().fromJson(reader, new TypeToken<HashMap<String, String>>(){}.getType()));
-            } catch (IOException e) {
-                AmbleKit.LOGGER.error("Failed to read variants.json", e);
-            }
-        }
-        variants.put(filename, variant);
-        try (Writer writer = new FileWriter(jsonFile)) {
-            new GsonBuilder().setPrettyPrinting().create().toJson(variants, writer);
-        } catch (IOException e) {
-            AmbleKit.LOGGER.error("Failed to write variants.json", e);
-        }
-    }
-
-    public String getVariantFromName(String filename) {
-        File jsonFile = new File(SKIN_DIR, "variants.json");
-        if (!jsonFile.exists()) return "unknown";
-        try (Reader reader = new FileReader(jsonFile)) {
-            Map<String, String> variants = new GsonBuilder().create().fromJson(reader, new TypeToken<HashMap<String, String>>(){}.getType());
-            return variants.getOrDefault(filename, "unknown");
-        } catch (IOException e) {
-            AmbleKit.LOGGER.error("Failed to read variants.json", e);
-            return "unknown";
-        }
     }
 
     public void tick() {
