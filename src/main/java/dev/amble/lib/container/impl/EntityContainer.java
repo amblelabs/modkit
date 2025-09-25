@@ -29,7 +29,7 @@ public interface EntityContainer extends RegistryContainer<EntityType<?>> {
 		// automagically register bedrock renderer
 		if (!field.isAnnotationPresent(HasBedrockModel.class)) return;
 
-		Class<?> cls = value.getClass();
+		Class<?> cls = value.getBaseClass();
 		if (AnimatedEntity.class.isAssignableFrom(cls)) {
 			RegistrationUtil.registerBedrockRenderer(value);
 		} else {
