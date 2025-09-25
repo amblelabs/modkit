@@ -1,8 +1,10 @@
 package dev.amble.litmus.entity.impl;
 
 import dev.amble.lib.animation.AnimatedEntity;
+import dev.amble.lib.animation.BedrockModelProvider;
 import dev.amble.lib.client.bedrock.BedrockAnimationReference;
 import dev.amble.lib.client.bedrock.BedrockModelReference;
+import dev.amble.lib.skin.PlayerSkinTexturable;
 import dev.amble.litmus.LitmusMod;
 import dev.drtheo.scheduler.api.TimeUnit;
 import dev.drtheo.scheduler.api.common.Scheduler;
@@ -15,10 +17,11 @@ import net.minecraft.entity.mob.PathAwareEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class TestEntity extends PathAwareEntity implements AnimatedEntity {
+public class TestEntity extends PathAwareEntity implements AnimatedEntity, PlayerSkinTexturable {
 	private static final BedrockModelReference MODEL = new BedrockModelReference(LitmusMod.MOD_ID, "test_entity");
 
 	@Getter
@@ -36,6 +39,13 @@ public class TestEntity extends PathAwareEntity implements AnimatedEntity {
 	@Override
 	public @Nullable BedrockModelReference getModel() {
 		return MODEL;
+	}
+
+	@Override
+	public @Nullable Identifier getTexture() {
+		if (this.getSkin() != null) return this.getSkinTexture();
+
+		return AnimatedEntity.super.getTexture();
 	}
 
 	@Override

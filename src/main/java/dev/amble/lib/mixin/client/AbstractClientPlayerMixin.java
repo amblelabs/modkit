@@ -1,5 +1,6 @@
 package dev.amble.lib.mixin.client;
 
+import dev.amble.lib.skin.PlayerSkinTexturable;
 import dev.amble.lib.skin.SkinData;
 import dev.amble.lib.skin.SkinTracker;
 import dev.amble.lib.skin.client.SkinGrabber;
@@ -13,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(AbstractClientPlayerEntity.class)
-public class AbstractClientPlayerMixin {
+public abstract class AbstractClientPlayerMixin {
 	@Unique @Nullable private SkinData lastSkin = null;
 
 	@Inject(method="getSkinTexture", at=@At("HEAD"), cancellable = true)

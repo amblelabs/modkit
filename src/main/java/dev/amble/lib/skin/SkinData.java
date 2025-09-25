@@ -81,4 +81,12 @@ public record SkinData(String key, @Nullable String url, @Nullable Identifier lo
 	public void upload(ServerPlayerEntity player) {
 		upload(player.getUuid());
 	}
+
+	/**
+	 * Uploads this skin data to the tracker for the given player texturable.
+	 * @param player the player
+	 */
+	public void upload(PlayerSkinTexturable player) {
+		upload(player.getUuid());
+	}
 }

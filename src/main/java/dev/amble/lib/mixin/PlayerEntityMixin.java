@@ -1,6 +1,7 @@
 package dev.amble.lib.mixin;
 
 import dev.amble.lib.animation.AnimatedEntity;
+import dev.amble.lib.skin.PlayerSkinTexturable;
 import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -9,7 +10,7 @@ import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(PlayerEntity.class)
-public abstract class PlayerEntityMixin extends LivingEntity implements AnimatedEntity {
+public abstract class PlayerEntityMixin extends LivingEntity implements AnimatedEntity, PlayerSkinTexturable {
 	protected PlayerEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
 		super(entityType, world);
 	}
