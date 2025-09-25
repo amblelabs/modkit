@@ -1,6 +1,11 @@
 package dev.amble.lib;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import dev.amble.lib.animation.AnimationTracker;
+import dev.amble.lib.client.bedrock.BedrockAnimation;
+import dev.amble.lib.client.bedrock.BedrockAnimationAdapter;
+import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.command.PlayAnimationCommand;
 import dev.amble.lib.command.SetSkinCommand;
 import dev.amble.lib.skin.SkinTracker;
@@ -21,6 +26,8 @@ import dev.amble.lib.util.ServerLifecycleHooks;
 public class AmbleKit implements ModInitializer {
     public static final String MOD_ID = "amblekit";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
+	public static final Gson GSON = new GsonBuilder().create();
 
     @Override
     public void onInitialize() {
