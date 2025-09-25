@@ -3,6 +3,7 @@ package dev.amble.lib.container.impl;
 import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.animation.client.BedrockEntityRenderer;
 import dev.amble.lib.animation.HasBedrockModel;
+import dev.amble.lib.util.RegistrationUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -26,12 +27,7 @@ public interface EntityContainer extends RegistryContainer<EntityType<?>> {
 		// automagically register bedrock renderer
 		if (!field.isAnnotationPresent(HasBedrockModel.class)) return;
 
-		registerRenderer(value);
-	}
-
-	@Environment(EnvType.CLIENT)
-	private static void registerRenderer(EntityType<?> type) {
-		EntityRendererRegistry.register(type, ctx -> new dev.amble.lib.animation.client.BedrockEntityRenderer(ctx));
+		RegistrationUtil.registerBedrockRenderer(value);
 	}
 
 	@Override
