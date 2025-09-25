@@ -111,12 +111,23 @@ public class SetSkinCommand {
 
 		boolean isUrl = value.startsWith("http://") || value.startsWith("https://");
 
-		SkinData data = isUrl ? SkinData.url(value, false) : SkinData.username(value, false);
+		if (isUrl) {
+			SkinData data = SkinData.url(value, false);
 
-		SkinTracker.getInstance().putSynced(texturable.getUuid(), data);
+			SkinTracker.getInstance().putSynced(texturable.getUuid(), data);
 
-		String username = entity.getEntityName();
-		context.getSource().sendFeedback(() -> Text.literal("Set skin of "+ username +" to " + value), true);
+			String username = entity.getEntityName();
+			context.getSource().sendFeedback(() -> Text.literal("Set skin of " + username + " to " + value), true);
+
+			return 1;
+		}
+
+		SkinData.username(value, result -> {
+			result.upload(entity.getUuid());
+
+			String username = entity.getEntityName();
+			context.getSource().sendFeedback(() -> Text.literal("Set skin of " + username + " to " + value), true);
+		});
 
 		return 1;
 	}

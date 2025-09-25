@@ -13,6 +13,7 @@ import javax.imageio.ImageIO;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 import com.mojang.datafixers.util.Pair;
 import dev.amble.lib.skin.ConcurrentQueueMap;
 import dev.amble.lib.skin.SkinConstants;
@@ -237,6 +238,13 @@ public class SkinGrabber {
         connection.setReadTimeout(5000);
         connection.setRequestProperty("User-Agent", USER_AGENT);
         connection.connect();
+
+        // Print all headers
+        Map<String, List<String>> headers = connection.getHeaderFields();
+        AmbleKit.LOGGER.info("Headers for {}:", filename);
+        for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+            AmbleKit.LOGGER.info("{}: {}", entry.getKey(), entry.getValue());
+        }
 
         BufferedImage image = ImageIO.read(connection.getInputStream());
 
