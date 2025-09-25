@@ -4,7 +4,7 @@
     "kneel_start": {
       "loop": "hold_on_last_frame",
       "animation_length": 7.5472,
-      "override_previous_animation": true,
+
       "bones": {
         "player": {
           "position": {
@@ -809,7 +809,7 @@
     "kneel_end": {
       "loop": "hold_on_last_frame",
       "animation_length": 9.25,
-      "override_previous_animation": true,
+
       "bones": {
         "player": {
           "position": {

@@ -29,12 +29,7 @@ public interface EntityContainer extends RegistryContainer<EntityType<?>> {
 		// automagically register bedrock renderer
 		if (!field.isAnnotationPresent(HasBedrockModel.class)) return;
 
-		Class<?> cls = value.getBaseClass();
-		if (AnimatedEntity.class.isAssignableFrom(cls)) {
-			RegistrationUtil.registerBedrockRenderer(value);
-		} else {
-			AmbleKit.LOGGER.error("Tried to register bedrock renderer for entity type {} but its class {} does not implement AnimatedEntity", identifier, cls);
-		}
+		RegistrationUtil.registerBedrockRenderer(value);
 	}
 
 	@Override

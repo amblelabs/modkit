@@ -56,10 +56,9 @@ public abstract class CameraMixin {
 		this.setRotation((float) rotation.y + bodyYaw, (float) rotation.x);
 
 		Vec3d position = animation.boneTimelines.get("head").position().resolve(progress)
-				.rotateX((float)Math.toRadians(rotation.getX()))
-				.rotateY((float)Math.toRadians(rotation.getY()))
-				.rotateZ((float)Math.toRadians(rotation.getZ()))
-				.multiply(-1/16F).add(this.getPos());
-		this.setPos(position);
+				.rotateY(-(float)Math.toRadians(rotation.getY()))
+				.multiply(-1/16F);
+
+		this.setPos(position.add(this.getPos()));
 	}
 }

@@ -23,6 +23,10 @@ public record SkinData(String key, @Nullable String url, @Nullable Identifier lo
 		SkinConstants.fetchPlayerModel(username, slim -> consumer.accept(username(username, slim)));
 	}
 
+	public static void usernameUpload(String username, UUID uuid) {
+		username(username, skin -> skin.upload(uuid));
+	}
+
 	public static SkinData url(String url, boolean slim) {
 		return new SkinData(SkinConstants.encodeURL(url), url, null, slim);
 	}

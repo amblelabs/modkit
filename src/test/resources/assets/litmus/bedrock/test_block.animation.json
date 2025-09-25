@@ -3,7 +3,7 @@
 	"animations": {
 		"use": {
 			"animation_length": 2,
-			"override_previous_animation": true,
+
 			"bones": {
 				"bone84": {
 					"rotation": {

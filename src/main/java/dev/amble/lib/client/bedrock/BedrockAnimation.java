@@ -59,7 +59,7 @@ public class BedrockAnimation {
 
 	@Environment(EnvType.CLIENT)
 	public void apply(ModelPart root, double runningSeconds) {
-		if (this.overrideBones) {
+		if (!this.overrideBones) { // more often than not we want to reset the bones first
 			this.resetBones(root, runningSeconds);
 		}
 
@@ -67,7 +67,7 @@ public class BedrockAnimation {
 			try {
 				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
 				if (bone == null) {
-					if (boneName == "root") {
+					if (boneName.equalsIgnoreCase("root") || boneName.equalsIgnoreCase("player")) {
 						bone = root;
 					} else {
 						throw new IllegalStateException("Bone " + boneName + " not found in model. If this is the root part, ensure it is named 'root'.");
@@ -176,7 +176,7 @@ public class BedrockAnimation {
 			try {
 				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
 				if (bone == null) {
-					if ("root".equals(boneName)) {
+					if ("root".equalsIgnoreCase(boneName) || "player".equalsIgnoreCase(boneName)) {
 						bone = root;
 					} else {
 						throw new IllegalStateException("Bone " + boneName + " not found in model. If this is the root part, ensure it is named 'root'.");
