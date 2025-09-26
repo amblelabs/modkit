@@ -1,0 +1,14 @@
+{
+  "sad_regen_start": {
+    "movement": false,
+    "hide_hud": true
+  },
+  "sad_regen_loop": {
+    "movement": false,
+    "hide_hud": true
+  },
+  "sad_regen_end": {
+    "movement": false,
+    "hide_hud": true
+  }
+}

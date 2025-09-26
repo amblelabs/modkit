@@ -20,19 +20,14 @@ import org.jetbrains.annotations.Nullable;
  * @param excess Any excess metadata not used by AmbleKit.
  */
 @Environment(EnvType.CLIENT)
-public record AnimationMetadata(@With boolean movement, @With Perspective perspective, @With boolean fpsCamera, @With boolean hideHandItems, @With
+public record AnimationMetadata(@With boolean movement, @With Perspective perspective, @With boolean fpsCamera, @With boolean hideHandItems, @With boolean hideHud, @With
                                 JsonObject excess) {
-	public static final AnimationMetadata DEFAULT = new AnimationMetadata(true, null, true, true, new JsonObject());
+	public static final AnimationMetadata DEFAULT = new AnimationMetadata(true, null, true, true, false, new JsonObject());
 
 	@Nullable
 	public static AnimationMetadata getFor(AnimatedEntity animated) {
-		BedrockAnimationReference ref = animated.getCurrentAnimation();
-		if (ref == null) return null;
-
-		BedrockAnimation anim = ref.get().orElse(null);
+		BedrockAnimation anim = BedrockAnimation.getFor(animated);
 		if (anim == null) return null;
-		AnimationState state = animated.getAnimationState();
-		if (state == null || anim.isFinished(state)) return null;
 
 		AnimationMetadata metadata = anim.metadata;
 		return metadata;

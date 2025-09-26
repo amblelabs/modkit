@@ -16,6 +16,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
 import dev.amble.lib.AmbleKit;
+import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.animation.SoundProvider;
 import dev.amble.lib.animation.client.AnimationMetadata;
 import lombok.AllArgsConstructor;
@@ -48,6 +49,7 @@ public class BedrockAnimation {
 			.create();
 
 	public static boolean isRenderingPlayer = false; // whether the fps camera is currently rendering the player
+	public static Optional<Boolean> wasHudHidden = Optional.empty(); // the state of the hud before starting an animation on the local player
 
 	public final boolean shouldLoop;
 	public final double animationLength;
@@ -57,11 +59,23 @@ public class BedrockAnimation {
 	public final Map<Double, Identifier> sounds;
 	public String name;
 
+	@Nullable
+	public static BedrockAnimation getFor(AnimatedEntity animated) {
+		BedrockAnimationReference ref = animated.getCurrentAnimation();
+		if (ref == null) return null;
+
+		BedrockAnimation anim = ref.get().orElse(null);
+		if (anim == null) return null;
+		AnimationState state = animated.getAnimationState();
+		if (state == null || anim.isFinished(state)) return null;
+
+		return anim;
+	}
+
+
 	@Environment(EnvType.CLIENT)
 	public void apply(ModelPart root, double runningSeconds) {
-		if (!this.overrideBones) { // more often than not we want to reset the bones first
-			this.resetBones(root, runningSeconds);
-		}
+		this.resetBones(root, this.overrideBones);
 
 		this.boneTimelines.forEach((boneName, timeline) -> {
 			try {
@@ -109,7 +123,7 @@ public class BedrockAnimation {
 
 		boolean isComplete = !this.shouldLoop && runningSeconds >= this.animationLength;
 		if (isComplete) {
-			this.resetBones(root, runningSeconds);
+			this.resetBones(root, true);
 		}
 	}
 
@@ -171,7 +185,12 @@ public class BedrockAnimation {
 		return getRunningSeconds(state) >= this.animationLength;
 	}
 
-	public void resetBones(ModelPart root, double runningSeconds) {
+	public void resetBones(ModelPart root, boolean resetAll) {
+		if (resetAll) {
+			root.traverse().forEach(ModelPart::resetTransform);
+			return;
+		}
+
 		this.boneTimelines.forEach((boneName, timeline) -> {
 			try {
 				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);

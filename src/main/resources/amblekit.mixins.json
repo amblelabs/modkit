@@ -22,6 +22,7 @@
     "client.CameraMixin",
     "client.ClientPlayerEntityMixin",
     "client.ClientPlayerInteractionManagerMixin",
+    "client.GameRendererMixin",
     "client.PerspectiveMixin",
     "client.PlayerEntityModelMixin",
     "client.PlayerEntityRendererMixin",

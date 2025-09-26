@@ -15,6 +15,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Optional;
+
 @Mixin(PlayerEntityModel.class)
 public abstract class PlayerEntityModelMixin<T extends LivingEntity>
         extends BipedEntityModel<T> implements AnimatedEntityModel {
