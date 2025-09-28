@@ -1,3 +1,4 @@
+
 package dev.amble.lib.mixin.client;
 
 import dev.amble.lib.animation.AnimatedEntity;
@@ -24,19 +25,27 @@ public class WorldRendererMixin {
 
 	@Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/WorldRenderer;checkEmpty(Lnet/minecraft/client/util/math/MatrixStack;)V", ordinal = 0))
 	public void render(MatrixStack matrices, float tickDelta, long limitTime, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f projectionMatrix, CallbackInfo ci) {
-		if(camera.isThirdPerson() || !(camera.getFocusedEntity() instanceof AnimatedEntity animated)) return;
+		if (!(camera.getFocusedEntity() instanceof AnimatedEntity animated)) return;
 
-		AnimationMetadata metadata = AnimationMetadata.getFor(animated);
+		BedrockAnimation anim = BedrockAnimation.getFor(animated);
+		if (anim == null) return;
+		AnimationMetadata metadata = anim.metadata;
 		if (metadata == null || !metadata.fpsCamera()) return;
+
+
+		boolean thirdPerson = camera.isThirdPerson();
+		boolean hasCamera = anim.boneTimelines.containsKey("camera");
+		boolean isNear = camera.getPos().distanceTo(camera.getFocusedEntity().getPos().add(0, camera.getFocusedEntity().getStandingEyeHeight(), 0)) <= BedrockAnimation.HEAD_HIDE_DISTANCE;
 
 		Vec3d vec3d = camera.getPos();
 		double d = vec3d.x;
 		double e = vec3d.y;
 		double f = vec3d.z;
 		VertexConsumerProvider.Immediate immediate = this.bufferBuilders.getEntityVertexConsumers();
-		BedrockAnimation.isRenderingPlayer = true;
-		this.renderEntity(camera.getFocusedEntity(), d, e, f, tickDelta, matrices, (VertexConsumerProvider) immediate);
-		BedrockAnimation.isRenderingPlayer = false;
+		BedrockAnimation.IS_RENDERING_PLAYER = true;
+		BedrockAnimation.IS_RENDERING_HEAD = thirdPerson && hasCamera && !isNear;
+		this.renderEntity(camera.getFocusedEntity(), d, e, f, tickDelta, matrices, immediate);
+		BedrockAnimation.IS_RENDERING_PLAYER = false;
 	}
 
 	@Shadow

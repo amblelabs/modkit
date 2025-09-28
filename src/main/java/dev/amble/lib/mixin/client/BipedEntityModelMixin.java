@@ -2,17 +2,11 @@ package dev.amble.lib.mixin.client;
 
 import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.animation.client.AnimatedEntityModel;
-import dev.amble.lib.animation.client.AnimationMetadata;
 import dev.amble.lib.client.bedrock.BedrockAnimation;
-import dev.amble.lib.client.bedrock.BedrockAnimationReference;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.entity.animation.Animation;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
-import net.minecraft.client.render.entity.model.PlayerEntityModel;
-import net.minecraft.entity.AnimationState;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.Final;
@@ -47,7 +41,7 @@ public class BipedEntityModelMixin<T extends LivingEntity> implements AnimatedEn
 
 		this.applyAnimation(player, h);
 
-		if (!BedrockAnimation.isRenderingPlayer || livingEntity != MinecraftClient.getInstance().cameraEntity) {
+		if (!BedrockAnimation.IS_RENDERING_PLAYER || BedrockAnimation.IS_RENDERING_HEAD || livingEntity != MinecraftClient.getInstance().cameraEntity) {
 			head.visible = true;
 			return;
 		}

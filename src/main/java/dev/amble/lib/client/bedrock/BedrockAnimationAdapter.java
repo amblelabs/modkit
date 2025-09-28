@@ -125,18 +125,31 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 		BedrockAnimation.BoneValue rotations = BedrockAnimation.EmptyBoneValue.INSTANCE;
 		BedrockAnimation.BoneValue scale = BedrockAnimation.EmptyBoneValue.INSTANCE;
 
-		if (bone.has("position") && bone.get("position").isJsonObject()) {
-			positions = deserializeKeyframe(bone.getAsJsonObject("position"), BedrockAnimation.Transformation.POSITION);
+		if (bone.has("position")) {
+			if (bone.get("position").isJsonObject()) {
+				positions = deserializeKeyframe(bone.getAsJsonObject("position"), BedrockAnimation.Transformation.POSITION);
+			} else if (bone.get("position").isJsonArray()) {
+				JsonArray array = bone.getAsJsonArray("position");
+				positions = new BedrockAnimation.SimpleBoneValue(new Vec3d(parseMath(array.get(0)), parseMath(array.get(1)), parseMath(array.get(2))), BedrockAnimation.Transformation.POSITION);
+			}
 		}
 
-		if (bone.has("rotation") && bone.get("rotation").isJsonObject()) {
-			rotations = deserializeKeyframe(bone.getAsJsonObject("rotation"), BedrockAnimation.Transformation.ROTATION);
+		if (bone.has("rotation")) {
+			if (bone.get("rotation").isJsonObject()) {
+				rotations = deserializeKeyframe(bone.getAsJsonObject("rotation"), BedrockAnimation.Transformation.ROTATION);
+			} else if (bone.get("rotation").isJsonArray()) {
+				JsonArray array = bone.getAsJsonArray("rotation");
+				rotations = new BedrockAnimation.SimpleBoneValue(new Vec3d(parseMath(array.get(0)), parseMath(array.get(1)), parseMath(array.get(2))), BedrockAnimation.Transformation.ROTATION);
+			}
 		}
 
 		if (bone.has("scale")) {
 			JsonElement json = bone.get("scale");
 			if (json.isJsonObject()) {
 				scale = deserializeKeyframe(json.getAsJsonObject(), BedrockAnimation.Transformation.SCALE);
+			} else if (json.isJsonArray()) {
+				JsonArray array = json.getAsJsonArray();
+				scale = new BedrockAnimation.SimpleBoneValue(new Vec3d(parseMath(array.get(0)), parseMath(array.get(1)), parseMath(array.get(2))), BedrockAnimation.Transformation.SCALE);
 			}
 		}
 
@@ -191,5 +204,15 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 		Expression expression = new ExpressionBuilder(data).build();
 		double result = expression.evaluate();
 		return (float) result;
+	}
+
+	public static double parseMath(JsonElement data) {
+		if (data.isJsonPrimitive() && data.getAsJsonPrimitive().isNumber()) {
+			return data.getAsDouble();
+		} else if (data.isJsonPrimitive() && data.getAsJsonPrimitive().isString()) {
+			return parseMath(data.getAsString());
+		} else {
+			throw new IllegalArgumentException("Invalid math expression: " + data);
+		}
 	}
 }

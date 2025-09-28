@@ -30,7 +30,7 @@ public abstract class ArmorFeatureRendererMixin<T extends LivingEntity, M extend
             return;
         }
 
-        if(armorSlot == EquipmentSlot.HEAD && BedrockAnimation.isRenderingPlayer) {
+        if(armorSlot == EquipmentSlot.HEAD && BedrockAnimation.IS_RENDERING_PLAYER && !BedrockAnimation.IS_RENDERING_HEAD) {
             ci.cancel();
         }
     }

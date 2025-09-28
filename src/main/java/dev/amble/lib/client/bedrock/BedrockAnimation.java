@@ -27,10 +27,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.AnimationState;
-import net.minecraft.entity.Entity;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,8 +46,13 @@ public class BedrockAnimation {
 			.registerTypeAdapter(BedrockAnimation.class, new BedrockAnimationAdapter())
 			.create();
 
-	public static boolean isRenderingPlayer = false; // whether the fps camera is currently rendering the player
-	public static Optional<Boolean> wasHudHidden = Optional.empty(); // the state of the hud before starting an animation on the local player
+	public static boolean IS_RENDERING_PLAYER = false; // whether the fps camera is currently rendering the player
+	public static boolean IS_RENDERING_HEAD = false; // whether the fps camera is currently rendering the player's head
+	public static float HEAD_HIDE_DISTANCE = 0.5F; // If the camera is this close to the head it gets hidden
+	public static Optional<Boolean> WAS_HUD_HIDDEN = Optional.empty(); // the state of the hud before starting an animation on the local player
+	public static final Collection<String> IGNORED_BONES = Set.of("camera");
+	public static final Collection<String> ROOT_BONES = Set.of("root", "player");
+
 
 	public final boolean shouldLoop;
 	public final double animationLength;
@@ -79,9 +82,11 @@ public class BedrockAnimation {
 
 		this.boneTimelines.forEach((boneName, timeline) -> {
 			try {
+				if (IGNORED_BONES.contains(boneName.toLowerCase())) return;
+
 				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
 				if (bone == null) {
-					if (boneName.equalsIgnoreCase("root") || boneName.equalsIgnoreCase("player")) {
+					if (ROOT_BONES.contains(boneName.toLowerCase())) {
 						bone = root;
 					} else {
 						throw new IllegalStateException("Bone " + boneName + " not found in model. If this is the root part, ensure it is named 'root'.");
@@ -193,9 +198,11 @@ public class BedrockAnimation {
 
 		this.boneTimelines.forEach((boneName, timeline) -> {
 			try {
+				if (IGNORED_BONES.contains(boneName.toLowerCase())) return;
+
 				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
 				if (bone == null) {
-					if ("root".equalsIgnoreCase(boneName) || "player".equalsIgnoreCase(boneName)) {
+					if (ROOT_BONES.contains(boneName.toLowerCase())) {
 						bone = root;
 					} else {
 						throw new IllegalStateException("Bone " + boneName + " not found in model. If this is the root part, ensure it is named 'root'.");
@@ -303,7 +310,7 @@ public class BedrockAnimation {
 					}
 				} else {
 					if (before != null && after != null) {
-						double alpha = MathHelper.lerp(time, before.time, after.time);
+						double alpha = time;
 
 						return new Vec3d(
 								beforeData.getX() + (afterData.getX() - beforeData.getX()) * alpha,

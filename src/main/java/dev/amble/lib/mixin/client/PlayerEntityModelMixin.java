@@ -7,15 +7,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.client.render.entity.model.PlayerEntityModel;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Optional;
 
 @Mixin(PlayerEntityModel.class)
 public abstract class PlayerEntityModelMixin<T extends LivingEntity>
@@ -45,7 +42,7 @@ public abstract class PlayerEntityModelMixin<T extends LivingEntity>
 	    model.rightSleeve.copyTransform(model.rightArm);
 	    model.jacket.copyTransform(model.body);
 
-	    if (!BedrockAnimation.isRenderingPlayer || livingEntity != MinecraftClient.getInstance().cameraEntity) return;
+	    if (!BedrockAnimation.IS_RENDERING_PLAYER || BedrockAnimation.IS_RENDERING_HEAD || livingEntity != MinecraftClient.getInstance().cameraEntity) return;
 
 	    hat.visible = false;
     }

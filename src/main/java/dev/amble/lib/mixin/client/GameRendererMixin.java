@@ -20,23 +20,22 @@ public class GameRendererMixin {
 
 		if (player != null) {
 			BedrockAnimation anim = BedrockAnimation.getFor((AnimatedEntity) player);
-			Optional<Boolean> wasHudHidden = BedrockAnimation.wasHudHidden;
+			Optional<Boolean> wasHudHidden = BedrockAnimation.WAS_HUD_HIDDEN;
 
-			System.out.println("anim: " + anim + " | wasHudHidden: " + wasHudHidden + " | hudHidden: " + MinecraftClient.getInstance().options.hudHidden);
 			if (anim != null) {
 				if (wasHudHidden.isEmpty()) { // start
 					wasHudHidden = Optional.of(MinecraftClient.getInstance().options.hudHidden);
 
 					if (anim.metadata.hideHud()) {
 						MinecraftClient.getInstance().options.hudHidden = true;
-						BedrockAnimation.wasHudHidden = wasHudHidden;
+						BedrockAnimation.WAS_HUD_HIDDEN = wasHudHidden;
 					}
 				}
 			} else {
 				if (wasHudHidden.isPresent()) { // end
 					MinecraftClient.getInstance().options.hudHidden = wasHudHidden.get();
 					wasHudHidden = Optional.empty();
-					BedrockAnimation.wasHudHidden = wasHudHidden;
+					BedrockAnimation.WAS_HUD_HIDDEN = wasHudHidden;
 				}
 			}}
 	}
