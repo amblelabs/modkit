@@ -8,9 +8,11 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
 import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BlockView;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -63,7 +65,7 @@ public abstract class CameraMixin {
 		Vec3d rotation = animation.boneTimelines.get(cameraPart).rotation().resolve(progress);
 		float yaw;
 
-		if (thirdPerson) {
+		if (thirdPerson && animation.metadata.fpsCameraCopiesHead()) {
 			yaw = (focusedEntity instanceof ClientPlayerEntity clientPlayer) ? (MathHelper.lerpAngleDegrees(tickDelta, clientPlayer.prevHeadYaw, clientPlayer.headYaw)) : focusedEntity.getHeadYaw();
 		} else {
 			yaw = (focusedEntity instanceof ClientPlayerEntity clientPlayer) ? (MathHelper.lerpAngleDegrees(tickDelta, clientPlayer.prevBodyYaw, clientPlayer.bodyYaw)) : focusedEntity.getBodyYaw();
@@ -79,15 +81,20 @@ public abstract class CameraMixin {
 				MathHelper.lerp(tickDelta, focusedEntity.prevZ, focusedEntity.getZ()))
 		);
 
+		Pair<Float, Float> rots = animation.getRotations(cameraPart, (float) progress);
+		float animYaw = rots.getRight();
+		float animPitch = rots.getLeft();
+
 		if (thirdPerson) {
-			Vec3d pos = position.rotateY((float)Math.toRadians(90)).multiply(-1 / 16F).multiply(-1, 1, -1);
-			this.setRotation((float) (rotation.y + yaw), (float) rotation.x);
+			Vec3d pos = position.rotateY((float)Math.toRadians(90)).multiply(-1 / 16F);
+			this.setRotation(yaw, 0);
 			this.moveBy(clipToSpace(pos.x), clipToSpace(pos.y), clipToSpace(pos.z));
+			this.setRotation(animYaw + yaw, animPitch);
 			return;
 		}
 
 		// head positioning, has some issues though
-		this.setRotation((float) (rotation.y + yaw), (float) rotation.x);
+		this.setRotation(animYaw + yaw, animPitch);
 		this.setPos(position.rotateY((float) -Math.toRadians(-yaw)).multiply(-1/16F).add(this.getPos()).add(0, height, 0));
 	}
 }

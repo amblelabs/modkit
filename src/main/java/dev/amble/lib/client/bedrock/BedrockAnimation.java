@@ -29,6 +29,7 @@ import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.AnimationState;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 
@@ -216,6 +217,47 @@ public class BedrockAnimation {
 		});
 	}
 
+	/**
+	 * @return Pair<pitch, yaw> rotation for a given bone
+	 */
+	public Pair<Float, Float> getRotations(String part, float progress) {
+		if (!this.boneTimelines.containsKey(part)) return new Pair<>(0F, 0F);
+
+		Vec3d rotation = this.boneTimelines.get(part).rotation().resolve(progress);
+
+		double xRad = Math.toRadians(rotation.x);
+		double yRad = Math.toRadians(rotation.y);
+		double zRad = Math.toRadians(rotation.z);
+
+
+		Vec3d vec = new Vec3d(0, 0, 1);
+
+		// Rotate around X (pitch)
+		vec = new Vec3d(
+				vec.x,
+				vec.y * Math.cos(xRad) - vec.z * Math.sin(xRad),
+				vec.y * Math.sin(xRad) + vec.z * Math.cos(xRad)
+		);
+		// Rotate around Y (yaw)
+		vec = new Vec3d(
+				vec.x * Math.cos(yRad) + vec.z * Math.sin(yRad),
+				vec.y,
+				-vec.x * Math.sin(yRad) + vec.z * Math.cos(yRad)
+		);
+		// Rotate around Z (roll)
+		vec = new Vec3d(
+				vec.x * Math.cos(zRad) - vec.y * Math.sin(zRad),
+				vec.x * Math.sin(zRad) + vec.y * Math.cos(zRad),
+				vec.z
+		);
+
+		float animYaw = (float) Math.toDegrees(Math.atan2(-vec.x, vec.z));
+		float animPitch = (float) Math.toDegrees(Math.asin(-vec.y / vec.length()));
+
+		return new Pair<>(animPitch, animYaw);
+	}
+
+
 	public static class Group {
 		@SerializedName("format_version")
 		public String version;
@@ -311,6 +353,8 @@ public class BedrockAnimation {
 				} else {
 					if (before != null && after != null) {
 						double alpha = time;
+
+						alpha = (alpha - before.time) / (after.time - before.time);
 
 						return new Vec3d(
 								beforeData.getX() + (afterData.getX() - beforeData.getX()) * alpha,
