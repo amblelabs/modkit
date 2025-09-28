@@ -62,7 +62,6 @@ public abstract class CameraMixin {
 		String cameraPart = thirdPerson ? "camera" : "head";
 		if (!animation.boneTimelines.containsKey(cameraPart)) return;
 
-		Vec3d rotation = animation.boneTimelines.get(cameraPart).rotation().resolve(progress);
 		float yaw;
 
 		if (thirdPerson && animation.metadata.fpsCameraCopiesHead()) {
@@ -77,7 +76,7 @@ public abstract class CameraMixin {
 		this.setPos(
 				new Vec3d(
 				MathHelper.lerp(tickDelta, focusedEntity.prevX, focusedEntity.getX()),
-				MathHelper.lerp(tickDelta, focusedEntity.prevY, focusedEntity.getY()),
+				MathHelper.lerp(tickDelta, focusedEntity.prevY, focusedEntity.getY()) + (thirdPerson ? 0 : height),
 				MathHelper.lerp(tickDelta, focusedEntity.prevZ, focusedEntity.getZ()))
 		);
 
@@ -85,16 +84,10 @@ public abstract class CameraMixin {
 		float animYaw = rots.getRight();
 		float animPitch = rots.getLeft();
 
-		if (thirdPerson) {
-			Vec3d pos = position.rotateY((float)Math.toRadians(90)).multiply(-1 / 16F);
-			this.setRotation(yaw, 0);
-			this.moveBy(clipToSpace(pos.x), clipToSpace(pos.y), clipToSpace(pos.z));
-			this.setRotation(animYaw + yaw, animPitch);
-			return;
-		}
-
-		// head positioning, has some issues though
+		Vec3d pos = position.rotateY((float)Math.toRadians(90)).multiply(-1 / 16F);
+		this.setRotation(yaw, 0);
+		// todo \/ the clipping causes the camera to break when on ground
+		this.moveBy(clipToSpace(pos.x), clipToSpace(pos.y), clipToSpace(pos.z));
 		this.setRotation(animYaw + yaw, animPitch);
-		this.setPos(position.rotateY((float) -Math.toRadians(-yaw)).multiply(-1/16F).add(this.getPos()).add(0, height, 0));
 	}
 }
