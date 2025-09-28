@@ -3,7 +3,6 @@ package dev.amble.lib.mixin.client;
 import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.client.bedrock.BedrockAnimation;
 import dev.amble.lib.client.bedrock.BedrockAnimationReference;
-import dev.amble.lib.util.CameraUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
@@ -79,6 +78,16 @@ public abstract class CameraMixin {
 				MathHelper.lerp(tickDelta, focusedEntity.prevY, focusedEntity.getY()),
 				MathHelper.lerp(tickDelta, focusedEntity.prevZ, focusedEntity.getZ()))
 		);
-		CameraUtil.cameraMixin((p) -> this.moveBy(clipToSpace(p.x), clipToSpace(p.y), clipToSpace(p.z)), this::setRotation, rotation, position, focusedEntity, MathHelper.wrapDegrees(yaw), height, cameraPart.equals("head"));
+
+		if (thirdPerson) {
+			Vec3d pos = position.rotateY((float)Math.toRadians(90)).multiply(-1 / 16F).multiply(-1, 1, -1);
+			this.setRotation((float) (rotation.y + yaw), (float) rotation.x);
+			this.moveBy(clipToSpace(pos.x), clipToSpace(pos.y), clipToSpace(pos.z));
+			return;
+		}
+
+		// head positioning, has some issues though
+		this.setRotation((float) (rotation.y + yaw), (float) rotation.x);
+		this.setPos(position.rotateY((float) -Math.toRadians(-yaw)).multiply(-1/16F).add(this.getPos()).add(0, height, 0));
 	}
 }
