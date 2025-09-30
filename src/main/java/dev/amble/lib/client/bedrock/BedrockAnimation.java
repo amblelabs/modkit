@@ -17,8 +17,9 @@ import com.google.gson.annotations.SerializedName;
 
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.animation.AnimatedEntity;
-import dev.amble.lib.animation.SoundProvider;
+import dev.amble.lib.animation.EffectProvider;
 import dev.amble.lib.animation.client.AnimationMetadata;
+import dev.amble.lib.animation.client.WorldPosition;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import net.fabricmc.api.EnvType;
@@ -27,6 +28,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.AnimationState;
+import net.minecraft.entity.Entity;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Pair;
@@ -133,7 +136,12 @@ public class BedrockAnimation {
 		}
 	}
 
-	public void applyEffects(@Nullable SoundProvider entity, double current, double previous) {
+	public void applyEffects(@Nullable EffectProvider provider, double current, double previous, @Nullable ModelPart root) {
+		if (root != null) {
+			WorldPosition.get(this, "right_arm", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+			WorldPosition.get(this, "left_arm", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+			WorldPosition.get(this, "head", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+		}
 		if (this.sounds == null || this.sounds.isEmpty()) return;
 
 		for (Map.Entry<Double, Identifier> entry : this.sounds.entrySet()) {
@@ -143,10 +151,10 @@ public class BedrockAnimation {
 			if (previous <= time && current >= time) {
 				SoundEvent event = SoundEvent.of(soundId);
 
-				if (entity != null) {
-					if (!entity.isSilent()) {
-						Vec3d pos = entity.getSoundPosition();
-						entity.getWorld().playSound(MinecraftClient.getInstance().player, pos.x, pos.y, pos.z, event, entity.getSoundCategory(), 1F, 1F);
+				if (provider != null) {
+					if (!provider.isSilent()) {
+						Vec3d pos = provider.getEffectPosition(MinecraftClient.getInstance().getTickDelta());
+						provider.getWorld().playSound(MinecraftClient.getInstance().player, pos.x, pos.y, pos.z, event, provider.getSoundCategory(), 1F, 1F);
 					}
 				} else {
 					MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(event, 1F, 1F));
@@ -156,12 +164,12 @@ public class BedrockAnimation {
 	}
 
 	@Environment(EnvType.CLIENT)
-	public void apply(ModelPart root, AnimationState state, float progress, float speedMultiplier, @Nullable SoundProvider source) {
+	public void apply(ModelPart root, AnimationState state, float progress, float speedMultiplier, @Nullable EffectProvider source) {
 		double previous = getRunningSeconds(state);
 		double seconds = getRunningSeconds(state, progress, speedMultiplier);
 		state.run(s -> {
 			apply(root, seconds);
-			applyEffects(source, seconds, previous);
+			applyEffects(source, seconds, previous, root);
 		});
 	}
 
@@ -256,7 +264,6 @@ public class BedrockAnimation {
 
 		return new Pair<>(animPitch, animYaw);
 	}
-
 
 	public static class Group {
 		@SerializedName("format_version")

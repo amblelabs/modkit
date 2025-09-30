@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public interface AnimatedInstance extends BedrockModelProvider, SoundProvider {
+public interface AnimatedInstance extends BedrockModelProvider, EffectProvider {
 	UUID getUuid();
 	int getAge();
 	AnimationState getAnimationState();

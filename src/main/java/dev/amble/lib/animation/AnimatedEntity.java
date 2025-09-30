@@ -8,6 +8,7 @@ import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.Entity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.entity.EntityLike;
@@ -59,11 +60,12 @@ public interface AnimatedEntity extends EntityLike, AnimatedInstance {
 	}
 
 	@Override
-	default Vec3d getSoundPosition() {
-		if (!(this instanceof Entity be)) {
-			throw new UnsupportedOperationException("getSoundPosition() is only supported for Entity instances. Override this method");
-		}
+	default Vec3d getEffectPosition(float tickDelta) {
+		if (!(this instanceof Entity entity)) throw new UnsupportedOperationException("getEffectPosition() is only supported for Entity instances. Override this method");
 
-		return be.getPos();
+		return new Vec3d(
+				MathHelper.lerp(tickDelta, entity.prevX, entity.getX()),
+				MathHelper.lerp(tickDelta, entity.prevY, entity.getY()),
+				MathHelper.lerp(tickDelta, entity.prevZ, entity.getZ()));
 	}
 }

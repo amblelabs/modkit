@@ -46,11 +46,21 @@ public interface AnimatedBlockEntity extends AnimatedInstance {
 	}
 
 	@Override
-	default Vec3d getSoundPosition() {
+	default Vec3d getEffectPosition(float tickDelta) {
 		if (!(this instanceof BlockEntity be)) {
 			throw new UnsupportedOperationException("getSoundPosition() is only supported for BlockEntity instances. Override this method");
 		}
 
 		return Vec3d.ofCenter(be.getPos());
+	}
+
+	@Override
+	default float getHeadYaw() {
+		return 0;
+	}
+
+	@Override
+	default float getBodyYaw() {
+		return 0;
 	}
 }
