@@ -63,4 +63,9 @@ public interface AnimatedBlockEntity extends AnimatedInstance {
 	default float getBodyYaw() {
 		return 0;
 	}
+
+	@Override
+	default float getPitch() {
+		return 0;
+	}
 }

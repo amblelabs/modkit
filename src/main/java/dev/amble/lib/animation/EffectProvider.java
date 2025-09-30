@@ -12,5 +12,6 @@ public interface EffectProvider {
 	SoundCategory getSoundCategory();
 	float getHeadYaw();
 	float getBodyYaw();
+	float getPitch();
 	Vec3d getEffectPosition(float tickDelta);
 }

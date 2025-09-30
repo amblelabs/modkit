@@ -126,7 +126,7 @@ public class BedrockAnimation {
 					});
 				}
 			} catch (Exception e) {
-				AmbleKit.LOGGER.error("Failed apply animation to {} in model. Skipping animation application for this bone.", boneName, e);
+				///AmbleKit.LOGGER.error("Failed apply animation to {} in model. Skipping animation application for this bone.", boneName, e);
 			}
 		});
 
@@ -141,6 +141,9 @@ public class BedrockAnimation {
 			WorldPosition.get(this, "right_arm", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
 			WorldPosition.get(this, "left_arm", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
 			WorldPosition.get(this, "head", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+			WorldPosition.get(this, "left_leg", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+			WorldPosition.get(this, "right_leg", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+			WorldPosition.get(this, "particle", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
 		}
 		if (this.sounds == null || this.sounds.isEmpty()) return;
 
@@ -220,7 +223,7 @@ public class BedrockAnimation {
 
 				bone.traverse().forEach(ModelPart::resetTransform);
 			} catch (Exception e) {
-				AmbleKit.LOGGER.error("Failed to reset animation on {} in model. Skipping animation reset for this bone.", boneName, e);
+				//AmbleKit.LOGGER.error("Failed to reset animation on {} in model. Skipping animation reset for this bone.", boneName, e);
 			}
 		});
 	}

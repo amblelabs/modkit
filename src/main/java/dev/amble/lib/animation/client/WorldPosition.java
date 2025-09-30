@@ -6,6 +6,7 @@ import lombok.Getter;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.util.Pair;
@@ -73,17 +74,22 @@ public class WorldPosition {
 			target.getEffectPosition(tickDelta)
 		);
 
-		Vec3d position = anim.boneTimelines.get(boneName).position().resolve(progress);
+		Vec3d position = anim.boneTimelines.containsKey(boneName) ? anim.boneTimelines.get(boneName).position().resolve(progress) : Vec3d.ZERO;
 
 		AtomicReference<Float> height = new AtomicReference<>((float) 0);
+		AtomicReference<Float> lowest = new AtomicReference<>((float) 0);
 
 		ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
 
 		if (bone != null) {
 			position = position.add(bone.getDefaultTransform().pivotX, bone.getDefaultTransform().pivotY, bone.getDefaultTransform().pivotZ);
 
-			root.traverse().forEach(p -> {
-				height.updateAndGet(v -> ((v + p.getDefaultTransform().pivotY)));
+			bone.forEachCuboid(new MatrixStack(), (matrix, path, index, cuboid) -> {
+				height.updateAndGet(v -> cuboid.minY + bone.getDefaultTransform().pivotY + -1.68F*16F);
+			});
+
+			root.forEachCuboid(new MatrixStack(), (matrix, path, index, cuboid) -> {
+				lowest.updateAndGet(v -> Math.max(v, cuboid.maxY + bone.getDefaultTransform().pivotY));
 			});
 		}
 
@@ -91,19 +97,21 @@ public class WorldPosition {
 		float animYaw = rots.getRight();
 		float animPitch = rots.getLeft();
 
-		float yaw;
+		float entityYaw;
 
 		if (anim.metadata.fpsCameraCopiesHead()) {
-			yaw = (target instanceof ClientPlayerEntity clientPlayer) ? (MathHelper.lerpAngleDegrees(tickDelta, clientPlayer.prevHeadYaw, clientPlayer.headYaw)) : target.getHeadYaw();
+			entityYaw = (target instanceof ClientPlayerEntity clientPlayer) ? (MathHelper.lerpAngleDegrees(tickDelta, clientPlayer.prevHeadYaw, clientPlayer.headYaw)) : target.getHeadYaw();
 		} else {
-			yaw = (target instanceof ClientPlayerEntity clientPlayer) ? (MathHelper.lerpAngleDegrees(tickDelta, clientPlayer.prevBodyYaw, clientPlayer.bodyYaw)) : target.getBodyYaw();
+			entityYaw = (target instanceof ClientPlayerEntity clientPlayer) ? (MathHelper.lerpAngleDegrees(tickDelta, clientPlayer.prevBodyYaw, clientPlayer.bodyYaw)) : target.getBodyYaw();
 		}
 
-		Vec3d relativePos = position.rotateY((float) Math.toRadians(90)).multiply(-1 / 16F);
-		this.setRotation(yaw, 0);
+		float entityPitch = (target instanceof ClientPlayerEntity clientPlayer) ? (MathHelper.lerp(tickDelta, clientPlayer.prevPitch, clientPlayer.getPitch(tickDelta))) : target.getPitch();
+
+		Vec3d relativePos = position.add(0, height.get(), 0).rotateY((float) Math.toRadians(90)).multiply(-1 / 16F);
+		this.setRotation(entityYaw, 0);
 		// todo \/ the clipping causes the camera to break when on ground
-		this.moveBy(relativePos.x, relativePos.y + height.get() / 32F, relativePos.z);
-		this.setRotation(animYaw + yaw, animPitch);
+		this.moveBy(relativePos.x, relativePos.y, relativePos.z);
+		this.setRotation(animYaw + entityYaw, animPitch);
 
 		return this;
 	}
