@@ -29,6 +29,7 @@ import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
@@ -148,7 +149,14 @@ public class BedrockAnimation {
 		}
 
 		if (provider instanceof Entity entity) {
-			if (!this.metadata.movement()) entity.setVelocity(Vec3d.ZERO);
+			if (!this.metadata.movement()) {
+				entity.setVelocity(Vec3d.ZERO);
+				entity.fallDistance = 0;
+
+				if (entity instanceof LivingEntity living) {
+					living.limbAnimator.setSpeed(0F);
+				}
+			}
 		}
 
 		if (this.sounds == null || this.sounds.isEmpty()) return;
