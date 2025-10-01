@@ -120,9 +120,9 @@ public class BedrockAnimation {
 					Vec3d scale = timeline.scale.resolve(runningSeconds);
 
 					bone.traverse().forEach(child -> {
-						child.xScale *= (float) scale.x;
-						child.yScale *= (float) scale.y;
-						child.zScale *= (float) scale.z;
+						child.xScale = (float) scale.x;
+						child.yScale = (float) scale.y;
+						child.zScale = (float) scale.z;
 					});
 				}
 			} catch (Exception e) {
