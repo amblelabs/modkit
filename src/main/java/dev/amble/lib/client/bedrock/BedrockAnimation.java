@@ -138,13 +138,19 @@ public class BedrockAnimation {
 
 	public void applyEffects(@Nullable EffectProvider provider, double current, double previous, @Nullable ModelPart root) {
 		if (root != null) {
-			WorldPosition.get(this, "right_arm", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
-			WorldPosition.get(this, "left_arm", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
-			WorldPosition.get(this, "head", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
-			WorldPosition.get(this, "left_leg", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
-			WorldPosition.get(this, "right_leg", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
-			WorldPosition.get(this, "particle", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+			// todo finish particles
+			//WorldPosition.get(this, "right_arm", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+			//WorldPosition.get(this, "left_arm", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+			//WorldPosition.get(this, "head", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+			//WorldPosition.get(this, "left_leg", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+			//WorldPosition.get(this, "right_leg", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
+			//WorldPosition.get(this, "particle", (float) current, provider, root).spawnParticle(ParticleTypes.FLAME, Vec3d.ZERO, 1);
 		}
+
+		if (provider instanceof Entity entity) {
+			if (!this.metadata.movement()) entity.setVelocity(Vec3d.ZERO);
+		}
+
 		if (this.sounds == null || this.sounds.isEmpty()) return;
 
 		for (Map.Entry<Double, Identifier> entry : this.sounds.entrySet()) {
