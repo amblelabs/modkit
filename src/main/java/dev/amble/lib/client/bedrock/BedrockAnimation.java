@@ -236,10 +236,16 @@ public class BedrockAnimation {
 
 		Vec3d rotation = this.boneTimelines.get(part).rotation().resolve(progress);
 
+		return eulerToPitchYaw(rotation);
+	}
+
+	/**
+	 * @return Pair<pitch, yaw> rotation for a given bone
+	 */
+	public static Pair<Float, Float> eulerToPitchYaw(Vec3d rotation) {
 		double xRad = Math.toRadians(rotation.x);
 		double yRad = Math.toRadians(rotation.y);
 		double zRad = Math.toRadians(rotation.z);
-
 
 		Vec3d vec = new Vec3d(0, 0, 1);
 
