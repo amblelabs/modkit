@@ -49,6 +49,18 @@ public class WorldPosition {
 		this.diagonalPlane.set(1.0F, 0.0F, 0.0F).rotate(this.rotation);
 	}
 
+	protected void setRotation(Vec3d rotation) {
+		Pair<Float, Float> rots = BedrockAnimation.eulerToPitchYaw(rotation);
+
+		this.pitch = rots.getLeft();
+		this.yaw = rots.getRight();
+
+		this.rotation.rotationXYZ((float) rotation.getX(), (float) rotation.getY(), (float) rotation.getZ());
+		this.horizontalPlane.set(0.0F, 0.0F, 1.0F).rotate(this.rotation);
+		this.verticalPlane.set(0.0F, 1.0F, 0.0F).rotate(this.rotation);
+		this.diagonalPlane.set(1.0F, 0.0F, 0.0F).rotate(this.rotation);
+	}
+
 	protected void setPos(double x, double y, double z) {
 		this.setPos(new Vec3d(x, y, z));
 	}
@@ -75,6 +87,7 @@ public class WorldPosition {
 		);
 
 		Vec3d position = anim.boneTimelines.containsKey(boneName) ? anim.boneTimelines.get(boneName).position().resolve(progress) : Vec3d.ZERO;
+		Vec3d animRotation = anim.boneTimelines.containsKey(boneName) ? anim.boneTimelines.get(boneName).rotation().resolve(progress) : Vec3d.ZERO;
 
 		AtomicReference<Float> height = new AtomicReference<>((float) 0);
 		AtomicReference<Float> lowest = new AtomicReference<>((float) 0);
@@ -107,11 +120,15 @@ public class WorldPosition {
 
 		float entityPitch = (target instanceof ClientPlayerEntity clientPlayer) ? (MathHelper.lerp(tickDelta, clientPlayer.prevPitch, clientPlayer.getPitch(tickDelta))) : target.getPitch();
 
-		Vec3d relativePos = position.add(0, height.get(), 0).rotateY((float) Math.toRadians(90)).multiply(-1 / 16F);
+		Vec3d relativePos = position.rotateY((float) Math.toRadians(90)).multiply(-1 / 16F);
 		this.setRotation(entityYaw, 0);
 		// todo \/ the clipping causes the camera to break when on ground
-		this.moveBy(relativePos.x, relativePos.y, relativePos.z);
+		this.moveBy(relativePos.x, relativePos.y + 1.68, relativePos.z);
+		//this.setRotation(animRotation);
 		this.setRotation(animYaw + entityYaw, animPitch);
+
+		this.moveBy(0, height.get() / 32F, 0);
+
 
 		return this;
 	}
