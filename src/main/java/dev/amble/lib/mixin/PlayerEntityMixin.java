@@ -9,6 +9,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 
+import java.util.UUID;
+
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin extends LivingEntity implements AnimatedEntity, PlayerSkinTexturable {
 	protected PlayerEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
@@ -20,5 +22,10 @@ public abstract class PlayerEntityMixin extends LivingEntity implements Animated
 	@Override
 	public AnimationState getAnimationState() {
 		return amblekit$animationState;
+	}
+
+	@Override
+	public UUID getUuid() {
+		return super.getUuid();
 	}
 }
