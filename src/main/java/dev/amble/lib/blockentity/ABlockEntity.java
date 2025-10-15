@@ -4,12 +4,16 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.server.world.ServerChunkManager;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -21,6 +25,10 @@ public abstract class ABlockEntity extends BlockEntity {
     }
 
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) { }
+
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        return ActionResult.PASS;
+    }
 
     public void onBreak(BlockState state, World world, BlockPos pos, BlockState newState) { }
 
@@ -44,5 +52,5 @@ public abstract class ABlockEntity extends BlockEntity {
         ((ABlockEntity) e).tick(world, blockPos, blockState);
     }
 
-    public void tick(World world, BlockPos blockPos, BlockState blockState) { }
+    public void tick(World world, BlockPos pos, BlockState state) { }
 }

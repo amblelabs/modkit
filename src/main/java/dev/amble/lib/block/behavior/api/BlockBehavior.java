@@ -1,10 +1,11 @@
-package dev.amble.lib.block.behavior.base;
+package dev.amble.lib.block.behavior.api;
 
-import dev.amble.lib.block.ABlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.state.StateManager;
+import net.minecraft.state.property.Property;
 import org.jetbrains.annotations.ApiStatus;
+
+import java.util.List;
 
 @ApiStatus.Experimental
 public interface BlockBehavior<T extends BlockBehavior<T>> extends BlockBehaviorLike {
@@ -25,24 +26,25 @@ public interface BlockBehavior<T extends BlockBehavior<T>> extends BlockBehavior
         return state;
     }
 
-    default void appendProperties(StateManager.Builder<Block, BlockState> builder) { }
+    default void appendProperties(List<Property<?>> list) { }
 
-    Entry<T> type();
+    int idx();
 
     interface Entry<T extends BlockBehavior<T>> {
 
-        T get(ABlock block);
-        void set(ABlock block, BlockBehavior<?> t);
+        T get(BlockBehavior<?>[] block);
+        void set(BlockBehavior<?>[] block, BlockBehavior<?> t);
 
         record Impl<T extends BlockBehavior<T>>(int index) implements Entry<T> {
 
-            public T get(ABlock block) {
-                return (T) block.behaviors[index];
+            @Override
+            public T get(BlockBehavior<?>[] block) {
+                return (T) block[index];
             }
 
             @Override
-            public void set(ABlock block, BlockBehavior<?> behavior) {
-                block.behaviors[index] = behavior;
+            public void set(BlockBehavior<?>[] block, BlockBehavior<?> behavior) {
+                block[index] = behavior;
             }
         }
     }

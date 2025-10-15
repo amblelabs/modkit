@@ -1,12 +1,12 @@
 package dev.amble.lib.block.behavior.base;
 
+import dev.amble.lib.block.behavior.api.BlockBehavior;
+import dev.amble.lib.block.behavior.api.BlockBehaviors;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 
 public class BlockRotationBehavior implements BlockBehavior<BlockRotationBehavior> {
-
-    public static final Entry<BlockRotationBehavior> IDX = BlockBehaviors.register(new BlockRotationBehavior());
 
     public BlockState rotate(BlockState state, BlockRotation rotation) {
         return state;
@@ -17,7 +17,7 @@ public class BlockRotationBehavior implements BlockBehavior<BlockRotationBehavio
     }
 
     @Override
-    public Entry<BlockRotationBehavior> type() {
-        return IDX;
+    public int idx() {
+        return BlockBehaviors.BLOCK_ROTATION;
     }
 }

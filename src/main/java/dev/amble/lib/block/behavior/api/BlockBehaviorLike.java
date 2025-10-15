@@ -1,4 +1,4 @@
-package dev.amble.lib.block.behavior.base;
+package dev.amble.lib.block.behavior.api;
 
 public interface BlockBehaviorLike {
     default BlockBehaviorLike[] allBehaviors() {

@@ -1,4 +1,4 @@
-package dev.amble.lib.block.behavior.base;
+package dev.amble.lib.block.behavior.api;
 
 public record Archetype(BlockBehavior<?>... behaviors) implements BlockBehaviorLike {
     @Override

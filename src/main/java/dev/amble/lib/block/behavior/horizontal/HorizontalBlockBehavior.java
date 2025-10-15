@@ -1,15 +1,17 @@
 package dev.amble.lib.block.behavior.horizontal;
 
-import dev.amble.lib.block.behavior.base.Archetype;
+import dev.amble.lib.block.behavior.api.Archetype;
 import dev.amble.lib.block.behavior.base.BlockRotationBehavior;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.state.StateManager;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.state.property.Property;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.Direction;
+
+import java.util.List;
 
 public class HorizontalBlockBehavior extends BlockRotationBehavior {
 
@@ -32,8 +34,8 @@ public class HorizontalBlockBehavior extends BlockRotationBehavior {
     }
 
     @Override
-    public void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        super.appendProperties(builder);
+    public void appendProperties(List<Property<?>> list) {
+        list.add(FACING);
     }
 
     public static Direction getFacing(BlockState state) {

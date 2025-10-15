@@ -1,8 +1,9 @@
-package dev.amble.lib.block.behavior;
+package dev.amble.lib.block.behavior.base;
 
-import dev.amble.lib.block.behavior.base.Archetype;
-import dev.amble.lib.block.behavior.base.BlockBehavior;
-import dev.amble.lib.block.behavior.base.BlockBehaviors;
+import dev.amble.lib.block.behavior.InvisibleBlockBehavior;
+import dev.amble.lib.block.behavior.api.Archetype;
+import dev.amble.lib.block.behavior.api.BlockBehavior;
+import dev.amble.lib.block.behavior.api.BlockBehaviors;
 import dev.amble.lib.blockentity.ABlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
@@ -17,8 +18,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.BiFunction;
 
 public class BlockWithEntityBehavior implements BlockBehavior<BlockWithEntityBehavior> {
-
-    public static final Entry<BlockWithEntityBehavior> IDX = BlockBehaviors.register(null);
 
     private final BiFunction<BlockPos, BlockState, ? extends BlockEntity> func;
 
@@ -41,8 +40,8 @@ public class BlockWithEntityBehavior implements BlockBehavior<BlockWithEntityBeh
     }
 
     @Override
-    public Entry<BlockWithEntityBehavior> type() {
-        return IDX;
+    public int idx() {
+        return BlockBehaviors.BLOCK_WITH_ENTITY;
     }
 
     public static class Ticking extends BlockWithEntityBehavior {

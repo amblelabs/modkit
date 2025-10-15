@@ -1,6 +1,6 @@
 package dev.amble.lib.block;
 
-import dev.amble.lib.block.behavior.base.BlockBehaviorLike;
+import dev.amble.lib.block.behavior.api.BlockBehaviorLike;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Waterloggable;
@@ -16,16 +16,13 @@ import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-/**
- *
- */
 @ApiStatus.Experimental
 @SuppressWarnings("deprecation")
 public class AWaterloggableBlock extends ABlock implements Waterloggable {
 
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
 
-    public AWaterloggableBlock(Settings settings, BlockBehaviorLike... behaviors) {
+    public AWaterloggableBlock(ABlockSettings settings, BlockBehaviorLike... behaviors) {
         super(settings, behaviors);
     }
 
@@ -45,7 +42,7 @@ public class AWaterloggableBlock extends ABlock implements Waterloggable {
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        super.appendProperties(builder.add(WATERLOGGED));
+        builder.add(WATERLOGGED);
     }
 
     @Override
