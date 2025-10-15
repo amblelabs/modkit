@@ -16,8 +16,8 @@ import java.util.function.Supplier;
  */
 public class TBehaviorRegistry {
 
-    private boolean frozen;
-    private final Set<TBehavior> handlers = Collections.newSetFromMap(new IdentityHashMap<>());
+    private static boolean frozen;
+    private static final Set<TBehavior> handlers = Collections.newSetFromMap(new IdentityHashMap<>());
 
     /**
      * Registers the provided behavior class instance.
@@ -26,7 +26,7 @@ public class TBehaviorRegistry {
      * @throws IllegalStateException if the registry is already frozen <i>or</i> if the {@link TEventsRegistry} was not frozen yet.
      */
     @Contract(pure = true)
-    public void register(TBehavior behavior) {
+    public static void register(TBehavior behavior) {
         if (frozen)
             throw new IllegalStateException("Registry already frozen!");
 
@@ -43,7 +43,7 @@ public class TBehaviorRegistry {
      * @param behavior the consumer for creating the behavior, gets executed immediately.
      */
     @Contract(pure = true)
-    public void register(Supplier<TBehavior> behavior) {
+    public static void register(Supplier<TBehavior> behavior) {
         register(behavior.get());
     }
 
@@ -51,7 +51,7 @@ public class TBehaviorRegistry {
      * Freezes the registry and fixes all the {@link Resolve}-annotated fields.
      */
     @Contract(pure = true)
-    public void freeze() {
+    public static void freeze() {
         frozen = true;
 
         Map<Class<?>, TBehavior> lookup = new HashMap<>();
