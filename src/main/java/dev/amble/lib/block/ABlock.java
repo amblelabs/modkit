@@ -38,32 +38,20 @@ public class ABlock extends Block {
     private final BlockRotationBehavior rotation;
     private final BlockWithEntityBehavior entity;
 
-    private static BlockBehavior<?>[] flatBehavior(BlockBehaviorLike[] groups) {
-        BlockBehavior<?>[] behaviors = BlockBehaviors.behaviors.toArray(new BlockBehavior<?>[0]);
+    private static BlockBehavior[] flatBehavior(BlockBehaviorLike[] groups) {
+        BlockBehavior[] behaviors = BlockBehaviors.behaviors.toArray(new BlockBehavior[0]);
 
         for (BlockBehaviorLike like : groups) {
-            unwrap(behaviors, like);
+            like.unwrap(behaviors);
         }
 
         return behaviors;
     }
 
-    private static void unwrap(BlockBehavior<?>[] behaviors, BlockBehaviorLike like) {
-        if (like.isSingle()) {
-            BlockBehavior<?> behavior = like.singleBehavior();
-            behaviors[behavior.idx()] = behavior;
-            return;
-        }
-
-        for (BlockBehaviorLike behavior : like.allBehaviors()) {
-            unwrap(behaviors, behavior);
-        }
-    }
-
-    private static ABlockSettings attachProperties(ABlockSettings settings, BlockBehavior<?>[] behaviors) {
+    private static ABlockSettings attachProperties(ABlockSettings settings, BlockBehavior[] behaviors) {
         List<Property<?>> properties = new ArrayList<>();
 
-        for (BlockBehavior<?> behavior : behaviors) {
+        for (BlockBehavior behavior : behaviors) {
             behavior.appendProperties(properties);
         }
 
@@ -74,12 +62,12 @@ public class ABlock extends Block {
         this(settings, flatBehavior(behaviorGroups));
     }
 
-    private ABlock(ABlockSettings settings, BlockBehavior<?>[] behaviors) {
+    private ABlock(ABlockSettings settings, BlockBehavior[] behaviors) {
         super(attachProperties(settings, behaviors));
 
         BlockState defState = this.createDefaultState();
 
-        for (BlockBehavior<?> behavior : behaviors) {
+        for (BlockBehavior behavior : behaviors) {
             behavior.init(this);
             defState = behavior.initDefaultState(this, defState);
         }

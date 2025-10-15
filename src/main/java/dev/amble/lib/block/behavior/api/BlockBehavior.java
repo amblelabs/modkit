@@ -8,16 +8,11 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.List;
 
 @ApiStatus.Experimental
-public interface BlockBehavior<T extends BlockBehavior<T>> extends BlockBehaviorLike {
+public interface BlockBehavior extends BlockBehaviorLike {
 
     @Override
-    default boolean isSingle() {
-        return true;
-    }
-
-    @Override
-    default BlockBehavior<?> singleBehavior() {
-        return this;
+    default void unwrap(BlockBehavior[] behaviors) {
+        behaviors[idx()] = this;
     }
 
     default void init(Block block) { }
@@ -29,24 +24,4 @@ public interface BlockBehavior<T extends BlockBehavior<T>> extends BlockBehavior
     default void appendProperties(List<Property<?>> list) { }
 
     int idx();
-
-    interface Entry<T extends BlockBehavior<T>> {
-
-        T get(BlockBehavior<?>[] block);
-        void set(BlockBehavior<?>[] block, BlockBehavior<?> t);
-
-        record Impl<T extends BlockBehavior<T>>(int index) implements Entry<T> {
-
-            @Override
-            public T get(BlockBehavior<?>[] block) {
-                return (T) block[index];
-            }
-
-            @Override
-            public void set(BlockBehavior<?>[] block, BlockBehavior<?> behavior) {
-                block[index] = behavior;
-            }
-        }
-    }
-
 }

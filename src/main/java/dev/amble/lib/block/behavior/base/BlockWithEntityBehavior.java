@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
 
-public class BlockWithEntityBehavior implements BlockBehavior<BlockWithEntityBehavior> {
+public class BlockWithEntityBehavior implements BlockBehavior {
 
     private final BiFunction<BlockPos, BlockState, ? extends BlockEntity> func;
 

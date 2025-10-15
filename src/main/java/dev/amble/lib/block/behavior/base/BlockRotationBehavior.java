@@ -6,7 +6,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 
-public class BlockRotationBehavior implements BlockBehavior<BlockRotationBehavior> {
+public class BlockRotationBehavior implements BlockBehavior {
 
     public BlockState rotate(BlockState state, BlockRotation rotation) {
         return state;

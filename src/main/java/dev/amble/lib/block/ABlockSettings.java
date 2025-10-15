@@ -20,6 +20,7 @@ import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
+@SuppressWarnings("deprecation")
 public class ABlockSettings extends FabricBlockSettings {
 
     public static ABlockSettings create() {
