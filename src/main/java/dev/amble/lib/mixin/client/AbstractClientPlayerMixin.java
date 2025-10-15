@@ -1,6 +1,5 @@
 package dev.amble.lib.mixin.client;
 
-import dev.amble.lib.skin.PlayerSkinTexturable;
 import dev.amble.lib.skin.SkinData;
 import dev.amble.lib.skin.SkinTracker;
 import dev.amble.lib.skin.client.SkinGrabber;
