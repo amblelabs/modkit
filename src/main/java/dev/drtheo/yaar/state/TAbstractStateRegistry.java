@@ -12,7 +12,7 @@ import java.util.Map;
  * Registry for all {@link TState}s.
  * @author DrTheodor (DrTheo_)
  */
-public class TStateRegistry {
+public abstract class TAbstractStateRegistry {
 
     private boolean frozen;
 

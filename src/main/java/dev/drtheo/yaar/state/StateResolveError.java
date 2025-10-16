@@ -29,14 +29,14 @@ public class StateResolveError extends RuntimeException {
 
     @Override
     public synchronized Throwable fillInStackTrace() {
-        if (TStateRegistry.debug) return super.fillInStackTrace();
+        if (TAbstractStateRegistry.debug) return super.fillInStackTrace();
 
         this.setStackTrace(new StackTraceElement[0]);
         return this;
     }
 
     /**
-     * Creates a new {@link StateResolveError} instance if {@link TStateRegistry#debug} is {@code true},
+     * Creates a new {@link StateResolveError} instance if {@link TAbstractStateRegistry#debug} is {@code true},
      * otherwise, re-uses a cached instance with no trace information.
      *
      * @param container the holder of the state.
@@ -45,7 +45,7 @@ public class StateResolveError extends RuntimeException {
      */
     @Contract(pure = true)
     public static StateResolveError create(TStateContainer container, TState.Type<?> type) {
-        if (TStateRegistry.debug)
+        if (TAbstractStateRegistry.debug)
             return new StateResolveError(container, type);
 
         return INSTANCE;
