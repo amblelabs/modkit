@@ -41,6 +41,27 @@ public interface TStateContainer {
     }
 
     /**
+     * Utility method that gets the queried {@link TState} by its {@link TState.Type},
+     * or exits while throwing {@link IllegalStateException} if it wasn't found.
+     * <br>
+     * Use this to enforce state existence.
+     *
+     * @param type the {@link TState}'s type.
+     * @return the queried state's instance.
+     * @param <T> the state.
+     * @throws IllegalStateException if the state is not found.
+     */
+    @Contract(pure = true)
+    default <T extends TState<T>> T resolveState(@NotNull TState.Type<T> type) {
+        T res = stateOrNull(type);
+
+        if (res == null)
+            throw new IllegalStateException("Expected " + type.id());
+
+        return res;
+    }
+
+    /**
      * Removes the {@link TState} by its {@link TState.Type}.
      *
      * @param type the {@link TState}'s type.
@@ -60,13 +81,24 @@ public interface TStateContainer {
     @Contract(mutates = "this")
     boolean addState(@NotNull TState<?> state);
 
-    // TODO: proper javadocs for the methods below
-
+    /**
+     * Checks for existence of a state by its {@link TState.Type}, returning a proper {@code boolean} value.
+     * May be slow for some implementations of {@link TStateContainer}, but the default implementation
+     * {@link TStateContainer.ArrayBacked} can do it in O(1)
+     *
+     * @param type the {@link TState}'s type.
+     * @return whether the state exists.
+     */
     @Contract(pure = true)
     default boolean hasState(@NotNull TState.Type<?> type) {
         return stateOrNull(type) != null;
     }
 
+    /**
+     * Iterates through all (usually, non-null) entries of this {@link TStateContainer}.
+     *
+     * @param consumer the iterator that will consume the entries.
+     */
     @Contract(pure = true)
     void forEachState(@NotNull Iterator consumer);
 
@@ -162,6 +194,17 @@ public interface TStateContainer {
         @Contract(pure = true)
         public <T extends TState<T>> @Nullable T stateOrNull(@NotNull TState.Type<T> type) {
             return parent.stateOrNull(type);
+        }
+
+        @Override
+        @Contract(pure = true)
+        public <T extends TState<T>> T resolveState(@NotNull TState.Type<T> type) {
+            return parent.resolveState(type);
+        }
+
+        @Override
+        public <T extends TState<T>> @NotNull T state(@NotNull TState.Type<T> type) {
+            return parent.state(type);
         }
 
         @Override
