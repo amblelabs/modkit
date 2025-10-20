@@ -132,7 +132,7 @@ public interface TState<Self extends TState<Self>> {
         @Contract(pure = true)
         public int verifyIndex() {
             if (index < 0)
-                throw new IllegalStateException();
+                throw new IllegalStateException("State " + id + " is not registered!");
 
             return index;
         }
