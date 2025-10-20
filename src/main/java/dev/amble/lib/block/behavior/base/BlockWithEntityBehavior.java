@@ -28,7 +28,7 @@ public class BlockWithEntityBehavior implements BlockBehavior {
     @Override
     public void init(Block block) {
         if (!(block instanceof BlockEntityProvider))
-            throw new IllegalStateException("Block " + block + " does not implement a block entity provider!");
+            throw new IllegalStateException("Block " + block.getClass() + " does not implement a block entity provider!");
     }
 
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
