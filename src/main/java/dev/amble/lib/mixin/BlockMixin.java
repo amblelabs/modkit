@@ -16,6 +16,6 @@ public abstract class BlockMixin {
 
     @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/Block;appendProperties(Lnet/minecraft/state/StateManager$Builder;)V"))
     public void init(AbstractBlock.Settings settings, CallbackInfo ci, @Local StateManager.Builder<Block, BlockState> builder) {
-        if (settings instanceof ABlockSettings abs) builder.add(abs.properties());
+        if (settings instanceof ABlockSettings abs && abs.properties() != null) builder.add(abs.properties());
     }
 }
