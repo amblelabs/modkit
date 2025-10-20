@@ -52,6 +52,7 @@ public class ABlock extends Block {
         List<Property<?>> properties = new ArrayList<>();
 
         for (BlockBehavior behavior : behaviors) {
+            if (behavior == null) continue;
             behavior.appendProperties(properties);
         }
 
@@ -68,6 +69,8 @@ public class ABlock extends Block {
         BlockState defState = this.createDefaultState();
 
         for (BlockBehavior behavior : behaviors) {
+            if (behavior == null) continue;
+
             behavior.init(this);
             defState = behavior.initDefaultState(this, defState);
         }
