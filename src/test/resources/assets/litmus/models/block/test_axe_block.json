@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block",
+  "textures": {
+    "all": "litmus:block/test_axe_block"
+  }
+}

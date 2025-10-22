@@ -195,4 +195,12 @@ tasks.processResources {
     filesMatching("*.properties") {
         expand(branch: gitBranch)
     }
+
+    fabricApi {
+        configureDataGeneration {
+            modId = "litmus"
+            client = true
+        }
+    }
+
 }

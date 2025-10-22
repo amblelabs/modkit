@@ -16,6 +16,9 @@
 	"icon": "assets/amblekit/icon.png",
 	"environment": "*",
 	"entrypoints": {
+      "fabric-datagen": [
+        "dev.amble.litmus.datagen.LitmusModDataGenerator"
+      ],
 		"main": [
 			"dev.amble.litmus.LitmusMod"
 		],
