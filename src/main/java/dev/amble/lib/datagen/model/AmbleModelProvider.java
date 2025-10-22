@@ -45,14 +45,14 @@ public class AmbleModelProvider extends FabricModelProvider {
         this.blockClass.forEach(clazz -> {
             ReflectionUtil.getAnnotatedValues(clazz, Block.class, AutomaticModel.class, false).forEach((block, annotation) -> {
                 if (annotation.orElseThrow().justItem()) {
-                    registerItem(generator, block.asItem(), modid);
+                    registerItem(generator, block.asItem(), output.getModId());
                 }
             });
         });
 
         this.itemClass.forEach(clazz -> {
             ReflectionUtil.getAnnotatedValues(clazz, Item.class, AutomaticModel.class, false).forEach((item, annotation) -> {
-                registerItem(generator, item, modid);
+                registerItem(generator, item, output.getModId());
             });
         });
     }
