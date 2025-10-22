@@ -32,6 +32,22 @@ public class AmbleAdvancementProvider extends FabricAdvancementProvider {
         return create(null, name);
     }
 
+    public Builder task(Advancement parent, String name) {
+        return create(parent, name);
+    }
+
+    public Builder task(String name) {
+        return create(name);
+    }
+
+    public Builder challenge(Advancement parent, String name) {
+        return create(parent, name).frame(AdvancementFrame.CHALLENGE);
+    }
+
+    public Builder goal(Advancement parent, String name) {
+        return create(parent, name).frame(AdvancementFrame.GOAL);
+    }
+
     @Override
     public void generateAdvancement(Consumer<Advancement> consumer) {
         for (Builder builder : builders) {
