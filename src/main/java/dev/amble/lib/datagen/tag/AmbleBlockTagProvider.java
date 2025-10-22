@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import dev.amble.lib.datagen.util.AxeMineable;
+import dev.amble.lib.datagen.util.HoeMineable;
+import dev.amble.lib.datagen.util.ShovelMineable;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 
@@ -48,6 +50,32 @@ public class AmbleBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 AxeMineable annotation = axeBlocks.get(block).orElseThrow();
 
                 if (annotation.tool() != AxeMineable.Tool.NONE) {
+                    getOrCreateTagBuilder(annotation.tool().tag).add(block);
+                }
+            }
+        });
+        this.blockClass.forEach(clazz -> {
+            FabricTagBuilder pickaxeBuilder = getOrCreateTagBuilder(BlockTags.HOE_MINEABLE);
+            HashMap<Block, Optional<HoeMineable>> axeBlocks = ReflectionUtil.getAnnotatedValues(clazz, Block.class, HoeMineable.class, false);
+
+            for (Block block : axeBlocks.keySet()) {
+                pickaxeBuilder.add(block);
+                HoeMineable annotation = axeBlocks.get(block).orElseThrow();
+
+                if (annotation.tool() != HoeMineable.Tool.NONE) {
+                    getOrCreateTagBuilder(annotation.tool().tag).add(block);
+                }
+            }
+        });
+        this.blockClass.forEach(clazz -> {
+            FabricTagBuilder pickaxeBuilder = getOrCreateTagBuilder(BlockTags.SHOVEL_MINEABLE);
+            HashMap<Block, Optional<ShovelMineable>> axeBlocks = ReflectionUtil.getAnnotatedValues(clazz, Block.class, ShovelMineable.class, false);
+
+            for (Block block : axeBlocks.keySet()) {
+                pickaxeBuilder.add(block);
+                ShovelMineable annotation = axeBlocks.get(block).orElseThrow();
+
+                if (annotation.tool() != ShovelMineable.Tool.NONE) {
                     getOrCreateTagBuilder(annotation.tool().tag).add(block);
                 }
             }
