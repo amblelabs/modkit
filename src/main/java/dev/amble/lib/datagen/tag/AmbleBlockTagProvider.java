@@ -3,6 +3,7 @@ package dev.amble.lib.datagen.tag;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import dev.amble.lib.datagen.util.AxeMineable;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
 
@@ -38,7 +39,22 @@ public class AmbleBlockTagProvider extends FabricTagProvider.BlockTagProvider {
                 }
             }
         });
+        this.blockClass.forEach(clazz -> {
+            FabricTagBuilder pickaxeBuilder = getOrCreateTagBuilder(BlockTags.AXE_MINEABLE);
+            HashMap<Block, Optional<AxeMineable>> axeBlocks = ReflectionUtil.getAnnotatedValues(clazz, Block.class, AxeMineable.class, false);
+
+            for (Block block : axeBlocks.keySet()) {
+                pickaxeBuilder.add(block);
+                AxeMineable annotation = axeBlocks.get(block).orElseThrow();
+
+                if (annotation.tool() != AxeMineable.Tool.NONE) {
+                    getOrCreateTagBuilder(annotation.tool().tag).add(block);
+                }
+            }
+        });
     }
+
+
 
     public AmbleBlockTagProvider withBlocks(Class<? extends BlockContainer>... blockClass) {
         // add all to queue
