@@ -8,6 +8,7 @@ import net.minecraft.advancement.criterion.CriterionConditions;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +46,7 @@ public class AmbleAdvancementProvider extends FabricAdvancementProvider {
         private ItemConvertible item = Items.BARRIER;
         private boolean hidden = false;
         private AdvancementFrame frame = AdvancementFrame.TASK;
+        private Identifier background;
         private boolean announce = true;
         private boolean showToast = true;
 
@@ -75,6 +77,15 @@ public class AmbleAdvancementProvider extends FabricAdvancementProvider {
             return this;
         }
 
+        public Builder background(Identifier background) {
+            this.background = background;
+            return this;
+        }
+
+        public Builder background(String background) {
+            return background(new Identifier(AmbleAdvancementProvider.this.output.getModId(), background));
+        }
+
         public Builder silent() {
             this.announce = false;
             return this;
@@ -92,7 +103,7 @@ public class AmbleAdvancementProvider extends FabricAdvancementProvider {
                     .display(item,
                             Text.translatable("achievement." + modId + ".title." + name),
                             Text.translatable("achievement." + modId + ".description." + name),
-                            null, frame, showToast, announce, hidden)
+                            background, frame, showToast, announce, hidden)
                     .build(advancement -> {}, modId + ":" + name);
         }
     }
