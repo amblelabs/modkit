@@ -1,10 +1,7 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     id "fabric-loom" version "1.9-SNAPSHOT"
     id "maven-publish"
     id "java"
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 apply from: 'versioning.gradle'
@@ -30,15 +27,6 @@ repositories {
     }
     // Scheduler, Queue, MultiDim, AutoJSON
     maven { url "https://theo.is-a.dev/maven/" }
-}
-
-tasks.named("remapJar") {
-    dependsOn(tasks.named("shadowJar"))
-    inputFile.set(
-            tasks.named("shadowJar", ShadowJar.class)
-                    .flatMap { it.archiveFile }
-    )
-    archiveClassifier.set("") // makes the remapped shadow jar the default artifact
 }
 
 loom {
@@ -87,10 +75,6 @@ sourceSets {
 	}
 }
 
-configurations {
-    shaded
-}
-
 dependencies {
     // To change the versions see the gradle.properties file
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -113,86 +97,59 @@ dependencies {
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 }
 
-shadowJar {
-    configurations = [project.configurations.shaded]
-    archiveClassifier.set('')
-    exclude 'net/fabricmc/**'
-    exclude 'org/spongepowered/asm/**'
-}
-
 processResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE // Exclude duplicate files, I don"t why this even works
     inputs.property "version", project.version
     inputs.property "minecraft_version", project.minecraft_version
     inputs.property "loader_version", project.loader_version
-    filteringCharset "UTF-8"
+
+	exclude '.cache'
+
+	def expansionVars = [
+			"version": project.version,
+            "minecraft_version": project.minecraft_version,
+            "loader_version": project.loader_version
+	]
 
     filesMatching("fabric.mod.json") {
-        expand "version": project.version,
-                "minecraft_version": project.minecraft_version,
-                "loader_version": project.loader_version
+        expand expansionVars
     }
 }
 
-def targetJavaVersion = 17
 tasks.withType(JavaCompile).configureEach {
-    // ensure that the encoding is set to UTF-8, no matter what the system default is
-    // this fixes some edge cases with sound characters not displaying correctly
-    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
-    // If Javadoc is generated, this must be specified in that task too.
-    it.options.encoding = "UTF-8"
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible) {
-        it.options.release = targetJavaVersion
-    }
+	it.options.release = 17
 }
 
 java {
-    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
-    if (JavaVersion.current() < javaVersion) {
-        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
-    }
+	withSourcesJar()
 
-    archivesBaseName = project.base.archivesName.get()
+	sourceCompatibility = JavaVersion.VERSION_22
+	targetCompatibility = JavaVersion.VERSION_17
 }
 
 jar {
-    enabled = false
-    from("LICENSE") {
-        rename { "${it}_${project.archivesBaseName}" }
-    }
+    inputs.property "archivesName", project.base.archivesName
 
-    // exclude assets if it's a beta dev build
-    if (System.hasProperty("BETA")) {
-        processResources.exclude("assets")
-    }
+	// needed because inputs.properties.archivesName is not accessible configuration time
+	def archivesNameValue = project.base.archivesName
+
+	from("LICENSE") {
+		rename { "${it}_${archivesNameValue.get()}" }
+	}
 }
 
-artifacts {
-    archives shadowJar
-}
-
-
-// configure the maven publication
 publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.archives_base_name
+			from components.java
+		}
+	}
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
-        // Notice: This block does NOT have the same function as the block in the top level.
-        // The repositories here will be used for publishing your artifact, not for
-        // retrieving dependencies.
-    }
-}
-
-def gitBranch = 'git rev-parse --abbrev-ref HEAD'.execute().text.trim()
-
-tasks.processResources {
-    filesMatching("*.properties") {
-        expand(branch: gitBranch)
-    }
+	repositories {
+		maven {
+			name = "ci"
+			url = providers.environmentVariable("CI_MAVEN_PATH")
+		}
+	}
 }

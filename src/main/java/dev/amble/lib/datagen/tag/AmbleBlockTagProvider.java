@@ -82,9 +82,8 @@ public class AmbleBlockTagProvider extends FabricTagProvider.BlockTagProvider {
         });
     }
 
-
-
-    public AmbleBlockTagProvider withBlocks(Class<? extends BlockContainer>... blockClass) {
+    @SafeVarargs
+    public final AmbleBlockTagProvider withBlocks(Class<? extends BlockContainer>... blockClass) {
         // add all to queue
         this.blockClass.addAll(Arrays.asList(blockClass));
 

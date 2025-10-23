@@ -5,12 +5,14 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "AbstractBlockAccessor",
+    "BlockMixin",
     "EndermanEntityMixin",
     "ItemMixin",
     "PlayerEntityMixin",
     "SaveLoadingMixin",
     "ServerPlayerInteractionManagerMixin",
     "SkeletonEntityMixin",
+    "StructureTemplateMixin",
     "ZombieEntityMixin",
     "client.HeldItemFeatureRendererMixin",
     "client.HeldItemRendererMixin"

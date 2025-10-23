@@ -44,7 +44,7 @@ public abstract class ItemContainer implements RegistryContainer<Item> {
     public void finish() {
         ItemGroupEvents.MODIFY_ENTRIES_ALL.register((group, entries) -> {
             for (Item item : items) {
-                ItemGroup target = ((AItem) item).a$group();
+                ItemGroup target = ((AItem) item).amble$group();
 
                 if (target == null)
                     target = this.getDefaultGroup();

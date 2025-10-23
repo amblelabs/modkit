@@ -17,18 +17,16 @@ import dev.amble.lib.datagen.util.AutomaticModel;
 import dev.amble.lib.util.ReflectionUtil;
 
 public class AmbleModelProvider extends FabricModelProvider {
-    protected final String modid;
+
     protected final FabricDataOutput output;
-    protected List<Class<? extends BlockContainer>> blockClass;
-    protected Queue<Class<? extends ItemContainer>> itemClass;
+
+    protected List<Class<? extends BlockContainer>> blockClass = new ArrayList<>();
+    protected Queue<Class<? extends ItemContainer>> itemClass = new LinkedList<>();
 
     public AmbleModelProvider(FabricDataOutput output) {
         super(output);
 
-        this.modid = output.getModId();
         this.output = output;
-        this.blockClass = new ArrayList<>();
-        this.itemClass = new LinkedList<>();
     }
 
     @Override
@@ -47,25 +45,28 @@ public class AmbleModelProvider extends FabricModelProvider {
         this.blockClass.forEach(clazz -> {
             ReflectionUtil.getAnnotatedValues(clazz, Block.class, AutomaticModel.class, false).forEach((block, annotation) -> {
                 if (annotation.orElseThrow().justItem()) {
-                    registerItem(generator, block.asItem(), modid);
+                    registerItem(generator, block.asItem(), output.getModId());
                 }
             });
         });
 
         this.itemClass.forEach(clazz -> {
             ReflectionUtil.getAnnotatedValues(clazz, Item.class, AutomaticModel.class, false).forEach((item, annotation) -> {
-                registerItem(generator, item, modid);
+                registerItem(generator, item, output.getModId());
             });
         });
     }
 
-    public AmbleModelProvider withBlocks(Class<? extends BlockContainer>... blockClass) {
+    @SafeVarargs
+    public final AmbleModelProvider withBlocks(Class<? extends BlockContainer>... blockClass) {
         // add all to queue
         this.blockClass.addAll(Arrays.asList(blockClass));
 
         return this;
     }
-    public AmbleModelProvider withItems(Class<? extends ItemContainer>... itemClass) {
+
+    @SafeVarargs
+    public final AmbleModelProvider withItems(Class<? extends ItemContainer>... itemClass) {
         // add all to queue
         this.itemClass.addAll(Arrays.asList(itemClass));
 
@@ -75,13 +76,16 @@ public class AmbleModelProvider extends FabricModelProvider {
     private static Model item(String modid, String parent, TextureKey... requiredTextureKeys) {
         return new Model(Optional.of(new Identifier(modid, "item/" + parent)), Optional.empty(), requiredTextureKeys);
     }
+
     private static Model item(TextureKey... requiredTextureKeys) {
         return item("minecraft", "generated", requiredTextureKeys);
     }
+
     private void registerItem(ItemModelGenerator generator, Item item, String modid) {
         Model model = item(TextureKey.LAYER0);
         model.upload(ModelIds.getItemModelId(item), createTextureMap(item, modid), generator.writer);
     }
+
     private TextureMap createTextureMap(Item item, String modid) {
         Identifier texture = new Identifier(modid, "item/" + getItemName(item));
         if (!(doesTextureExist(texture))) {
@@ -90,6 +94,7 @@ public class AmbleModelProvider extends FabricModelProvider {
 
         return new TextureMap().put(TextureKey.LAYER0, texture);
     }
+
     private static String getItemName(Item item) {
         return item.getTranslationKey().split("\\.")[2];
     }

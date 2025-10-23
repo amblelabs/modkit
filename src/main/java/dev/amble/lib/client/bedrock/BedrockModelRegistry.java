@@ -52,7 +52,7 @@ public class BedrockModelRegistry extends DatapackRegistry<BedrockModel> impleme
 
 				register(model);
 
-				AmbleKit.LOGGER.info("Loaded bedrock model {} {}", id, model);
+				AmbleKit.LOGGER.debug("Loaded bedrock model {} {}", id, model);
 			} catch (Exception e) {
 				AmbleKit.LOGGER.error("Error occurred while loading resource json {}", rawId.toString(), e);
 			}

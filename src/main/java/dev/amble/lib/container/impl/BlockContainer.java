@@ -58,7 +58,7 @@ public abstract class BlockContainer implements RegistryContainer<Block> {
     public void finish() {
         ItemGroupEvents.MODIFY_ENTRIES_ALL.register((group, entries) -> {
             for (Item item : items) {
-                if (((AItem) item).a$group() == group)
+                if (((AItem) item).amble$group() == group)
                     entries.add(item);
             }
         });

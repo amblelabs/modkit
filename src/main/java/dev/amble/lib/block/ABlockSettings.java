@@ -15,9 +15,12 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
 import net.minecraft.resource.featuretoggle.FeatureFlag;
 import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.state.property.Property;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
+@SuppressWarnings("deprecation")
 public class ABlockSettings extends FabricBlockSettings {
 
     public static ABlockSettings create() {
@@ -25,9 +28,16 @@ public class ABlockSettings extends FabricBlockSettings {
     }
 
     private Item.Settings settings;
+    private Property<?>[] properties;
 
     public ABlockSettings itemSettings(Item.Settings settings) {
         this.settings = settings;
+        return this;
+    }
+
+    @ApiStatus.Internal
+    public ABlockSettings properties(Property<?>[] properties) {
+        this.properties = properties;
         return this;
     }
 
@@ -253,5 +263,9 @@ public class ABlockSettings extends FabricBlockSettings {
 
     public Item.Settings itemSettings() {
         return settings;
+    }
+
+    public Property<?>[] properties() {
+        return properties;
     }
 }
