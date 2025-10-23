@@ -58,6 +58,7 @@ jobs:
         repo: amblelabs/maven
         path: ${{ runner.temp }}/maven
         token: ${{ secrets.BOT_TOKEN }}
+        message: "chore: publish amblekit artifacts" 
 
     - name: Publish artifacts
       uses: drtheodor/discord-webhook-upload-action@v0.2
