@@ -1,49 +1,63 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
-
-name: Automated donator builds
+name: Automated Builds
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - 'feat/**'
-      - 'main'
+
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v5
+      with:
+        cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
+        cache: 'gradle'
 
-    - name: Make Gradle Wrapper Executable
-      if: ${{ runner.os != 'Windows' }}
-      run: chmod +x ./gradlew
+    - name: Restore DataGen cache
+      id: cache-restore
+      uses: actions/cache/restore@v4
+      with:
+        path: src/main/generated
+        key: datagen-${{ github.run_id }}
+        restore-keys:
+          datagen-
 
-    # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
-    # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
-
-    - name: Run datagen
-      run: ./gradlew runDatagen
+    - name: Run DataGen
+      run: ./gradlew --configuration-cache runDatagen
 
     - name: Build
-      run: ./gradlew build
-      #env:
-      #  BETA: 1 # exclude assets if it's a beta dev build
+      run: ./gradlew --configuration-cache build
+
+    - name: Build for Maven
+      env:
+        CI_MAVEN_PATH: ${{ runner.temp }}/maven
+      run: ./gradlew --configuration-cache publishMavenJavaPublicationToCiRepository
+
+    - name: Save DataGen cache
+      id: cache-save
+      uses: actions/cache/save@v4
+      with:
+        path: src/main/generated
+        key: ${{ steps.cache-restore.outputs.cache-primary-key }}
+
+    - name: Publish to Amble Maven
+      uses: drtheodor/static-file-server-actions/upload@main
+      with:
+        repo: amblelabs/maven
+        path: ${{ runner.temp }}/maven
+        token: ${{ secrets.BOT_TOKEN }}
 
     - name: Publish artifacts
       uses: drtheodor/discord-webhook-upload-action@v0.2
@@ -55,14 +69,3 @@ jobs:
         message_commit: '> :sparkles: [${commitMessage}](<${commitUrl}>) by [${authorName}](<${authorUrl}>)'
         message_header: |
           <:new1:1253371736510959636><:new2:1253371805734015006> New `${{ github.repository }}` dev build `#${{ github.run_number }}`:
-
-    # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
-    # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
-    #
-    # - name: Setup Gradle
-    #   uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
-    #   with:
-    #     gradle-version: '8.5'
-    #
-    # - name: Build with Gradle 8.5
-    #   run: gradle build
