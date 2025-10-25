@@ -17,7 +17,7 @@ public abstract class TriStateTEvent<T extends TEvents> implements TEvent.Result
         for (T e : subscribed) {
             Result newRes = TEvent.handleSilent(this, e, () -> this.handle(e), Result.PASS);
 
-            if (newRes != Result.PASS) continue;
+            if (newRes == Result.PASS) continue;
 
             this.result = newRes;
             break;
