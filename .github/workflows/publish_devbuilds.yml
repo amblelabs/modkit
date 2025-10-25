@@ -64,7 +64,9 @@ jobs:
       uses: drtheodor/discord-webhook-upload-action@v0.2
       with:
         url: ${{ secrets.DEV_BUILDS }}
-        file: 'build/libs/*'
+        file: |
+          build/libs/*.jar
+          !build/libs/*-sources.jar
         username: librarian
         avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRD8DyTHxubVIbpkJDGuYBUvMzLXpA-yH6k2w&s'
         message_commit: '> :sparkles: [${commitMessage}](<${commitUrl}>) by [${authorName}](<${authorUrl}>)'
