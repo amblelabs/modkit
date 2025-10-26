@@ -63,5 +63,5 @@ ext.getArtifactVersion = {
         qualifier = "-$qualifier"
     }
 
-    return "$project.mod_version$qualifier+mc.$project.minecraft_version"
+    return "$project.mod_version-build.dev$qualifier+mc.$project.minecraft_version"
 }
