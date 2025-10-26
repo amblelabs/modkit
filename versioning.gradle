@@ -21,7 +21,7 @@ private static def getBuildNumber() {
     return System.getenv("GITHUB_RUN_NUMBER")
 }
 
-final String BUILD = "build"
+final String BUILD = "dev"
 final String BUILD_RELEASE = "release"
 final String BUILD_LOCAL = "testbuild"
 
@@ -63,5 +63,6 @@ ext.getArtifactVersion = {
         qualifier = "-$qualifier"
     }
 
-    return "$project.mod_version-build.0$qualifier+mc.$project.minecraft_version"
+    qualifier = BUILD + qualifier
+    return "$project.mod_version-$qualifier+mc.$project.minecraft_version"
 }
