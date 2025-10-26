@@ -55,11 +55,13 @@ ext.getPublicVersion = {
 }
 
 ext.getArtifactVersion = {
-    String branch = getBranch()
+    String qualifier = getBranch()
 
-    if (branch == BRANCH_MAIN) {
-        branch = null
+    if (qualifier == BRANCH_MAIN) {
+        qualifier = ""
+    } else {
+        qualifier = "-$qualifier"
     }
 
-    return "$project.mod_version-$branch+mc.$project.minecraft_version"
+    return "$project.mod_version$qualifier+mc.$project.minecraft_version"
 }
