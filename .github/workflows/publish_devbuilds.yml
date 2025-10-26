@@ -61,8 +61,6 @@ jobs:
     - name: Publish to Amble Maven
       uses: drtheodor/static-file-server-actions/upload@main
       with:
-        repo: amblelabs/maven
-        path: ${{ runner.temp }}/maven
         token: ${{ secrets.BOT_TOKEN }}
         message: "chore: publish amblekit artifacts" 
 
