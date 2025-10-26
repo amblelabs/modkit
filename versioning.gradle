@@ -1,21 +1,22 @@
+import java.util.Optional
+
 class CI {
-    static java.util.Optional<String> branch() {
+
+    static final String REFS_PREFIX = "refs/heads/"
+
+    static Optional<String> branch() {
         // groovy is very bad at globals, apparently.
-        String branch = System.getenv("GITHUB_REF")
-
-        if (!branch?.startsWith(Versioning.REFS_PREFIX))
-            return java.util.Optional.empty()
-
-        return java.util.Optional.of(branch.substring(Versioning.REFS_PREFIX.length()).replaceAll("/", "-"))
+        return Optional.ofNullable(System.getenv("GITHUB_REF"))
+                .filter { it.startsWith(REFS_PREFIX) }
+                .map { it.substring(REFS_PREFIX.length()).replaceAll("/", "-") }
     }
 
-    static java.util.Optional<String> buildNum() {
-        return java.util.Optional.ofNullable(System.getenv("GITHUB_RUN_NUMBER"))
+    static Optional<String> buildNum() {
+        return Optional.ofNullable(System.getenv("GITHUB_RUN_NUMBER"))
     }
 }
 
 class Versioning {
-    static final String REFS_PREFIX = "refs/heads/"
 
     static final String BRANCH_MAIN = "main"
     static final String BRANCH_RELEASE = "release"
@@ -24,27 +25,37 @@ class Versioning {
     static final String BUILD_LOCAL = "local"
     static final String BUILD = "dev"
 
-    static java.util.Optional<String> getBranch() {
-        return CI.branch().filter { it != BRANCH_MAIN && it != BRANCH_RELEASE }
+    static Optional<String> getBranch() {
+        return CI.branch()
+                .filter { it != BRANCH_MAIN && it != BRANCH_RELEASE }
     }
 
-    static java.util.Optional<String> getBuild() {
-        return CI.branch().filter { it != BRANCH_RELEASE }
-                .flatMap { CI.buildNum().map { ".$it"} }
+    static Optional<String> getBuild() {
+        return CI.branch()
+                .filter { it != BRANCH_RELEASE }
+                .flatMap { CI.buildNum() }
     }
 
     static String getQualifier() {
-        return CI.branch().map { it == BRANCH_RELEASE ? BUILD_RELEASE : BUILD }.orElse(BUILD_LOCAL)
+        return CI.branch()
+                .map { it == BRANCH_RELEASE ? BUILD_RELEASE : BUILD }
+                .orElse(BUILD_LOCAL)
     }
 }
 
-private String createVer(boolean includeBuild) {
-    String qualifier = Versioning.getQualifier()
+String createVer(boolean includeBuild) {
+    String qualifier = ""
 
-    if (includeBuild)
-        Versioning.getBuild().ifPresent { qualifier += it }
+    Versioning.branch.ifPresent { branch ->
+        qualifier += "$branch-"
+    }
 
-    Versioning.getBranch().ifPresent { qualifier += "-$it" }
+    qualifier += Versioning.qualifier
+
+    Versioning.build.filter { includeBuild }.ifPresent {build ->
+        qualifier += ".$build"
+    }
+
     return "$project.mod_version-$qualifier+mc.$project.minecraft_version"
 }
 
