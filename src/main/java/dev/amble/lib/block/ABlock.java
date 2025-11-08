@@ -138,6 +138,13 @@ public class ABlock extends Block {
     public @Nullable BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return entity.createBlockEntity(pos, state);
     }
+    
+    /**
+     * Omega-hack to trick the remapper.
+     */
+    public @Nullable BlockEntity method_10123(BlockPos pos, BlockState state) {
+        return createBlockEntity(pos, state);
+    }
 
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
         return entity.getTicker(world, state, type);
