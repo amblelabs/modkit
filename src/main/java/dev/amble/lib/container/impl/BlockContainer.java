@@ -24,8 +24,9 @@ public abstract class BlockContainer implements RegistryContainer<Block> {
     private List<Item> items;
 
     @Override
-    public void start(int fields) {
+    public boolean start(int fields) {
         this.items = new ArrayList<>(fields);
+		return true;
     }
 
     @Override
