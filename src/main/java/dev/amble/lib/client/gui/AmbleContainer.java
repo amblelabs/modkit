@@ -91,8 +91,14 @@ public class AmbleContainer implements AmbleElement {
 	}
 
 	public Rectangle getPreferredLayout() {
-		if (preferredLayout == null) return layout != null ? layout : new Rectangle(0, 0, 100, 100);
+		if (preferredLayout == null) return layout != null ? layout : fallbackLayout();
 		return preferredLayout;
+	}
+
+	protected Rectangle fallbackLayout() {
+		AmbleKit.LOGGER.error("GUI element {} is missing layout data, using fallback layout", id());
+
+		return new Rectangle(0, 0, 100, 100);
 	}
 
 	public Screen toScreen() {
