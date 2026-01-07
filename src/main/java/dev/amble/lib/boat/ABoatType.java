@@ -1,0 +1,7 @@
+package dev.amble.lib.boat;
+
+import net.minecraft.entity.vehicle.BoatEntity;
+
+public interface ABoatType {
+    BoatEntity.Type get();
+}

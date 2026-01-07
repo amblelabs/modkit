@@ -6,6 +6,9 @@
   "mixins": [
     "AbstractBlockAccessor",
     "BlockMixin",
+    "BoatEntityMixin",
+    "BoatEntityTypeMixin",
+    "ChestBoatEntityMixin",
     "EndermanEntityMixin",
     "ItemMixin",
     "PlayerEntityMixin",

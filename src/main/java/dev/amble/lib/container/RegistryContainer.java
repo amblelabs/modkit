@@ -8,6 +8,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 import dev.amble.lib.AmbleKit;
+import org.jetbrains.annotations.Nullable;
 
 public interface RegistryContainer<T> {
 
@@ -16,6 +17,7 @@ public interface RegistryContainer<T> {
     /**
      * @return The registry the fields of this class should be registered into
      */
+	@Nullable
     Registry<T> getRegistry();
 
     /**
@@ -28,12 +30,16 @@ public interface RegistryContainer<T> {
      */
     default void postProcessField(Identifier identifier, T value, Field field) {}
 
-    static <T> void register(Class<? extends RegistryContainer<T>> clazz, String namespace) {
+	default boolean preProcessField(Field field) {
+		return true;
+	}
+
+	static <T> void register(Class<? extends RegistryContainer<T>> clazz, String namespace) {
         try {
             RegistryContainer<T> container = clazz.getDeclaredConstructor().newInstance();
             Field[] fields = clazz.getDeclaredFields();
 
-            container.start(fields.length);
+			if (!container.start(fields.length)) return;
 
             for (Field field : fields) {
                 if (!Modifier.isStatic(field.getModifiers()))
@@ -41,6 +47,8 @@ public interface RegistryContainer<T> {
 
                 if (!container.getTargetClass().isAssignableFrom(field.getType()))
                     continue;
+
+				if (!container.preProcessField(field)) return;
 
                 // trust me bro
                 T v = (T) field.get(null);
@@ -55,7 +63,9 @@ public interface RegistryContainer<T> {
 
                 Identifier id = new Identifier(namespace, name);
 
-                Registry.register(container.getRegistry(), id, v);
+				if (container.getRegistry() != null) {
+					Registry.register(container.getRegistry(), id, v);
+				}
                 container.postProcessField(id, v, field);
             }
 
@@ -70,7 +80,7 @@ public interface RegistryContainer<T> {
         return (Class<T>) input;
     }
 
-    default void start(int fields) { }
+    default boolean start(int fields) { return true; }
 
     default void finish() { }
 }
