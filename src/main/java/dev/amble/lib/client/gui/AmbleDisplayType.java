@@ -1,6 +1,8 @@
 package dev.amble.lib.client.gui;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import dev.amble.lib.api.Identifiable;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
@@ -35,14 +37,14 @@ public record AmbleDisplayType(@Nullable Color color, @Nullable TextureData text
 	public static AmbleDisplayType parse(JsonElement element) {
 		if (element.isJsonArray()) {
 			// parse 3 element array as RGB color, 4th element optional alpha
-			var arr = element.getAsJsonArray();
+			JsonArray arr = element.getAsJsonArray();
 			int r = arr.get(0).getAsInt();
 			int g = arr.get(1).getAsInt();
 			int b = arr.get(2).getAsInt();
 			int a = arr.size() > 3 ? arr.get(3).getAsInt() : 255;
 			return AmbleDisplayType.color(new Color(r, g, b, a));
 		} else if (element.isJsonObject()) {
-			var obj = element.getAsJsonObject();
+			JsonObject obj = element.getAsJsonObject();
 			Identifier texture = new Identifier(obj.get("texture").getAsString());
 			int u = obj.get("u").getAsInt();
 			int v = obj.get("v").getAsInt();

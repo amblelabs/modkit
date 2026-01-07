@@ -1,5 +1,6 @@
 package dev.amble.lib.client.gui.registry;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.amble.lib.AmbleKit;
@@ -49,7 +50,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 
 		Rectangle layout = new Rectangle();
 		if (json.has("layout") && json.get("layout").isJsonArray()) {
-			var layoutArray = json.get("layout").getAsJsonArray();
+			JsonArray layoutArray = json.get("layout").getAsJsonArray();
 			layout.setSize(layoutArray.get(0).getAsInt(), layoutArray.get(1).getAsInt());
 		} else {
 			throw new IllegalStateException("Amble container is missing layout data");
@@ -72,7 +73,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 				throw new IllegalStateException("UI Alignment must be array [horizontal, vertical]");
 			}
 
-			var alignmentArray = json.get("alignment").getAsJsonArray();
+			JsonArray alignmentArray = json.get("alignment").getAsJsonArray();
 			String horizAlignKey = alignmentArray.get(0).getAsString();
 			String vertAlignKey = alignmentArray.get(1).getAsString();
 
@@ -95,7 +96,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 				throw new IllegalStateException("UI children should be an object array of other ui elements");
 			}
 
-			var childrenArray = json.get("children").getAsJsonArray();
+			JsonArray childrenArray = json.get("children").getAsJsonArray();
 
 			for (int i = 0; i < childrenArray.size(); i++) {
 				if (!(childrenArray.get(i).isJsonObject())) {
@@ -130,7 +131,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 					throw new IllegalStateException("UI text Alignment must be array [horizontal, vertical]");
 				}
 
-				var alignmentArray = json.get("text_alignment").getAsJsonArray();
+				JsonArray alignmentArray = json.get("text_alignment").getAsJsonArray();
 				String horizAlignKey = alignmentArray.get(0).getAsString();
 				String vertAlignKey = alignmentArray.get(1).getAsString();
 
