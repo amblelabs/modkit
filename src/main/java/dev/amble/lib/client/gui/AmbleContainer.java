@@ -48,7 +48,10 @@ public class AmbleContainer implements AmbleElement {
 	private Text title = Text.empty();
 
 	@Setter
-	public AmbleDisplayType background = AmbleDisplayType.color(Color.WHITE);
+	private AmbleDisplayType background = AmbleDisplayType.color(Color.WHITE);
+
+	@Setter
+	private boolean shouldPause = false;
 
 	@Setter
 	private Identifier identifier;
@@ -115,6 +118,7 @@ public class AmbleContainer implements AmbleElement {
 	public void display() {
 		var primary = AmbleContainer.primaryContainer();
 		primary.addChild(this);
+		primary.setShouldPause(shouldPause);
 		Screen screen = primary.toScreen();
 		net.minecraft.client.MinecraftClient.getInstance().setScreen(screen);
 	}
@@ -130,6 +134,9 @@ public class AmbleContainer implements AmbleElement {
 		this.verticalAlign = other.verticalAlign;
 		this.requiresNewRow = other.requiresNewRow;
 		this.background = other.background;
+		this.children.forEach(e -> e.setParent(null));
+		this.children.clear();
+		other.children.forEach(this::addChild);
 	}
 
 	public static Builder builder() {
@@ -170,6 +177,11 @@ public class AmbleContainer implements AmbleElement {
 		public boolean mouseReleased(double mouseX, double mouseY, int button) {
 			source.onRelease((int) mouseX, (int) mouseY, button);
 			return super.mouseReleased(mouseX, mouseY, button);
+		}
+
+		@Override
+		public boolean shouldPause() {
+			return source.isShouldPause();
 		}
 	}
 
@@ -251,6 +263,11 @@ public class AmbleContainer implements AmbleElement {
 			for (AmbleElement child : children) {
 				container.addChild(child);
 			}
+			return self();
+		}
+
+		public B shouldPause(boolean shouldPause) {
+			container.setShouldPause(shouldPause);
 			return self();
 		}
 

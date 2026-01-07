@@ -42,6 +42,17 @@
       ]
     },
     {
+      "on_click": "/give @s apple",
+      "hover_background": [
+        255,
+        0,
+        0
+      ],
+      "press_background": [
+        0,
+        255,
+        255
+      ],
       "layout": [
         75,
         40
@@ -63,7 +74,7 @@
             0,
             0
           ],
-          "text": "hello world"
+          "text": "give me appel"
         }
       ]
     }

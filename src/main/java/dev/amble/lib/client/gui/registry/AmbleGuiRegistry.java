@@ -8,6 +8,8 @@ import dev.amble.lib.client.gui.*;
 import dev.amble.lib.register.datapack.DatapackRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.minecraft.SharedConstants;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ResourceType;
@@ -90,6 +92,15 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 			vertAlign = UIAlign.valueOf(vertAlignKey.toUpperCase());
 		}
 
+		boolean shouldPause = false;
+		if (json.has("should_pause")) {
+			if (!json.get("should_pause").isJsonPrimitive()) {
+				throw new IllegalStateException("UI should_pause should be boolean | " + json);
+			}
+
+			shouldPause = json.get("should_pause").getAsBoolean();
+		}
+
 		List<AmbleElement> children = new ArrayList<>();
 		if (json.has("children")) {
 			if (!json.get("children").isJsonArray()) {
@@ -115,9 +126,8 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 			requiresNewRow = json.get("requires_new_row").getAsBoolean();
 		}
 
-		AmbleContainer created = AmbleContainer.builder().background(background).layout(layout).padding(padding).spacing(spacing).horizontalAlign(horizAlign).verticalAlign(vertAlign).children(children).requiresNewRow(requiresNewRow).build();
+		AmbleContainer created = AmbleContainer.builder().background(background).layout(layout).padding(padding).spacing(spacing).horizontalAlign(horizAlign).verticalAlign(vertAlign).children(children).shouldPause(shouldPause).requiresNewRow(requiresNewRow).build();
 
-		// TODO - buttons
 		if (json.has("text")) {
 			String text = json.get("text").getAsString();
 			AmbleText ambleText = AmbleText.textBuilder().text(Text.translatable(text)).build();
@@ -141,6 +151,48 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 
 				((AmbleText) created).setTextHorizontalAlign(textHorizAlign);
 				((AmbleText) created).setTextVerticalAlign(textVertAlign);
+			}
+		}
+
+		if (json.has("on_click") || json.has("hover_background") || json.has("press_background")) {
+			AmbleButton button = AmbleButton.buttonBuilder().build();
+			button.copyFrom(created);
+			created = button;
+
+			if (json.has("on_click")) {
+				// todo run actual java methods via reflection
+				String clickCommand = json.get("on_click").getAsString();
+				button.setOnClick(() -> {
+					try {
+						String string2 = SharedConstants.stripInvalidChars(clickCommand);
+						if (string2.startsWith("/")) {
+							if (!MinecraftClient.getInstance().player.networkHandler.sendCommand(string2.substring(1))) {
+								AmbleKit.LOGGER.error("Not allowed to run command with signed argument from click event: '{}'", string2);
+							}
+						} else {
+							AmbleKit.LOGGER.error("Failed to run command without '/' prefix from click event: '{}'", string2);
+						}
+					} catch (Exception e) {
+						AmbleKit.LOGGER.error("Error occurred while running command from click event: '{}'", clickCommand, e);
+					}
+				});
+			} else {
+				button.setOnClick(() -> {
+				});
+			}
+
+			if (json.has("hover_background")) {
+				AmbleDisplayType hoverBg = AmbleDisplayType.parse(json.get("hover_background"));
+				button.setHoverDisplay(hoverBg);
+			} else {
+				button.setHoverDisplay(button.getBackground());
+			}
+
+			if (json.has("press_background")) {
+				AmbleDisplayType pressBg = AmbleDisplayType.parse(json.get("press_background"));
+				button.setPressDisplay(pressBg);
+			} else {
+				button.setPressDisplay(button.getBackground());
 			}
 		}
 
