@@ -137,7 +137,7 @@ public abstract class SimpleDatapackRegistry<T extends Identifiable> extends Dat
         this.defaults();
 
         for (Identifier id : manager
-                .findResources(this.name.getPath(), filename -> filename.getPath().endsWith(".json")).keySet()) {
+                .findResources(this.name.getPath(), filename -> filename.getPath().endsWith(".registry")).keySet()) {
             try (InputStream stream = manager.getResource(id).get().getInputStream()) {
                 T created = this.read(stream);
 
@@ -149,7 +149,7 @@ public abstract class SimpleDatapackRegistry<T extends Identifiable> extends Dat
                 this.register(created);
                 AmbleKit.LOGGER.info("Loaded datapack {} {}", this.name, created.id().toString());
             } catch (Exception e) {
-                AmbleKit.LOGGER.error("Error occurred while loading resource json {}", id.toString(), e);
+                AmbleKit.LOGGER.error("Error occurred while loading resource registry {}", id.toString(), e);
             }
         }
 

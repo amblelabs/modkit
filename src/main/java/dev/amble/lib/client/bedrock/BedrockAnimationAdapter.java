@@ -34,7 +34,7 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 	@Override
 	public BedrockAnimation deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		if (!json.isJsonObject()) {
-			throw new IllegalStateException("animation json could not be parsed");
+			throw new IllegalStateException("animation registry could not be parsed");
 		}
 
 		JsonObject jsonObj = json.getAsJsonObject();

@@ -3,10 +3,12 @@ package dev.amble.lib.client;
 import dev.amble.lib.client.bedrock.BedrockAnimationRegistry;
 import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.client.bedrock.BedrockModelRegistry;
+import dev.amble.lib.client.gui.registry.AmbleGuiRegistry;
 import dev.amble.lib.register.AmbleRegistries;
 import dev.amble.lib.skin.client.SkinGrabber;
 import dev.drtheo.scheduler.client.SchedulerClientMod;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -25,13 +27,13 @@ public class AmbleKitClient implements ClientModInitializer {
 
         AmbleRegistries.getInstance().registerAll(
                 BedrockModelRegistry.getInstance(),
-                BedrockAnimationRegistry.getInstance()
+                BedrockAnimationRegistry.getInstance(),
+                AmbleGuiRegistry.getInstance()
         );
 
 	    ClientTickEvents.END_CLIENT_TICK.register((client) -> {
 			SkinGrabber.INSTANCE.tick();
 	    });
-
 
 	}
 }

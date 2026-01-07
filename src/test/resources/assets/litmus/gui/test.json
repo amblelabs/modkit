@@ -1,0 +1,71 @@
+{
+  "layout": [
+    216,
+    138
+  ],
+  "background": {
+    "texture": "litmus:textures/gui/test_screen.png",
+    "u": 0,
+    "v": 0,
+    "regionWidth": 216,
+    "regionHeight": 138,
+    "textureWidth": 256,
+    "textureHeight": 256
+  },
+  "padding": 10,
+  "spacing": 1,
+  "alignment": [
+    "centre",
+    "centre"
+  ],
+  "children": [
+    {
+      "layout": [
+        50,
+        50
+      ],
+      "background": [
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "layout": [
+        25,
+        25
+      ],
+      "background": [
+        255,
+        200,
+        0
+      ]
+    },
+    {
+      "layout": [
+        75,
+        40
+      ],
+      "background": [
+        0,
+        255,
+        0
+      ],
+      "children": [
+        {
+          "layout": [
+            75,
+            40
+          ],
+          "background": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "text": "hello world"
+        }
+      ]
+    }
+  ]
+}

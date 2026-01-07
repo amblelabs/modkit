@@ -15,12 +15,12 @@ import com.google.gson.reflect.TypeToken;
 import dev.amble.lib.AmbleKit;
 
 /**
- * A handler for the skin cache files, stored in a .json file
+ * A handler for the skin cache files, stored in a .registry file
  * Stores the key and the URL of the skin
  */
 public class SkinCache {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final String CACHE_FILE = "cache.json";
+    private static final String CACHE_FILE = "cache.registry";
 
     private boolean locked;
     private ArrayList<CacheData> data;

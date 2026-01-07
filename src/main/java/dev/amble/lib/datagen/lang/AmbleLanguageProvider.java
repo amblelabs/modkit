@@ -38,7 +38,7 @@ public class AmbleLanguageProvider extends FabricLanguageProvider {
         }
 
         output.getModContainer()
-                .findPath("assets/" + modid + "/lang/" + language.name().toLowerCase() + ".existing.json")
+                .findPath("assets/" + modid + "/lang/" + language.name().toLowerCase() + ".existing.registry")
                 .ifPresent(existingFilePath -> {
                     try {
                         builder.add(existingFilePath);

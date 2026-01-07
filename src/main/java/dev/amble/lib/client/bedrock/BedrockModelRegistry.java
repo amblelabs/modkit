@@ -40,11 +40,11 @@ public class BedrockModelRegistry extends DatapackRegistry<BedrockModel> impleme
 	public void reload(ResourceManager manager) {
 		clearCache();
 
-		for (Identifier rawId : manager.findResources("bedrock", filename -> filename.getPath().endsWith("geo.json")).keySet()) {
+		for (Identifier rawId : manager.findResources("bedrock", filename -> filename.getPath().endsWith("geo.registry")).keySet()) {
 			try (InputStream stream = manager.getResource(rawId).get().getInputStream()) {
 				String path = rawId.getPath();
-				// remove "bedrock/" prefix and ".geo.json" suffix
-				String idPath = path.substring("bedrock/".length(), path.length() - ".geo.json".length());
+				// remove "bedrock/" prefix and ".geo.registry" suffix
+				String idPath = path.substring("bedrock/".length(), path.length() - ".geo.registry".length());
 				Identifier id = Identifier.of(rawId.getNamespace(), idPath);
 
 				JsonObject json = JsonParser.parseReader(new InputStreamReader(stream)).getAsJsonObject();
@@ -54,7 +54,7 @@ public class BedrockModelRegistry extends DatapackRegistry<BedrockModel> impleme
 
 				AmbleKit.LOGGER.debug("Loaded bedrock model {} {}", id, model);
 			} catch (Exception e) {
-				AmbleKit.LOGGER.error("Error occurred while loading resource json {}", rawId.toString(), e);
+				AmbleKit.LOGGER.error("Error occurred while loading resource registry {}", rawId.toString(), e);
 			}
 		}
 	}

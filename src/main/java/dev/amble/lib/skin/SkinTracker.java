@@ -147,7 +147,7 @@ public class SkinTracker extends HashMap<UUID, SkinData> {
 	}
 
 	private static Path getSavePath(MinecraftServer server) {
-		return server.getSavePath(WorldSavePath.ROOT).resolve("amblekit").resolve("skins.json");
+		return server.getSavePath(WorldSavePath.ROOT).resolve("amblekit").resolve("skins.registry");
 	}
 
 	private void write(MinecraftServer server) {
@@ -159,7 +159,7 @@ public class SkinTracker extends HashMap<UUID, SkinData> {
 
 			Files.writeString(savePath, AmbleKit.GSON.toJson(this, SkinTracker.class));
 		} catch (Exception e) {
-			AmbleKit.LOGGER.error("Failed to write skins.json", e);
+			AmbleKit.LOGGER.error("Failed to write skins.registry", e);
 		}
 	}
 
@@ -172,7 +172,7 @@ public class SkinTracker extends HashMap<UUID, SkinData> {
 			INSTANCE = AmbleKit.GSON.fromJson(object, SkinTracker.class);
 			INSTANCE.sync();
 		} catch (Exception e) {
-			AmbleKit.LOGGER.error("Failed to read skins.json", e);
+			AmbleKit.LOGGER.error("Failed to read skins.registry", e);
 		}
 	}
 }
