@@ -45,7 +45,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 		if (json.has("background")) {
 			background = AmbleDisplayType.parse(json.get("background"));
 		} else {
-			throw new IllegalStateException("Amble container is missing background data");
+			throw new IllegalStateException("Amble container is missing background data | " + json);
 		}
 
 		Rectangle layout = new Rectangle();
@@ -53,7 +53,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 			JsonArray layoutArray = json.get("layout").getAsJsonArray();
 			layout.setSize(layoutArray.get(0).getAsInt(), layoutArray.get(1).getAsInt());
 		} else {
-			throw new IllegalStateException("Amble container is missing layout data");
+			throw new IllegalStateException("Amble container is missing layout data | " + json);
 		}
 
 		int padding = 0;
@@ -70,7 +70,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 		UIAlign vertAlign = UIAlign.START;
 		if (json.has("alignment")) {
 			if (!json.get("alignment").isJsonArray()) {
-				throw new IllegalStateException("UI Alignment must be array [horizontal, vertical]");
+				throw new IllegalStateException("UI Alignment must be array [horizontal, vertical] | " + json);
 			}
 
 			JsonArray alignmentArray = json.get("alignment").getAsJsonArray();
@@ -93,14 +93,14 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 		List<AmbleElement> children = new ArrayList<>();
 		if (json.has("children")) {
 			if (!json.get("children").isJsonArray()) {
-				throw new IllegalStateException("UI children should be an object array of other ui elements");
+				throw new IllegalStateException("UI children should be an object array of other ui elements | " + json);
 			}
 
 			JsonArray childrenArray = json.get("children").getAsJsonArray();
 
 			for (int i = 0; i < childrenArray.size(); i++) {
 				if (!(childrenArray.get(i).isJsonObject())) {
-					throw new IllegalStateException("UI child at index " + i + " is invalid, got " + childrenArray.get(i));
+					throw new IllegalStateException("UI child at index " + i + " is invalid, got " + childrenArray.get(i) + " | " + json);
 				}
 
 				children.add(parse(childrenArray.get(i).getAsJsonObject()));
@@ -110,7 +110,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 		boolean requiresNewRow = false;
 		if (json.has("requires_new_row")) {
 			if (!json.get("requires_new_row").isJsonPrimitive()) {
-				throw new IllegalStateException("UI requires_new_row should be boolean");
+				throw new IllegalStateException("UI requires_new_row should be boolean | " + json);
 			}
 			requiresNewRow = json.get("requires_new_row").getAsBoolean();
 		}
@@ -128,7 +128,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 			UIAlign textVertAlign = UIAlign.CENTRE;
 			if (json.has("text_alignment")) {
 				if (!json.get("text_alignment").isJsonArray()) {
-					throw new IllegalStateException("UI text Alignment must be array [horizontal, vertical]");
+					throw new IllegalStateException("UI text Alignment must be array [horizontal, vertical] | " + json);
 				}
 
 				JsonArray alignmentArray = json.get("text_alignment").getAsJsonArray();
@@ -166,7 +166,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 
 				AmbleKit.LOGGER.debug("Loaded AmbleContainer {} {}", id, model);
 			} catch (Exception e) {
-				AmbleKit.LOGGER.error("Error occurred while loading resource registry {}", rawId.toString(), e);
+				AmbleKit.LOGGER.error("Error occurred while loading resource json {}", rawId.toString(), e);
 			}
 		}
 	}
