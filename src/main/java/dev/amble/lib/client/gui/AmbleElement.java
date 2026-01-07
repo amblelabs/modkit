@@ -4,6 +4,7 @@ import dev.amble.lib.api.Identifiable;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.Vec2f;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,64 +68,74 @@ public interface AmbleElement extends Drawable, Identifiable {
 		}
 	}
 
+	private Pair<Integer, Integer> layoutRow(
+			List<AmbleElement> row,
+			int startX,
+			int maxWidth,
+			int cursorY,
+			int rowHeight
+	) {
+		if (row.isEmpty()) return new Pair<>(cursorY, rowHeight);
+
+		int rowWidth = row.stream()
+				.mapToInt(e -> e.getPreferredLayout().width)
+				.sum()
+				+ getSpacing() * (row.size() - 1);
+
+		int offsetX = switch (row.get(0).getHorizontalAlign()) {
+			case CENTRE -> (maxWidth - rowWidth) / 2;
+			case END -> maxWidth - rowWidth;
+			default -> 0;
+		};
+
+		int x = startX + offsetX;
+		boolean singleElementFullCenter =
+				row.size() == 1 &&
+						row.get(0).getVerticalAlign() == UIAlign.CENTRE;
+
+		int innerHeight = getLayout().height - getPadding() * 2;
+
+		for (var e : row) {
+			int y;
+
+			if (singleElementFullCenter) {
+				y = getLayout().y + getPadding()
+						+ (innerHeight - e.getPreferredLayout().height) / 2;
+			} else {
+				y = cursorY;
+
+				if (e.getVerticalAlign() == UIAlign.CENTRE)
+					y += (rowHeight - e.getPreferredLayout().height) / 2;
+				else if (e.getVerticalAlign() == UIAlign.END)
+					y += rowHeight - e.getPreferredLayout().height;
+			}
+
+			e.setLayout(new Rectangle(
+					x, y,
+					e.getPreferredLayout().width,
+					e.getPreferredLayout().height
+			));
+
+			e.recalcuateLayout();
+			x += e.getPreferredLayout().width + getSpacing();
+		}
+
+		cursorY += rowHeight + getSpacing();
+		row.clear();
+		rowHeight = 0;
+		return new Pair<>(cursorY, rowHeight);
+	}
+
 	default void recalcuateLayout() {
 
 		int startX = getLayout().x + getPadding();
 		int maxWidth = getLayout().width - getPadding() * 2;
 
 		int cursorX = startX;
-		final int[] cursorY = {getLayout().y + getPadding()};
-		final int[] rowHeight = {0};
+		int cursorY = getLayout().y + getPadding();
+		int rowHeight = 0;
 
 		List<AmbleElement> row = new ArrayList<>();
-
-		Runnable layoutRow = () ->
-		{
-			if (row.isEmpty()) return;
-
-			int rowWidth = row.stream().mapToInt(e -> e.getPreferredLayout().width).sum()
-					+ getSpacing() * (row.size() - 1);
-
-			int offsetX = switch (row.get(0).getHorizontalAlign()) {
-				case CENTRE -> (maxWidth - rowWidth) / 2;
-				case END -> maxWidth - rowWidth;
-				default -> 0;
-			};
-
-			int x = startX + offsetX;
-			boolean singleElementFullCenter =
-					row.size() == 1 &&
-							row.get(0).getVerticalAlign() == UIAlign.CENTRE;
-			int innerHeight = getLayout().height - getPadding() * 2;
-
-			for (var e : row) {
-				int y;
-
-				if (singleElementFullCenter) {
-					y = getLayout().y + getPadding()
-							+ (innerHeight - e.getPreferredLayout().height) / 2;
-				} else {
-					y = cursorY[0];
-
-					if (e.getVerticalAlign() == UIAlign.CENTRE)
-						y += (rowHeight[0] - e.getPreferredLayout().height) / 2;
-					else if (e.getVerticalAlign() == UIAlign.END)
-						y += rowHeight[0] - e.getPreferredLayout().height;
-				}
-
-				e.setLayout(new Rectangle(x, y,
-						e.getPreferredLayout().width,
-						e.getPreferredLayout().height));
-
-				e.recalcuateLayout();
-
-				x += e.getPreferredLayout().width + getSpacing();
-			}
-
-			cursorY[0] += rowHeight[0] + getSpacing();
-			row.clear();
-			rowHeight[0] = 0;
-		};
 
 		for (var child : getChildren())
 		{
@@ -133,7 +144,15 @@ public interface AmbleElement extends Drawable, Identifiable {
 
 			if (cursorX + w > startX + maxWidth || child.requiresNewRow())
 			{
-				layoutRow.run();
+				Pair<Integer, Integer> result = layoutRow(
+						row,
+						startX,
+						maxWidth,
+						cursorY,
+						rowHeight
+				);
+				cursorY = result.getLeft();
+				rowHeight = result.getRight();
 				cursorX = startX;
 			}
 
@@ -143,11 +162,18 @@ public interface AmbleElement extends Drawable, Identifiable {
 			child.recalcuateLayout();
 
 			cursorX += w + getSpacing();
-			rowHeight[0] = Math.max(rowHeight[0], h);
+			rowHeight = Math.max(rowHeight, h);
 		}
 
-		if (!row.isEmpty())
-			layoutRow.run();
+		if (!row.isEmpty()) {
+			layoutRow(
+					row,
+					startX,
+					maxWidth,
+					cursorY,
+					rowHeight
+			);
+		}
 	}
 
 	@Override
