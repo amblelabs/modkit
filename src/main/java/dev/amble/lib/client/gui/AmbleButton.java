@@ -18,26 +18,6 @@ public class AmbleButton extends AmbleContainer {
 	private @Nullable AmbleDisplayType normalDisplay = null;
 	private boolean isClicked = false;
 
-	public static AmbleButton of(AmbleContainer container, AmbleDisplayType hoverColor, AmbleDisplayType pressColor, Runnable onClick) {
-		AmbleButton button = new AmbleButton();
-		button.setPosition(container.getPosition());
-		button.setVisible(container.isVisible());
-		button.setLayout(container.getLayout());
-		button.setPreferredLayout(container.getPreferredLayout());
-		button.setParent(container.getParent());
-		button.setPadding(container.getPadding());
-		button.setSpacing(container.getSpacing());
-		button.setHorizontalAlign(container.getHorizontalAlign());
-		button.setVerticalAlign(container.getVerticalAlign());
-		button.setRequiresNewRow(container.requiresNewRow());
-		button.setBackground(container.getBackground());
-
-		button.hoverDisplay = hoverColor;
-		button.pressDisplay = pressColor;
-		button.onClick = onClick;
-
-		return button;
-	}
 
 	@Override
 	public void onRelease(double mouseX, double mouseY, int button) {
@@ -73,5 +53,57 @@ public class AmbleButton extends AmbleContainer {
 		}
 
 		return normalDisplay;
+	}
+
+	public static Builder buttonBuilder() {
+		return new Builder();
+	}
+
+	public static class Builder extends AbstractBuilder<AmbleButton, Builder> {
+
+		@Override
+		protected AmbleButton create() {
+			return new AmbleButton();
+		}
+
+		@Override
+		protected Builder self() {
+			return this;
+		}
+
+		public Builder hoverDisplay(AmbleDisplayType hoverDisplay) {
+			container.setHoverDisplay(hoverDisplay);
+			return this;
+		}
+
+		public Builder hoverDisplay(Color hoverColor) {
+			container.setHoverDisplay(AmbleDisplayType.color(hoverColor));
+			return this;
+		}
+
+		public Builder hoverDisplay(AmbleDisplayType.TextureData hoverTexture) {
+			container.setHoverDisplay(AmbleDisplayType.texture(hoverTexture));
+			return this;
+		}
+
+		public Builder pressDisplay(AmbleDisplayType pressDisplay) {
+			container.setPressDisplay(pressDisplay);
+			return this;
+		}
+
+		public Builder pressDisplay(Color pressColor) {
+			container.setPressDisplay(AmbleDisplayType.color(pressColor));
+			return this;
+		}
+
+		public Builder pressDisplay(AmbleDisplayType.TextureData pressTexture) {
+			container.setPressDisplay(AmbleDisplayType.texture(pressTexture));
+			return this;
+		}
+
+		public Builder onClick(Runnable onClick) {
+			container.setOnClick(onClick);
+			return this;
+		}
 	}
 }

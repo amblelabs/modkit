@@ -20,25 +20,6 @@ public class AmbleText extends AmbleContainer {
 	private UIAlign textHorizontalAlign = UIAlign.CENTRE;
 	private UIAlign textVerticalAlign = UIAlign.CENTRE;
 
-	public static AmbleText of(AmbleContainer container, Text text) {
-		AmbleText ambleText = new AmbleText();
-		ambleText.setPosition(container.getPosition());
-		ambleText.setVisible(container.isVisible());
-		ambleText.setLayout(container.getLayout());
-		ambleText.setPreferredLayout(container.getPreferredLayout());
-		ambleText.setParent(container.getParent());
-		ambleText.setPadding(container.getPadding());
-		ambleText.setSpacing(container.getSpacing());
-		ambleText.setHorizontalAlign(container.getHorizontalAlign());
-		ambleText.setVerticalAlign(container.getVerticalAlign());
-		ambleText.setRequiresNewRow(container.requiresNewRow());
-		ambleText.setBackground(container.getBackground());
-
-		ambleText.setText(text);
-
-		return ambleText;
-	}
-
 	@Override
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		super.render(context, mouseX, mouseY, delta);
@@ -74,6 +55,38 @@ public class AmbleText extends AmbleContainer {
 		for (OrderedText orderedText : textRenderer.wrapLines(text, width)) {
 			context.drawText(textRenderer, orderedText, x, y, color, true);
 			y += 9;
+		}
+	}
+
+	public static Builder textBuilder() {
+		return new Builder();
+	}
+
+	public static class Builder extends AbstractBuilder<AmbleText, Builder> {
+
+		@Override
+		protected AmbleText create() {
+			return new AmbleText();
+		}
+
+		@Override
+		protected Builder self() {
+			return this;
+		}
+
+		public Builder text(Text text) {
+			container.setText(text);
+			return this;
+		}
+
+		public Builder textHorizontalAlign(UIAlign align) {
+			container.setTextHorizontalAlign(align);
+			return this;
+		}
+
+		public Builder textVerticalAlign(UIAlign align) {
+			container.setTextVerticalAlign(align);
+			return this;
 		}
 	}
 }

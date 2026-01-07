@@ -1,7 +1,6 @@
 package dev.amble.lib.client.gui;
 
 import dev.amble.lib.AmbleKit;
-import dev.amble.lib.client.AmbleKitClient;
 import lombok.*;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -14,12 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class AmbleContainer implements AmbleElement {
 	@Setter
-	@Builder.Default
 	private boolean visible = true;
 
 	@Setter
@@ -30,7 +27,6 @@ public class AmbleContainer implements AmbleElement {
 
 	@Setter
 	@Nullable
-	@Builder.Default
 	private AmbleElement parent = null;
 
 	@Setter
@@ -40,31 +36,24 @@ public class AmbleContainer implements AmbleElement {
 	private int spacing;
 
 	@Setter
-	@Builder.Default
 	private UIAlign horizontalAlign = UIAlign.START;
 
 	@Setter
-	@Builder.Default
 	private UIAlign verticalAlign = UIAlign.START;
 
 	@Setter
-	@Builder.Default
 	private boolean requiresNewRow = false;
 
 	@Setter
-	@Builder.Default
 	private Text title = Text.empty();
 
 	@Setter
-	@Builder.Default
 	public AmbleDisplayType background = AmbleDisplayType.color(Color.WHITE);
 
 	@Setter
 	private Identifier identifier;
 
-	@Builder.Default
 	private @Nullable Screen convertedScreen = null;
-	@Builder.Default
 	private final List<AmbleElement> children = new ArrayList<>();
 
 	@Override
@@ -124,12 +113,29 @@ public class AmbleContainer implements AmbleElement {
 		net.minecraft.client.MinecraftClient.getInstance().setScreen(screen);
 	}
 
+	public void copyFrom(AmbleContainer other) {
+		this.visible = other.visible;
+		this.layout = other.layout;
+		this.preferredLayout = other.preferredLayout;
+		this.parent = other.parent;
+		this.padding = other.padding;
+		this.spacing = other.spacing;
+		this.horizontalAlign = other.horizontalAlign;
+		this.verticalAlign = other.verticalAlign;
+		this.requiresNewRow = other.requiresNewRow;
+		this.background = other.background;
+	}
+
+	public static Builder builder() {
+		return new Builder();
+	}
+
 	public static AmbleContainer primaryContainer() {
 		return AmbleContainer.builder()
-				.preferredLayout(new Rectangle(0, 0,
+				.layout(new Rectangle(0, 0,
 						net.minecraft.client.MinecraftClient.getInstance().getWindow().getScaledWidth(),
 						net.minecraft.client.MinecraftClient.getInstance().getWindow().getScaledHeight()))
-				.background(AmbleDisplayType.color(new Color(0, 0, 0, 0)))
+				.background(new Color(0, 0, 0, 0))
 				.build();
 	}
 
@@ -158,6 +164,92 @@ public class AmbleContainer implements AmbleElement {
 		public boolean mouseReleased(double mouseX, double mouseY, int button) {
 			source.onRelease((int) mouseX, (int) mouseY, button);
 			return super.mouseReleased(mouseX, mouseY, button);
+		}
+	}
+
+	public static class Builder extends AbstractBuilder<AmbleContainer, Builder> {
+		@Override
+		protected AmbleContainer create() {
+			return new AmbleContainer();
+		}
+
+		@Override
+		protected Builder self() {
+			return this;
+		}
+	}
+
+	public static abstract class AbstractBuilder<T extends AmbleContainer, B extends AbstractBuilder<T, B>> {
+		protected final T container = create();
+
+		protected abstract T create();
+		protected abstract B self();
+
+		public B padding(int padding) {
+			container.setPadding(padding);
+			return self();
+		}
+
+		public B spacing(int spacing) {
+			container.setSpacing(spacing);
+			return self();
+		}
+
+		public B horizontalAlign(UIAlign align) {
+			container.setHorizontalAlign(align);
+			return self();
+		}
+
+		public B verticalAlign(UIAlign align) {
+			container.setVerticalAlign(align);
+			return self();
+		}
+
+		public B layout(Rectangle layout) {
+			container.setPreferredLayout(layout);
+			container.setLayout(layout);
+			return self();
+		}
+
+		public B background(AmbleDisplayType background) {
+			container.setBackground(background);
+			return self();
+		}
+
+		public B background(Color color) {
+			container.setBackground(AmbleDisplayType.color(color));
+			return self();
+		}
+
+		public B background(AmbleDisplayType.TextureData texture) {
+			container.setBackground(AmbleDisplayType.texture(texture));
+			return self();
+		}
+
+		public B title(Text title) {
+			container.setTitle(title);
+			return self();
+		}
+
+		public B requiresNewRow(boolean requiresNewRow) {
+			container.setRequiresNewRow(requiresNewRow);
+			return self();
+		}
+
+		public B visible(boolean visible) {
+			container.setVisible(visible);
+			return self();
+		}
+
+		public B children(List<AmbleElement> children) {
+			for (AmbleElement child : children) {
+				container.addChild(child);
+			}
+			return self();
+		}
+
+		public T build() {
+			return container;
 		}
 	}
 }

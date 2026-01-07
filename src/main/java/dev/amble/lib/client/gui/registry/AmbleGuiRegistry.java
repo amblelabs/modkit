@@ -114,12 +114,14 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 			requiresNewRow = json.get("requires_new_row").getAsBoolean();
 		}
 
-		AmbleContainer created = AmbleContainer.builder().background(background).layout(layout).preferredLayout(layout).padding(padding).spacing(spacing).horizontalAlign(horizAlign).verticalAlign(vertAlign).children(children).requiresNewRow(requiresNewRow).build();
+		AmbleContainer created = AmbleContainer.builder().background(background).layout(layout).padding(padding).spacing(spacing).horizontalAlign(horizAlign).verticalAlign(vertAlign).children(children).requiresNewRow(requiresNewRow).build();
 
 		// TODO - buttons
 		if (json.has("text")) {
 			String text = json.get("text").getAsString();
-			created = AmbleText.of(created, Text.translatable(text));
+			AmbleText ambleText = AmbleText.textBuilder().text(Text.translatable(text)).build();
+			ambleText.copyFrom(created);
+			created = ambleText;
 
 			UIAlign textHorizAlign = UIAlign.CENTRE;
 			UIAlign textVertAlign = UIAlign.CENTRE;

@@ -27,13 +27,13 @@ public class TestScreenCommand {
 
 			MinecraftClient.getInstance().execute(() -> {
 				ClientScheduler.get().runTaskLater(() -> {
-					var container = AmbleContainer.builder().preferredLayout(new Rectangle(0,0, 216, 138)).background(AmbleDisplayType.texture(new AmbleDisplayType.TextureData(new Identifier(LitmusMod.MOD_ID, "textures/gui/test_screen.png"), 0, 0, 216, 138, 256, 256))).build();
-					var child1 = AmbleContainer.builder().preferredLayout(new Rectangle(0,0, 50, 50)).background(AmbleDisplayType.color(Color.BLUE)).build();
-					var child2 = AmbleContainer.builder().preferredLayout(new Rectangle(0,0, 25, 25)).background(AmbleDisplayType.color(Color.ORANGE)).build();
-					AmbleButton child3 = AmbleButton.of(AmbleContainer.builder().preferredLayout(new Rectangle(0,0, 75, 40)).horizontalAlign(UIAlign.CENTRE).background(AmbleDisplayType.color(Color.GREEN)).build(), AmbleDisplayType.color(Color.YELLOW), AmbleDisplayType.color(Color.RED), () -> {
+					var container = AmbleContainer.builder().layout(new Rectangle(0,0, 216, 138)).background(AmbleDisplayType.texture(new AmbleDisplayType.TextureData(new Identifier(LitmusMod.MOD_ID, "textures/gui/test_screen.png"), 0, 0, 216, 138, 256, 256))).build();
+					var child1 = AmbleContainer.builder().layout(new Rectangle(0,0, 50, 50)).background(AmbleDisplayType.color(Color.BLUE)).build();
+					var child2 = AmbleContainer.builder().layout(new Rectangle(0,0, 25, 25)).background(AmbleDisplayType.color(Color.ORANGE)).build();
+					AmbleButton child3 = AmbleButton.buttonBuilder().layout(new Rectangle(0,0, 75, 40)).horizontalAlign(UIAlign.CENTRE).background(Color.GREEN).hoverDisplay(Color.YELLOW).pressDisplay(Color.RED).onClick(() -> {
 						System.out.println("Button Clicked!");
-					});
-					AmbleText child4 = AmbleText.of(AmbleContainer.builder().background(AmbleDisplayType.color(new Color(0,0,0,0))).build(), Text.literal("press me"));
+					}).build();
+					AmbleText child4 = AmbleText.textBuilder().background(AmbleDisplayType.color(new Color(0,0,0,0))).text(Text.literal("press me")).build();
 					child4.setPreferredLayout(child3.getPreferredLayout());
 					child3.addChild(child4);
 					container.setPadding(10);
