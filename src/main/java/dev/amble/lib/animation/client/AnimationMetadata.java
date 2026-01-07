@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Metadata for animations, controlling how they behave in certain situations.
- * in "filename.metadata.registry"
+ * in "filename.metadata.json"
  * @param movement Whether the animation should allow player movement. Default: true
  * @param perspective The perspective the animation should play in. Default: null (all perspectives)
  * @param fpsCamera Whether the animation should have FPS camera controls. Default: true

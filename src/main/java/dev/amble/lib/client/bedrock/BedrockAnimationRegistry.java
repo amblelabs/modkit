@@ -61,12 +61,12 @@ public class BedrockAnimationRegistry implements SimpleSynchronousResourceReload
 		int animationCount = 0;
 		groups.clear();
 
-		for (Identifier rawId : manager.findResources("bedrock", filename -> filename.getPath().endsWith(".animation.registry")).keySet()) {
+		for (Identifier rawId : manager.findResources("bedrock", filename -> filename.getPath().endsWith(".animation.json")).keySet()) {
 			try (InputStream stream = manager.getResource(rawId).get().getInputStream()) {
 				JsonObject json = JsonParser.parseReader(new InputStreamReader(stream)).getAsJsonObject();
 
 				@Nullable JsonObject metadata = null;
-				Identifier metadataId = Identifier.of(rawId.getNamespace(), rawId.getPath().replaceFirst("\\.animation\\.json$", ".metadata.registry"));
+				Identifier metadataId = Identifier.of(rawId.getNamespace(), rawId.getPath().replaceFirst("\\.animation\\.json$", ".metadata.json"));
 				if (manager.getResource(metadataId).isPresent()) {
 					try (InputStream metaStream = manager.getResource(metadataId).get().getInputStream()) {
 						metadata = JsonParser.parseReader(new InputStreamReader(metaStream)).getAsJsonObject();
@@ -88,11 +88,11 @@ public class BedrockAnimationRegistry implements SimpleSynchronousResourceReload
 
 				group.animations.forEach((name, animation) -> animation.name = name);
 
-				String groupName = rawId.getPath().substring(rawId.getPath().lastIndexOf("/") + 1).replace(".animation.registry", "");
+				String groupName = rawId.getPath().substring(rawId.getPath().lastIndexOf("/") + 1).replace(".animation.json", "");
 				groups.put(groupName, group);
 				animationCount += group.animations.size();
 			} catch (Exception e) {
-				AmbleKit.LOGGER.error("Error occurred while loading resource registry {}", rawId.toString(), e);
+				AmbleKit.LOGGER.error("Error occurred while loading resource json {}", rawId.toString(), e);
 			}
 		}
 

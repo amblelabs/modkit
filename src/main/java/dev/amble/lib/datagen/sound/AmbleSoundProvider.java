@@ -20,7 +20,7 @@ import dev.amble.lib.AmbleKit;
 import dev.amble.lib.util.StringCursor;
 
 /**
- * Datagen Provider for sounds, this class is used to generate the sounds.registry file for the mod
+ * Datagen Provider for sounds, this class is used to generate the sounds.json file for the mod
  */
 public class AmbleSoundProvider implements DataProvider {
 
@@ -95,7 +95,7 @@ public class AmbleSoundProvider implements DataProvider {
 
     public Path getOutputPath() {
         return dataOutput.resolvePath(DataOutput.OutputType.RESOURCE_PACK).resolve(dataOutput.getModId())
-                .resolve("sounds.registry");
+                .resolve("sounds.json");
     }
 
     @Override
