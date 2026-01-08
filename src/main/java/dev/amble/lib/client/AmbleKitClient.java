@@ -40,7 +40,8 @@ public class AmbleKitClient implements ClientModInitializer {
         });
 
         ClientTickEvents.END_CLIENT_TICK.register((client) -> {
-                SkinGrabber.INSTANCE.tick();
+            SkinGrabber.INSTANCE.tick();
+            ScriptManager.tick();
         });
 
 	}

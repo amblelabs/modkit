@@ -7,5 +7,8 @@ public record AmbleScript(
         LuaValue onClick,
         LuaValue onRelease,
         LuaValue onHover,
-        LuaValue onExecute
+        LuaValue onExecute,
+        LuaValue onEnable,
+        LuaValue onTick,
+        LuaValue onDisable
 ) {}
