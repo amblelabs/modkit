@@ -31,3 +31,7 @@ function onClick(self, mouseX, mouseY, button)
 		print("Entity: " .. entity:type() .. " at " .. entity:position():toString())
 	end
 end
+
+function onExecute()
+	print("Script executed via command!")
+end

@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.client.gui.*;
-import dev.amble.lib.client.gui.lua.GuiScript;
-import dev.amble.lib.client.gui.lua.GuiScriptManager;
+import dev.amble.lib.script.AmbleScript;
+import dev.amble.lib.script.ScriptManager;
 import dev.amble.lib.client.gui.lua.LuaBinder;
 import dev.amble.lib.register.datapack.DatapackRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -33,7 +33,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 	private AmbleGuiRegistry() {
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(this);
 
-		GuiScriptManager.getInstance();
+		ScriptManager.getInstance();
 	}
 
 	@Override
@@ -192,8 +192,8 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 			}
 
 			if (json.has("script")) {
-				Identifier scriptId = new Identifier(json.get("script").getAsString()).withPrefixedPath("gui/script/").withSuffixedPath(".lua");
-				GuiScript script = GuiScriptManager.load(
+				Identifier scriptId = new Identifier(json.get("script").getAsString()).withPrefixedPath("script/").withSuffixedPath(".lua");
+				AmbleScript script = ScriptManager.load(
 						scriptId,
 						MinecraftClient.getInstance().getResourceManager()
 				);
