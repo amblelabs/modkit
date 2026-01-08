@@ -1,9 +1,16 @@
 package dev.amble.lib.client.gui;
 
 
+import dev.amble.lib.AmbleKit;
+import dev.amble.lib.client.gui.lua.GuiScript;
+import dev.amble.lib.client.gui.lua.LuaBinder;
+import dev.amble.lib.client.gui.lua.LuaElement;
 import lombok.*;
 import net.minecraft.client.gui.DrawContext;
 import org.jetbrains.annotations.Nullable;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
+import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 import java.awt.*;
 
@@ -14,28 +21,81 @@ import java.awt.*;
 public class AmbleButton extends AmbleContainer {
 	private AmbleDisplayType hoverDisplay;
 	private AmbleDisplayType pressDisplay;
-	private Runnable onClick;
+	private @Nullable Runnable onClick;
 	private @Nullable AmbleDisplayType normalDisplay = null;
 	private boolean isClicked = false;
-
+	private @Nullable GuiScript script;
 
 	@Override
 	public void onRelease(double mouseX, double mouseY, int button) {
-		onClick.run();
+		if (onClick != null) {
+			onClick.run();
+		}
 		this.setBackground(
 				isHovered(mouseX, mouseY) ? hoverDisplay : getNormalDisplay()
 		);
 		this.isClicked = false;
+
+		if (script != null && script.onRelease() != null && !script.onRelease().isnil()) {
+			Varargs args = LuaValue.varargsOf(new LuaValue[]{
+					LuaBinder.bind(new LuaElement(this)),
+					LuaValue.valueOf(mouseX),
+					LuaValue.valueOf(mouseY),
+					LuaValue.valueOf(button)
+			});
+
+			try {
+				script.onRelease().invoke(args);
+			} catch (Exception e) {
+				AmbleKit.LOGGER.error("Error invoking onRelease script for AmbleButton {}:", id(), e);
+			}
+		}
 	}
 
 	@Override
 	public void onClick(double mouseX, double mouseY, int button) {
 		this.setBackground(pressDisplay);
 		this.isClicked = true;
+
+
+		if (script != null && script.onClick() != null && !script.onClick().isnil()) {
+			Varargs args = LuaValue.varargsOf(new LuaValue[]{
+					LuaBinder.bind(new LuaElement(this)),
+					LuaValue.valueOf(mouseX),
+					LuaValue.valueOf(mouseY),
+					LuaValue.valueOf(button)
+			});
+
+			try {
+				script.onClick().invoke(args);
+			} catch (Exception e) {
+				AmbleKit.LOGGER.error("Error invoking onClick script for AmbleButton {}:", id(), e);
+			}
+		}
+	}
+
+	public void onHover(double mouseX, double mouseY) {
+		if (script != null && script.onHover() != null && !script.onHover().isnil()) {
+			Varargs args = LuaValue.varargsOf(new LuaValue[]{
+					LuaBinder.bind(new LuaElement(this)),
+					LuaValue.valueOf(mouseX),
+					LuaValue.valueOf(mouseY),
+			});
+
+			try {
+				script.onHover().invoke(args);
+			} catch (Exception e) {
+				AmbleKit.LOGGER.error("Error invoking onHover script for AmbleButton {}:", id(), e);
+			}
+		}
 	}
 
 	@Override
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+		if (isHovered(mouseX, mouseY)) {
+			onHover(mouseX, mouseY);
+		}
+
 		if (isClicked) {
 			setBackground(pressDisplay);
 		} else if (isHovered(mouseX, mouseY)) {
@@ -54,6 +114,18 @@ public class AmbleButton extends AmbleContainer {
 
 		return normalDisplay;
 	}
+
+	public void setScript(GuiScript script) {
+		this.script = script;
+		if (script.onInit() != null && !script.onInit().isnil()) {
+			try {
+				script.onInit().call(CoerceJavaToLua.coerce(new LuaElement(this)));
+			} catch (Exception e) {
+				AmbleKit.LOGGER.error("Error invoking onInit script for AmbleButton {}:", id(), e);
+			}
+		}
+	}
+
 
 	public static Builder buttonBuilder() {
 		return new Builder();

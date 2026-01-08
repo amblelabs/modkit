@@ -5,6 +5,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.client.gui.*;
+import dev.amble.lib.client.gui.lua.GuiScript;
+import dev.amble.lib.client.gui.lua.GuiScriptManager;
+import dev.amble.lib.client.gui.lua.LuaBinder;
 import dev.amble.lib.register.datapack.DatapackRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
@@ -29,6 +32,8 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 
 	private AmbleGuiRegistry() {
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(this);
+
+		GuiScriptManager.getInstance();
 	}
 
 	@Override
@@ -128,6 +133,11 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 
 		AmbleContainer created = AmbleContainer.builder().background(background).layout(layout).padding(padding).spacing(spacing).horizontalAlign(horizAlign).verticalAlign(vertAlign).children(children).shouldPause(shouldPause).requiresNewRow(requiresNewRow).build();
 
+		if (json.has("id")) {
+			String idStr = json.get("id").getAsString();
+			created.setIdentifier(new Identifier(idStr));
+		}
+
 		if (json.has("text")) {
 			String text = json.get("text").getAsString();
 			AmbleText ambleText = AmbleText.textBuilder().text(Text.translatable(text)).build();
@@ -154,7 +164,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 			}
 		}
 
-		if (json.has("on_click") || json.has("hover_background") || json.has("press_background")) {
+		if (json.has("command") || json.has("script") || json.has("hover_background") || json.has("press_background")) {
 			AmbleButton button = AmbleButton.buttonBuilder().build();
 			button.copyFrom(created);
 			created = button;
@@ -179,6 +189,16 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 			} else {
 				button.setOnClick(() -> {
 				});
+			}
+
+			if (json.has("script")) {
+				Identifier scriptId = new Identifier(json.get("script").getAsString()).withPrefixedPath("gui/script/").withSuffixedPath(".lua");
+				GuiScript script = GuiScriptManager.load(
+						scriptId,
+						MinecraftClient.getInstance().getResourceManager()
+				);
+
+				button.setScript(script);
 			}
 
 			if (json.has("hover_background")) {

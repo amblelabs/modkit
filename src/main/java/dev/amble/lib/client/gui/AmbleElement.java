@@ -30,6 +30,19 @@ public interface AmbleElement extends Drawable, Identifiable {
 		}
 	}
 
+	default void setDimensions(Vec2f dimensions) {
+		Rectangle layout = getLayout();
+		layout.width = (int) dimensions.x;
+		layout.height = (int) dimensions.y;
+		setPreferredLayout(layout);
+
+		recalcuateLayout();
+
+		if (getParent() != null) {
+			getParent().recalcuateLayout();
+		}
+	}
+
 	boolean isVisible();
 	void setVisible(boolean visible);
 

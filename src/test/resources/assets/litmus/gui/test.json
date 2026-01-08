@@ -42,7 +42,7 @@
       ]
     },
     {
-      "on_click": "/give @s apple",
+      "script": "litmus:test",
       "hover_background": [
         255,
         0,
@@ -74,7 +74,7 @@
             0,
             0
           ],
-          "text": "give me appel"
+          "text": "i been pressed: "
         }
       ]
     }
