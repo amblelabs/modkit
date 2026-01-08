@@ -27,18 +27,32 @@ import static net.minecraft.server.command.CommandManager.literal;
  */
 public class ServerScriptCommand {
 
-	private static final SuggestionProvider<ServerCommandSource> SCRIPT_SUGGESTIONS = (context, builder) -> {
+	private static final SuggestionProvider<ServerCommandSource> TICKABLE_SCRIPT_SUGGESTIONS = (context, builder) -> {
 		return CommandSource.suggestIdentifiers(
-				ServerScriptManager.getCache().keySet().stream()
+				ServerScriptManager.getCache().entrySet().stream()
+						.filter(entry -> entry.getValue().onTick() != null && !entry.getValue().onTick().isnil())
+						.map(entry -> Identifier.of(entry.getKey().getNamespace(), entry.getKey().getPath().replace("script/", "").replace(".lua", ""))),
+				builder
+		);
+	};
+
+	private static final SuggestionProvider<ServerCommandSource> ENABLED_TICKABLE_SCRIPT_SUGGESTIONS = (context, builder) -> {
+		return CommandSource.suggestIdentifiers(
+				ServerScriptManager.getEnabledScripts().stream()
+						.filter(id -> {
+							AmbleScript script = ServerScriptManager.getCache().get(id);
+							return script != null && script.onTick() != null && !script.onTick().isnil();
+						})
 						.map(id -> Identifier.of(id.getNamespace(), id.getPath().replace("script/", "").replace(".lua", ""))),
 				builder
 		);
 	};
 
-	private static final SuggestionProvider<ServerCommandSource> ENABLED_SCRIPT_SUGGESTIONS = (context, builder) -> {
+	private static final SuggestionProvider<ServerCommandSource> EXECUTABLE_SCRIPT_SUGGESTIONS = (context, builder) -> {
 		return CommandSource.suggestIdentifiers(
-				ServerScriptManager.getEnabledScripts().stream()
-						.map(id -> Identifier.of(id.getNamespace(), id.getPath().replace("script/", "").replace(".lua", ""))),
+				ServerScriptManager.getCache().entrySet().stream()
+						.filter(entry -> entry.getValue().onExecute() != null && !entry.getValue().onExecute().isnil())
+						.map(entry -> Identifier.of(entry.getKey().getNamespace(), entry.getKey().getPath().replace("script/", "").replace(".lua", ""))),
 				builder
 		);
 	};
@@ -48,19 +62,19 @@ public class ServerScriptCommand {
 				.requires(source -> source.hasPermissionLevel(2)) // Require operator permissions
 				.then(literal("execute")
 						.then(argument("id", IdentifierArgumentType.identifier())
-								.suggests(SCRIPT_SUGGESTIONS)
+								.suggests(EXECUTABLE_SCRIPT_SUGGESTIONS)
 								.executes(ServerScriptCommand::execute)))
 				.then(literal("enable")
 						.then(argument("id", IdentifierArgumentType.identifier())
-								.suggests(SCRIPT_SUGGESTIONS)
+								.suggests(TICKABLE_SCRIPT_SUGGESTIONS)
 								.executes(ServerScriptCommand::enable)))
 				.then(literal("disable")
 						.then(argument("id", IdentifierArgumentType.identifier())
-								.suggests(ENABLED_SCRIPT_SUGGESTIONS)
+								.suggests(ENABLED_TICKABLE_SCRIPT_SUGGESTIONS)
 								.executes(ServerScriptCommand::disable)))
 				.then(literal("toggle")
 						.then(argument("id", IdentifierArgumentType.identifier())
-								.suggests(SCRIPT_SUGGESTIONS)
+								.suggests(TICKABLE_SCRIPT_SUGGESTIONS)
 								.executes(ServerScriptCommand::toggle)))
 				.then(literal("list")
 						.executes(ServerScriptCommand::listEnabled))
