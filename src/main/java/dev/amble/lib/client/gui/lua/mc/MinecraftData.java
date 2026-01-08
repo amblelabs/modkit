@@ -169,6 +169,15 @@ public class MinecraftData {
 		}
 	}
 
+	@LuaExpose
+	public void playSoundAt(String soundId, double x, double y, double z, float volume, float pitch) {
+		Identifier id = new Identifier(soundId);
+		SoundEvent sound = Registries.SOUND_EVENT.get(id);
+		if (sound != null) {
+			mc.world.playSound(x, y, z, sound, mc.player.getSoundCategory(), volume, pitch, false);
+		}
+	}
+
 	// ===== Entity Queries =====
 
 	@LuaExpose
