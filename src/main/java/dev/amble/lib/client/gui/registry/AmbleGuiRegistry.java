@@ -7,7 +7,7 @@ import dev.amble.lib.AmbleKit;
 import dev.amble.lib.client.gui.*;
 import dev.amble.lib.script.AmbleScript;
 import dev.amble.lib.script.ScriptManager;
-import dev.amble.lib.client.gui.lua.LuaBinder;
+import dev.amble.lib.script.lua.LuaBinder;
 import dev.amble.lib.register.datapack.DatapackRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;

@@ -11,8 +11,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import org.luaj.vm2.LuaValue;
 
 import java.util.Set;
 
@@ -56,7 +56,9 @@ public class ExecuteScriptCommand {
 								.suggests(SCRIPT_SUGGESTIONS)
 								.executes(ExecuteScriptCommand::toggle)))
 				.then(literal("list")
-						.executes(ExecuteScriptCommand::listEnabled)));
+						.executes(ExecuteScriptCommand::listEnabled))
+				.then(literal("available")
+						.executes(ExecuteScriptCommand::listAvailable)));
 	}
 
 	private static int execute(CommandContext<FabricClientCommandSource> context) {
@@ -74,7 +76,8 @@ public class ExecuteScriptCommand {
 				return 0;
 			}
 
-			script.onExecute().call();
+			LuaValue data = ScriptManager.getScriptData(fullScriptId);
+			script.onExecute().call(data);
 			context.getSource().sendFeedback(Text.literal("Executed script: " + scriptId));
 			return 1;
 		} catch (Exception e) {
@@ -155,15 +158,34 @@ public class ExecuteScriptCommand {
 		Set<Identifier> enabled = ScriptManager.getEnabledScripts();
 
 		if (enabled.isEmpty()) {
-			context.getSource().sendFeedback(Text.literal("§7No scripts are currently enabled"));
+			context.getSource().sendFeedback(Text.literal("§7No client scripts are currently enabled"));
 			return 1;
 		}
 
-		context.getSource().sendFeedback(Text.literal("§6§l━━━ Enabled Scripts (" + enabled.size() + ") ━━━"));
+		context.getSource().sendFeedback(Text.literal("§6§l━━━ Enabled Client Scripts (" + enabled.size() + ") ━━━"));
 		for (Identifier id : enabled) {
 			String displayId = id.getPath().replace("script/", "").replace(".lua", "");
 			context.getSource().sendFeedback(Text.literal("§a✓ §f" + id.getNamespace() + ":" + displayId));
 		}
 		return 1;
 	}
+
+	private static int listAvailable(CommandContext<FabricClientCommandSource> context) {
+		Set<Identifier> available = ScriptManager.getCache().keySet();
+		Set<Identifier> enabled = ScriptManager.getEnabledScripts();
+
+		if (available.isEmpty()) {
+			context.getSource().sendFeedback(Text.literal("§7No client scripts available"));
+			return 1;
+		}
+
+		context.getSource().sendFeedback(Text.literal("§6§l━━━ Available Client Scripts (" + available.size() + ") ━━━"));
+		for (Identifier id : available) {
+			String displayId = id.getPath().replace("script/", "").replace(".lua", "");
+			String status = enabled.contains(id) ? "§a✓" : "§7○";
+			context.getSource().sendFeedback(Text.literal(status + " §f" + id.getNamespace() + ":" + displayId));
+		}
+		return 1;
+	}
+
 }

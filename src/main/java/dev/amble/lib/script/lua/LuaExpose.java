@@ -1,4 +1,4 @@
-package dev.amble.lib.client.gui.lua;
+package dev.amble.lib.script.lua;
 
 import java.lang.annotation.*;
 

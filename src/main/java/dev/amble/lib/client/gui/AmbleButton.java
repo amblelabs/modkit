@@ -2,7 +2,7 @@ package dev.amble.lib.client.gui;
 
 
 import dev.amble.lib.AmbleKit;
-import dev.amble.lib.client.gui.lua.LuaBinder;
+import dev.amble.lib.script.lua.LuaBinder;
 import dev.amble.lib.client.gui.lua.LuaElement;
 import dev.amble.lib.script.AmbleScript;
 import lombok.*;

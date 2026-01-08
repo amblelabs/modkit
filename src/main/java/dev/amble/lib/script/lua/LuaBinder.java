@@ -1,7 +1,5 @@
-package dev.amble.lib.client.gui.lua;
+package dev.amble.lib.script.lua;
 
-import dev.amble.lib.client.gui.lua.mc.LuaItemStack;
-import dev.amble.lib.client.gui.lua.mc.MinecraftEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;

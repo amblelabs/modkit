@@ -1,8 +1,7 @@
-package dev.amble.lib.client.gui.lua.mc;
+package dev.amble.lib.script.lua;
 
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.client.gui.AmbleContainer;
-import dev.amble.lib.client.gui.lua.LuaExpose;
 import dev.amble.lib.client.gui.registry.AmbleGuiRegistry;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
@@ -17,22 +16,91 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-public class MinecraftData {
+/**
+ * Client-side implementation of MinecraftData.
+ * Provides access to client-only features like input, GUI, clipboard, etc.
+ */
+public class ClientMinecraftData extends MinecraftData {
 	private static final MinecraftClient mc = MinecraftClient.getInstance();
+
+	@Override
+	@LuaExpose
+	public boolean isClientSide() {
+		return true;
+	}
+
+	@Override
+	protected World getWorld() {
+		return mc.world;
+	}
+
+	@Override
+	protected Entity getPlayer() {
+		return mc.player;
+	}
+
+	// ===== Client-specific entity methods =====
+
+	@Override
+	@LuaExpose
+	public List<Entity> entities() {
+		if (mc.world == null) return List.of();
+		return StreamSupport.stream(mc.world.getEntities().spliterator(), false)
+				.collect(Collectors.toList());
+	}
+
+	// ===== Session & Identity =====
 
 	@LuaExpose
 	public String username() {
 		return mc.getSession().getUsername();
 	}
 
+	// ===== Inventory =====
+
+	@LuaExpose
+	public int selectedSlot() {
+		return mc.player != null ? mc.player.getInventory().selectedSlot + 1 : 0;
+	}
+
+	@LuaExpose
+	public void selectSlot(int slot) {
+		if (mc.player != null) {
+			mc.player.getInventory().selectedSlot = slot - 1;
+		}
+	}
+
+	@LuaExpose
+	public void dropStack(int slot, boolean entireStack) {
+		if (mc.player == null) return;
+		int selected = selectedSlot();
+		swapStack(slot, selected);
+		PlayerActionC2SPacket.Action action = entireStack ? PlayerActionC2SPacket.Action.DROP_ALL_ITEMS : PlayerActionC2SPacket.Action.DROP_ITEM;
+		ItemStack itemStack = mc.player.getInventory().dropSelectedItem(entireStack);
+		mc.player.networkHandler.sendPacket(new PlayerActionC2SPacket(action, BlockPos.ORIGIN, Direction.DOWN));
+	}
+
+	@LuaExpose
+	public void swapStack(int fromSlot, int toSlot) {
+		if (mc.player == null) return;
+		ItemStack stack = mc.player.getInventory().getStack(fromSlot - 1);
+		mc.player.getInventory().setStack(fromSlot - 1, mc.player.getInventory().getStack(toSlot - 1));
+		mc.player.getInventory().setStack(toSlot - 1, stack);
+	}
+
+	// ===== Commands & Messages =====
+
+	@Override
 	@LuaExpose
 	public void runCommand(String command) {
+		if (mc.player == null) return;
 		try {
 			String string2 = SharedConstants.stripInvalidChars(command);
 			if (string2.startsWith("/")) {
@@ -47,98 +115,19 @@ public class MinecraftData {
 		}
 	}
 
-	@LuaExpose
-	public int selectedSlot() {
-		return mc.player.getInventory().selectedSlot + 1;
-	}
-
-	@LuaExpose
-	public void selectSlot(int slot) {
-		mc.player.getInventory().selectedSlot = slot - 1;
-	}
-
+	@Override
 	@LuaExpose
 	public void sendMessage(String message, boolean overlay) {
-		mc.player.sendMessage(Text.literal(message), overlay);
-	}
-
-	@LuaExpose
-	public Entity player() {
-		return mc.player;
-	}
-
-	@LuaExpose
-	public List<Entity> entities() {
-		return StreamSupport.stream(mc.world.getEntities().spliterator(), false)
-				.collect(Collectors.toList());
-	}
-
-	@LuaExpose
-	public void dropStack(int slot, boolean entireStack) {
-		int selected = selectedSlot();
-		swapStack(slot, selected);
-		PlayerActionC2SPacket.Action action = entireStack ? PlayerActionC2SPacket.Action.DROP_ALL_ITEMS : PlayerActionC2SPacket.Action.DROP_ITEM;
-		ItemStack itemStack = mc.player.getInventory().dropSelectedItem(entireStack);
-		mc.player.networkHandler.sendPacket(new PlayerActionC2SPacket(action, BlockPos.ORIGIN, Direction.DOWN));
-		//swapStack(selected, slot);
-	}
-
-	@LuaExpose
-	public void swapStack(int fromSlot, int toSlot) {
-		ItemStack stack = mc.player.getInventory().getStack(fromSlot - 1);
-		mc.player.getInventory().setStack(fromSlot - 1, mc.player.getInventory().getStack(toSlot - 1));
-		mc.player.getInventory().setStack(toSlot - 1, stack);
-
-		// todo sync change to server somehow
-	}
-
-	// ===== World & Environment =====
-
-	@LuaExpose
-	public String dimension() {
-		return mc.world.getRegistryKey().getValue().toString();
-	}
-
-	@LuaExpose
-	public long worldTime() {
-		return mc.world.getTimeOfDay();
-	}
-
-	@LuaExpose
-	public long dayCount() {
-		return mc.world.getTimeOfDay() / 24000L;
-	}
-
-	@LuaExpose
-	public boolean isRaining() {
-		return mc.world.isRaining();
-	}
-
-	@LuaExpose
-	public boolean isThundering() {
-		return mc.world.isThundering();
-	}
-
-	@LuaExpose
-	public String biomeAt(int x, int y, int z) {
-		return mc.world.getBiome(new BlockPos(x, y, z)).getKey()
-				.map(k -> k.getValue().toString()).orElse("unknown");
-	}
-
-	@LuaExpose
-	public String blockAt(int x, int y, int z) {
-		return Registries.BLOCK.getId(mc.world.getBlockState(new BlockPos(x, y, z)).getBlock()).toString();
-	}
-
-	@LuaExpose
-	public int lightLevelAt(int x, int y, int z) {
-		return mc.world.getLightLevel(new BlockPos(x, y, z));
+		if (mc.player != null) {
+			mc.player.sendMessage(Text.literal(message), overlay);
+		}
 	}
 
 	// ===== Input =====
 
 	@LuaExpose
 	public boolean isKeyPressed(String keyName) {
+		if (mc.options == null) return false;
 		return switch (keyName.toLowerCase()) {
 			case "forward" -> mc.options.forwardKey.isPressed();
 			case "back" -> mc.options.backKey.isPressed();
@@ -155,13 +144,14 @@ public class MinecraftData {
 
 	@LuaExpose
 	public String gameMode() {
-		return mc.interactionManager.getCurrentGameMode().getName();
+		return mc.interactionManager != null ? mc.interactionManager.getCurrentGameMode().getName() : "unknown";
 	}
 
 	// ===== Audio =====
 
 	@LuaExpose
 	public void playSound(String soundId, float volume, float pitch) {
+		if (mc.player == null) return;
 		Identifier id = new Identifier(soundId);
 		SoundEvent sound = Registries.SOUND_EVENT.get(id);
 		if (sound != null) {
@@ -169,29 +159,7 @@ public class MinecraftData {
 		}
 	}
 
-	@LuaExpose
-	public void playSoundAt(String soundId, double x, double y, double z, float volume, float pitch) {
-		Identifier id = new Identifier(soundId);
-		SoundEvent sound = Registries.SOUND_EVENT.get(id);
-		if (sound != null) {
-			mc.world.playSound(x, y, z, sound, mc.player.getSoundCategory(), volume, pitch, false);
-		}
-	}
-
 	// ===== Entity Queries =====
-
-	@LuaExpose
-	public Entity nearestEntity(double maxDistance) {
-		return mc.world.getOtherEntities(mc.player, mc.player.getBoundingBox().expand(maxDistance), e -> true)
-				.stream()
-				.min(Comparator.comparingDouble(e -> e.squaredDistanceTo(mc.player)))
-				.orElse(null);
-	}
-
-	@LuaExpose
-	public List<Entity> entitiesInRadius(double radius) {
-		return mc.world.getOtherEntities(mc.player, mc.player.getBoundingBox().expand(radius), e -> true);
-	}
 
 	@LuaExpose
 	public Entity lookingAtEntity() {
@@ -228,21 +196,23 @@ public class MinecraftData {
 
 	@LuaExpose
 	public String clipboard() {
-		return mc.keyboard.getClipboard();
+		return mc.keyboard != null ? mc.keyboard.getClipboard() : "";
 	}
 
 	@LuaExpose
 	public void setClipboard(String text) {
-		mc.keyboard.setClipboard(text);
+		if (mc.keyboard != null) {
+			mc.keyboard.setClipboard(text);
+		}
 	}
 
 	@LuaExpose
 	public int windowWidth() {
-		return mc.getWindow().getScaledWidth();
+		return mc.getWindow() != null ? mc.getWindow().getScaledWidth() : 0;
 	}
 
 	@LuaExpose
 	public int windowHeight() {
-		return mc.getWindow().getScaledHeight();
+		return mc.getWindow() != null ? mc.getWindow().getScaledHeight() : 0;
 	}
 }

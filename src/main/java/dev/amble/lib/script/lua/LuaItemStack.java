@@ -1,6 +1,5 @@
-package dev.amble.lib.client.gui.lua.mc;
+package dev.amble.lib.script.lua;
 
-import dev.amble.lib.client.gui.lua.LuaExpose;
 import lombok.AllArgsConstructor;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;

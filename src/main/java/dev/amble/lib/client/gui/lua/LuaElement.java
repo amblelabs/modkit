@@ -1,7 +1,8 @@
 package dev.amble.lib.client.gui.lua;
 
 import dev.amble.lib.client.gui.*;
-import dev.amble.lib.client.gui.lua.mc.MinecraftData;
+import dev.amble.lib.script.lua.ClientMinecraftData;
+import dev.amble.lib.script.lua.LuaExpose;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec2f;
@@ -9,7 +10,7 @@ import net.minecraft.util.math.Vec2f;
 public final class LuaElement {
 
 	private final AmbleElement element;
-	private final MinecraftData minecraftData = new MinecraftData();
+	private final ClientMinecraftData minecraftData = new ClientMinecraftData();
 
 	public LuaElement(AmbleElement element) {
 		this.element = element;
@@ -94,7 +95,7 @@ public final class LuaElement {
 	}
 
 	@LuaExpose
-	public MinecraftData minecraft() {
+	public ClientMinecraftData minecraft() {
 		return minecraftData;
 	}
 

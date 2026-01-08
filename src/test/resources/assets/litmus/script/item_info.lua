@@ -1,26 +1,34 @@
 -- Item Info Script: Shows detailed information about held item
 -- Run with: /amblescript execute litmus:item_info
+--
+-- Note: Uses client-only hotbar selection features
 
-function onExecute()
-    local player = minecraft:player()
+function onExecute(mc)
+    -- Check if we're on the client side
+    if not mc:isClientSide() then
+        mc:sendMessage("§cThis script requires client-side features!", false)
+        return
+    end
+    
+    local player = mc:player()
     local inventory = player:inventory()
-    local selectedSlot = minecraft:selectedSlot()
+    local selectedSlot = mc:selectedSlot()
     local heldItem = inventory[selectedSlot]
     
     -- Header
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
-    minecraft:sendMessage("§e§l✦ Held Item Info (Slot " .. selectedSlot .. ") ✦", false)
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§e§l✦ Held Item Info (Slot " .. selectedSlot .. ") ✦", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
     
     if heldItem:isEmpty() then
-        minecraft:sendMessage("§8You're not holding anything!", false)
-        minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+        mc:sendMessage("§8You're not holding anything!", false)
+        mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
         return
     end
     
     -- Basic info
-    minecraft:sendMessage("§7Name: §f" .. heldItem:name(), false)
-    minecraft:sendMessage("§7ID: §b" .. heldItem:id(), false)
+    mc:sendMessage("§7Name: §f" .. heldItem:name(), false)
+    mc:sendMessage("§7ID: §b" .. heldItem:id(), false)
     
     -- Rarity with color
     local rarity = heldItem:rarity()
@@ -32,15 +40,15 @@ function onExecute()
     elseif rarity == "epic" then
         rarityColor = "§d"
     end
-    minecraft:sendMessage("§7Rarity: " .. rarityColor .. rarity:sub(1,1):upper() .. rarity:sub(2), false)
+    mc:sendMessage("§7Rarity: " .. rarityColor .. rarity:sub(1,1):upper() .. rarity:sub(2), false)
     
     -- Stack info
     local count = heldItem:count()
     local maxCount = heldItem:maxCount()
     if heldItem:isStackable() then
-        minecraft:sendMessage("§7Stack: §f" .. count .. "§7/§f" .. maxCount, false)
+        mc:sendMessage("§7Stack: §f" .. count .. "§7/§f" .. maxCount, false)
     else
-        minecraft:sendMessage("§7Stack: §8Not stackable", false)
+        mc:sendMessage("§7Stack: §8Not stackable", false)
     end
     
     -- Durability
@@ -69,24 +77,24 @@ function onExecute()
             end
         end
         
-        minecraft:sendMessage("§7Durability: " .. durBar .. " §f" .. durability .. "§7/§f" .. maxDamage, false)
+        mc:sendMessage("§7Durability: " .. durBar .. " §f" .. durability .. "§7/§f" .. maxDamage, false)
     end
     
     -- Food info
     if heldItem:isFood() then
-        minecraft:sendMessage("§6🍖 This item is edible!", false)
+        mc:sendMessage("§6🍖 This item is edible!", false)
     end
     
     -- Custom name
     if heldItem:hasCustomName() then
-        minecraft:sendMessage("§7Custom Named: §a✓", false)
+        mc:sendMessage("§7Custom Named: §a✓", false)
     end
     
     -- Enchantments
     if heldItem:hasEnchantments() then
-        minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
-        minecraft:sendMessage("§d§l✦ Enchantments ✦", false)
-        minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+        mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+        mc:sendMessage("§d§l✦ Enchantments ✦", false)
+        mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
         
         local enchants = heldItem:enchantments()
         for _, enchant in ipairs(enchants) do
@@ -96,17 +104,17 @@ function onExecute()
                 local lastColon = enchant:match(".*():")
                 local enchantName = enchant:sub(1, lastColon - 1):gsub("minecraft:", ""):gsub("_", " ")
                 local level = enchant:sub(lastColon + 1)
-                minecraft:sendMessage("  §d✧ §f" .. enchantName .. " §7" .. level, false)
+                mc:sendMessage("  §d✧ §f" .. enchantName .. " §7" .. level, false)
             else
-                minecraft:sendMessage("  §d✧ §f" .. enchant, false)
+                mc:sendMessage("  §d✧ §f" .. enchant, false)
             end
         end
     end
     
     -- NBT info
     if heldItem:hasNbt() then
-        minecraft:sendMessage("§7Has NBT Data: §a✓", false)
+        mc:sendMessage("§7Has NBT Data: §a✓", false)
     end
     
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
 end

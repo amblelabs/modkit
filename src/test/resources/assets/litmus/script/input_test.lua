@@ -1,11 +1,19 @@
 -- Input Test Script: Shows which movement keys are currently pressed
 -- Run with: /amblescript execute litmus:input_test
+--
+-- Note: Uses client-only input detection features
 
-function onExecute()
+function onExecute(mc)
+    -- Check if we're on the client side
+    if not mc:isClientSide() then
+        mc:sendMessage("§cThis script requires client-side features!", false)
+        return
+    end
+    
     -- Header
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
-    minecraft:sendMessage("§e§l✦ Input State ✦", false)
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§e§l✦ Input State ✦", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
     
     -- Movement keys
     local keys = {
@@ -21,41 +29,40 @@ function onExecute()
     }
     
     -- Visual keyboard layout for WASD
-    local w = minecraft:isKeyPressed("forward") and "§a[W]" or "§8[W]"
-    local a = minecraft:isKeyPressed("left") and "§a[A]" or "§8[A]"
-    local s = minecraft:isKeyPressed("back") and "§a[S]" or "§8[S]"
-    local d = minecraft:isKeyPressed("right") and "§a[D]" or "§8[D]"
+    local w = mc:isKeyPressed("forward") and "§a[W]" or "§8[W]"
+    local a = mc:isKeyPressed("left") and "§a[A]" or "§8[A]"
+    local s = mc:isKeyPressed("back") and "§a[S]" or "§8[S]"
+    local d = mc:isKeyPressed("right") and "§a[D]" or "§8[D]"
     
-    minecraft:sendMessage("§7Movement Keys:", false)
-    minecraft:sendMessage("      " .. w, false)
-    minecraft:sendMessage("    " .. a .. " " .. s .. " " .. d, false)
-    minecraft:sendMessage("", false)
+    mc:sendMessage("§7Movement Keys:", false)
+    mc:sendMessage("      " .. w, false)
+    mc:sendMessage("    " .. a .. " " .. s .. " " .. d, false)
+    mc:sendMessage("", false)
     
     -- Other keys
-    minecraft:sendMessage("§7Action Keys:", false)
+    mc:sendMessage("§7Action Keys:", false)
     
     local pressedKeys = {}
-    local unpressedKeys = {}
     
     for _, keyData in ipairs(keys) do
         local keyName = keyData[1]
         local displayKey = keyData[2]
         local description = keyData[3]
         
-        if minecraft:isKeyPressed(keyName) then
+        if mc:isKeyPressed(keyName) then
             table.insert(pressedKeys, "  §a✓ " .. displayKey .. " §7(" .. description .. ")")
         end
     end
     
     if #pressedKeys > 0 then
         for _, msg in ipairs(pressedKeys) do
-            minecraft:sendMessage(msg, false)
+            mc:sendMessage(msg, false)
         end
     else
-        minecraft:sendMessage("  §8No action keys pressed", false)
+        mc:sendMessage("  §8No action keys pressed", false)
     end
     
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
-    minecraft:sendMessage("§7Tip: Hold keys while running this script!", false)
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§7Tip: Hold keys while running this script!", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
 end

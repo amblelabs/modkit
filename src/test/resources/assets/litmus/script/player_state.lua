@@ -1,13 +1,20 @@
 -- Player State Script: Shows detailed player state information
 -- Run with: /amblescript execute litmus:player_state
+--
+-- Note: minecraft data is passed as first argument to callbacks
 
-function onExecute()
-    local player = minecraft:player()
+function onExecute(mc)
+    local player = mc:player()
     
-    -- Header
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
-    minecraft:sendMessage("§e§l✦ Player State: §f" .. minecraft:username() .. " §e§l✦", false)
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    -- Header - username is client-only, so we use player name instead
+    local playerName = player:name()
+    if mc:isClientSide() then
+        playerName = mc:username()
+    end
+    
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§e§l✦ Player State: §f" .. playerName .. " §e§l✦", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
     
     -- Health & Hunger
     local health = player:health()
@@ -16,9 +23,9 @@ function onExecute()
     local saturation = player:saturation()
     local armor = player:armorValue()
     
-    minecraft:sendMessage("§c❤ Health: §f" .. string.format("%.1f", health) .. "§7/§f" .. string.format("%.0f", maxHealth), false)
-    minecraft:sendMessage("§6🍖 Hunger: §f" .. food .. "§7/§f20 §8(Saturation: " .. string.format("%.1f", saturation) .. ")", false)
-    minecraft:sendMessage("§9🛡 Armor: §f" .. armor, false)
+    mc:sendMessage("§c❤ Health: §f" .. string.format("%.1f", health) .. "§7/§f" .. string.format("%.0f", maxHealth), false)
+    mc:sendMessage("§6🍖 Hunger: §f" .. food .. "§7/§f20 §8(Saturation: " .. string.format("%.1f", saturation) .. ")", false)
+    mc:sendMessage("§9🛡 Armor: §f" .. armor, false)
     
     -- Experience
     local xpLevel = player:experienceLevel()
@@ -36,12 +43,12 @@ function onExecute()
             xpBar = xpBar .. "§8|"
         end
     end
-    minecraft:sendMessage("§a✧ Level: §f" .. xpLevel .. " " .. xpBar .. " §7(" .. string.format("%.0f", xpProgress * 100) .. "%)", false)
-    minecraft:sendMessage("§7  Total XP: §e" .. totalXp, false)
+    mc:sendMessage("§a✧ Level: §f" .. xpLevel .. " " .. xpBar .. " §7(" .. string.format("%.0f", xpProgress * 100) .. "%)", false)
+    mc:sendMessage("§7  Total XP: §e" .. totalXp, false)
     
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
-    minecraft:sendMessage("§e§l✦ Movement State ✦", false)
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§e§l✦ Movement State ✦", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
     
     -- Movement states
     local states = {}
@@ -85,31 +92,33 @@ function onExecute()
     end
     
     for _, state in ipairs(states) do
-        minecraft:sendMessage("  " .. state, false)
+        mc:sendMessage("  " .. state, false)
     end
     
     -- Velocity
     local vel = player:velocity()
     local speed = math.sqrt(vel.x * vel.x + vel.z * vel.z)
-    minecraft:sendMessage("§7Speed: §f" .. string.format("%.2f", speed * 20) .. " §7blocks/sec", false)
+    mc:sendMessage("§7Speed: §f" .. string.format("%.2f", speed * 20) .. " §7blocks/sec", false)
     
-    -- Game mode
-    minecraft:sendMessage("§7Game Mode: §e" .. minecraft:gameMode(), false)
+    -- Game mode (client only)
+    if mc:isClientSide() then
+        mc:sendMessage("§7Game Mode: §e" .. mc:gameMode(), false)
+    end
     
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
-    minecraft:sendMessage("§e§l✦ Active Effects ✦", false)
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§e§l✦ Active Effects ✦", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
     
     -- Status effects
     local effects = player:effects()
     if #effects > 0 then
         for _, effect in ipairs(effects) do
             local cleanEffect = effect:gsub("minecraft:", ""):gsub("_", " ")
-            minecraft:sendMessage("  §d✦ §f" .. cleanEffect, false)
+            mc:sendMessage("  §d✦ §f" .. cleanEffect, false)
         end
     else
-        minecraft:sendMessage("  §8No active effects", false)
+        mc:sendMessage("  §8No active effects", false)
     end
     
-    minecraft:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
+    mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
 end

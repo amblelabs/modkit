@@ -1,22 +1,27 @@
 -- Sprint Monitor Script: Shows sprint/movement info in action bar
 -- Enable with: /amblescript enable litmus:sprint_monitor
 -- Disable with: /amblescript disable litmus:sprint_monitor
+--
+-- Note: minecraft data is passed as first argument to callbacks (optional).
+-- The 'minecraft' global is also available for backward compatibility.
 
 local lastUpdate = 0
 local UPDATE_INTERVAL = 2 -- Update every 2 ticks for smooth display
 
-function onEnable()
-    minecraft:sendMessage("§b🏃 Sprint Monitor enabled!", false)
+function onEnable(mc)
+    -- mc is the ClientMinecraftData passed as argument
+    -- You can also use the global 'minecraft' variable
+    mc:sendMessage("§b🏃 Sprint Monitor enabled!", false)
 end
 
-function onTick()
+function onTick(mc)
     lastUpdate = lastUpdate + 1
     if lastUpdate < UPDATE_INTERVAL then
         return
     end
     lastUpdate = 0
     
-    local player = minecraft:player()
+    local player = mc:player()
     local vel = player:velocity()
     local speed = math.sqrt(vel.x * vel.x + vel.z * vel.z) * 20 -- blocks per second
     
@@ -59,9 +64,9 @@ function onTick()
         status = status .. " §9💧"
     end
     
-    minecraft:sendMessage(status, true)
+    mc:sendMessage(status, true)
 end
 
-function onDisable()
-    minecraft:sendMessage("§7🏃 Sprint Monitor disabled", false)
+function onDisable(mc)
+    mc:sendMessage("§7🏃 Sprint Monitor disabled", false)
 end

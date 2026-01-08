@@ -1,8 +1,8 @@
 package dev.amble.lib.script;
 
 import dev.amble.lib.AmbleKit;
-import dev.amble.lib.client.gui.lua.LuaBinder;
-import dev.amble.lib.client.gui.lua.mc.MinecraftData;
+import dev.amble.lib.script.lua.ClientMinecraftData;
+import dev.amble.lib.script.lua.LuaBinder;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.resource.Resource;
@@ -21,6 +21,7 @@ import java.util.Set;
 public class ScriptManager implements SimpleSynchronousResourceReloadListener {
 	private static final ScriptManager INSTANCE = new ScriptManager();
     private static final Map<Identifier, AmbleScript> CACHE = new HashMap<>();
+    private static final Map<Identifier, LuaValue> DATA_CACHE = new HashMap<>();
     private static final Set<Identifier> ENABLED_SCRIPTS = new HashSet<>();
 
 	private ScriptManager() {
@@ -45,6 +46,7 @@ public class ScriptManager implements SimpleSynchronousResourceReloadListener {
         }
         
         CACHE.clear();
+        DATA_CACHE.clear();
         
         // Discover all script files and populate the cache for suggestions
         manager.findResources("script", id -> id.getPath().endsWith(".lua"))
@@ -66,8 +68,13 @@ public class ScriptManager implements SimpleSynchronousResourceReloadListener {
                 Resource res = manager.getResource(key).orElseThrow();
                 Globals globals = JsePlatform.standardGlobals();
 
-                // Inject minecraft global for scripts to use
-                globals.set("minecraft", LuaBinder.bind(new MinecraftData()));
+                // Create and cache the minecraft data for this script
+                ClientMinecraftData data = new ClientMinecraftData();
+                LuaValue boundData = LuaBinder.bind(data);
+                DATA_CACHE.put(key, boundData);
+
+                // Inject minecraft global for scripts to use (backward compatibility)
+                globals.set("minecraft", boundData);
 
                 LuaValue chunk = globals.load(
                         new InputStreamReader(res.getInputStream()),
@@ -115,10 +122,11 @@ public class ScriptManager implements SimpleSynchronousResourceReloadListener {
         
         ENABLED_SCRIPTS.add(id);
         
-        // Call onEnable
+        // Call onEnable with minecraft data as first argument
         if (script.onEnable() != null && !script.onEnable().isnil()) {
             try {
-                script.onEnable().call();
+                LuaValue data = DATA_CACHE.get(id);
+                script.onEnable().call(data);
             } catch (Exception e) {
                 AmbleKit.LOGGER.error("Error in onEnable for script {}", id, e);
             }
@@ -135,10 +143,11 @@ public class ScriptManager implements SimpleSynchronousResourceReloadListener {
         
         AmbleScript script = CACHE.get(id);
         
-        // Call onDisable before removing
+        // Call onDisable with minecraft data as first argument before removing
         if (script != null && script.onDisable() != null && !script.onDisable().isnil()) {
             try {
-                script.onDisable().call();
+                LuaValue data = DATA_CACHE.get(id);
+                script.onDisable().call(data);
             } catch (Exception e) {
                 AmbleKit.LOGGER.error("Error in onDisable for script {}", id, e);
             }
@@ -162,7 +171,8 @@ public class ScriptManager implements SimpleSynchronousResourceReloadListener {
             AmbleScript script = CACHE.get(id);
             if (script != null && script.onTick() != null && !script.onTick().isnil()) {
                 try {
-                    script.onTick().call();
+                    LuaValue data = DATA_CACHE.get(id);
+                    script.onTick().call(data);
                 } catch (Exception e) {
                     AmbleKit.LOGGER.error("Error in onTick for script {}", id, e);
                     // Optionally disable the script on error
@@ -170,5 +180,12 @@ public class ScriptManager implements SimpleSynchronousResourceReloadListener {
                 }
             }
         }
+    }
+
+    /**
+     * Get the bound minecraft data for a script.
+     */
+    public static LuaValue getScriptData(Identifier id) {
+        return DATA_CACHE.get(id);
     }
 }
