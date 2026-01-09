@@ -26,7 +26,8 @@ public class AmbleText extends AmbleContainer {
 	@Setter
 	private boolean shadow = true;
 
-	// Cached wrapped lines to avoid recalculating every frame
+	// Cache fields for wrapped lines - marked transient to exclude from serialization
+	// These are recalculated at runtime based on layout and text content
 	private transient List<OrderedText> cachedLines;
 	private transient int cachedWidth = -1;
 	private transient Text cachedText;

@@ -64,7 +64,7 @@ public class ServerMinecraftData extends MinecraftData {
 	}
 
 	@Override
-	protected Entity getPlayer() {
+	protected Entity getExecutor() {
 		return player;
 	}
 

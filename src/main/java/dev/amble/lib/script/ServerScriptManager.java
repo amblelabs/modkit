@@ -54,7 +54,7 @@ public class ServerScriptManager extends AbstractScriptManager {
 			this.currentServer = null;
 		});
 
-		ServerTickEvents.END_SERVER_TICK.register(this::onServerTick);
+		ServerTickEvents.END_SERVER_TICK.register(server -> tick());
 	}
 
 	@Override
@@ -72,9 +72,5 @@ public class ServerScriptManager extends AbstractScriptManager {
 	@Override
 	protected String getLogPrefix() {
 		return "server script";
-	}
-
-	private void onServerTick(MinecraftServer server) {
-		tick();
 	}
 }

@@ -42,7 +42,7 @@ public class ClientMinecraftData extends MinecraftData {
 	}
 
 	@Override
-	protected Entity getPlayer() {
+	protected Entity getExecutor() {
 		return mc.player;
 	}
 

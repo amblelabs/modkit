@@ -13,6 +13,8 @@ import org.luaj.vm2.lib.*;
 import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 import org.luaj.vm2.lib.jse.CoerceLuaToJava;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
@@ -20,9 +22,11 @@ import java.util.Map;
 
 /**
  * Binds Java objects to Lua, exposing methods annotated with @LuaExpose.
+ * Uses MethodHandles for improved performance over reflection.
  */
 public final class LuaBinder {
 
+    private static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
     private static final Map<Class<?>, LuaTable> CACHE = new HashMap<>();
 
     public static LuaValue bind(Object target) {
@@ -269,6 +273,17 @@ public final class LuaBinder {
                     ? method.getName()
                     : expose.name();
 
+            // Convert Method to MethodHandle for better performance
+            MethodHandle handle;
+            try {
+                handle = LOOKUP.unreflect(method);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Failed to create MethodHandle for " + method.getName(), e);
+            }
+
+            Class<?>[] paramTypes = method.getParameterTypes();
+            String methodName = method.getName();
+
             index.set(luaName, new VarArgFunction() {
                 @Override
                 public Varargs invoke(Varargs args) {
@@ -281,18 +296,24 @@ public final class LuaBinder {
                         if (javaSelf == null || !clazz.isInstance(javaSelf)) {
                             throw new LuaError("Expected userdata of type " + clazz.getName() + " but got " + (javaSelf == null ? "null" : javaSelf.getClass().getName()));
                         }
-                        Object[] javaArgs = new Object[method.getParameterCount()];
 
-                        for (int i = 0; i < javaArgs.length; i++) {
-                            javaArgs[i] = CoerceLuaToJava.coerce(
+                        // Build argument array: [self, arg1, arg2, ...]
+                        Object[] invokeArgs = new Object[paramTypes.length + 1];
+                        invokeArgs[0] = javaSelf;
+
+                        for (int i = 0; i < paramTypes.length; i++) {
+                            invokeArgs[i + 1] = CoerceLuaToJava.coerce(
                                     args.arg(i + 2),
-                                    method.getParameterTypes()[i]
+                                    paramTypes[i]
                             );
                         }
-                        Object result = method.invoke(javaSelf, javaArgs);
+
+                        Object result = handle.invokeWithArguments(invokeArgs);
                         return LuaBinder.coerceResult(result);
-                    } catch (Exception e) {
-                        throw new LuaError("Lua call failed: " + method.getName() + " " + e);
+                    } catch (LuaError e) {
+                        throw e;
+                    } catch (Throwable e) {
+                        throw new LuaError("Lua call failed: " + methodName + " " + e);
                     }
                 }
             });

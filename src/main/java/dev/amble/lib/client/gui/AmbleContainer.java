@@ -98,6 +98,7 @@ public class AmbleContainer implements AmbleElement {
 	}
 
 	private static final Rectangle FALLBACK_LAYOUT = new Rectangle(0, 0, 100, 100);
+	private static final Color TRANSPARENT = new Color(0, 0, 0, 0);
 
 	protected Rectangle fallbackLayout() {
 		AmbleKit.LOGGER.error("GUI element {} is missing layout data, using fallback layout", id());
@@ -149,7 +150,7 @@ public class AmbleContainer implements AmbleElement {
 				.layout(new Rectangle(0, 0,
 						MinecraftClient.getInstance().getWindow().getScaledWidth(),
 						MinecraftClient.getInstance().getWindow().getScaledHeight()))
-				.background(new Color(0, 0, 0, 0))
+				.background(TRANSPARENT)
 				.build();
 	}
 

@@ -90,10 +90,8 @@ public abstract class AbstractScriptManager implements SimpleSynchronousResource
                 chunk.call();
 
                 return new LuaScript(
+                        globals,
                         globals.get("onInit"),
-                        globals.get("onClick"),
-                        globals.get("onRelease"),
-                        globals.get("onHover"),
                         globals.get("onExecute"),
                         globals.get("onEnable"),
                         globals.get("onTick"),

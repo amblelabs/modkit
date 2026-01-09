@@ -51,9 +51,13 @@ public abstract class MinecraftData {
 	protected abstract World getWorld();
 
 	/**
-	 * @return the player entity for this context (may be null on server for some contexts)
+	 * Returns the entity that is executing this script context.
+	 * On client, this is typically the local player.
+	 * On server, this may be the player who ran a command, or null for server-initiated scripts.
+	 *
+	 * @return the executor entity, or null if not applicable
 	 */
-	protected abstract Entity getPlayer();
+	protected abstract Entity getExecutor();
 
 	// ===== World & Environment =====
 
@@ -112,7 +116,7 @@ public abstract class MinecraftData {
 
 	@LuaExpose
 	public Entity player() {
-		return getPlayer();
+		return getExecutor();
 	}
 
 	@LuaExpose
@@ -130,22 +134,22 @@ public abstract class MinecraftData {
 	@LuaExpose
 	public Entity nearestEntity(double maxDistance) {
 		World world = getWorld();
-		Entity player = getPlayer();
-		if (world == null || player == null) return null;
+		Entity executor = getExecutor();
+		if (world == null || executor == null) return null;
 		
-		return world.getOtherEntities(player, player.getBoundingBox().expand(maxDistance), e -> true)
+		return world.getOtherEntities(executor, executor.getBoundingBox().expand(maxDistance), e -> true)
 				.stream()
-				.min(Comparator.comparingDouble(e -> e.squaredDistanceTo(player)))
+				.min(Comparator.comparingDouble(e -> e.squaredDistanceTo(executor)))
 				.orElse(null);
 	}
 
 	@LuaExpose
 	public List<Entity> entitiesInRadius(double radius) {
 		World world = getWorld();
-		Entity player = getPlayer();
-		if (world == null || player == null) return List.of();
+		Entity executor = getExecutor();
+		if (world == null || executor == null) return List.of();
 		
-		return world.getOtherEntities(player, player.getBoundingBox().expand(radius), e -> true);
+		return world.getOtherEntities(executor, executor.getBoundingBox().expand(radius), e -> true);
 	}
 
 	// ===== Audio (shared implementation) =====

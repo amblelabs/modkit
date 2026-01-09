@@ -8,6 +8,17 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec2f;
 import org.jetbrains.annotations.ApiStatus;
 
+/**
+ * A Lua-friendly wrapper around {@link AmbleElement}.
+ * <p>
+ * This class uses the wrapper/facade pattern to expose a simplified API for Lua scripts.
+ * It intentionally does NOT extend AmbleElement because:
+ * <ul>
+ *   <li>It provides only the methods that make sense for Lua scripting</li>
+ *   <li>It converts Java types to Lua-compatible return values</li>
+ *   <li>It encapsulates the underlying element, preventing direct manipulation from Lua</li>
+ * </ul>
+ */
 public final class LuaElement {
 
 	private final AmbleElement element;

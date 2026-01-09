@@ -26,6 +26,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO: Consider removing dependency on DatapackRegistry - see team discussion
 public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implements SimpleSynchronousResourceReloadListener {
 	private static final AmbleGuiRegistry INSTANCE = new AmbleGuiRegistry();
 
