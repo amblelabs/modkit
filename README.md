@@ -49,7 +49,29 @@ By simply creating an instance of `AmbleLanguageProvider` and passing in your `B
 
 There are more datagen utilities akin to this.
 
-### Much more!
+### Bedrock Animation System
+
+Use Blockbench models and animations in your Fabric mods! AmbleKit supports the Bedrock Edition geometry and animation JSON formats, making it easy to import complex animated models. Features include:
+
+- **Bedrock Model Support** - Load `.geo.json` models directly from Blockbench
+- **Bedrock Animations** - Full keyframe animation support with looping and one-shot modes
+- **Sound Integration** - Play sounds at specific animation keyframes
+- **Automatic Registration** - Use `@HasBedrockModel` annotation for zero-config setup
+- **Commands** - Play animations via `/amblekit animation` command
+
+**[Read the full Animation System documentation](ANIMATION_SYSTEM.md)**
+
+### Dynamic Skin System
+
+Change player and entity skins at runtime! Perfect for NPCs, disguises, and roleplay servers:
+
+- **Multiple Sources** - Load skins by username or direct URL
+- **Slim/Wide Support** - Both Alex and Steve arm models
+- **Automatic Sync** - Skins sync to all clients automatically
+- **Persistent Storage** - Skins persist across server restarts
+- **Commands** - Manage skins via `/amblekit skin` command
+
+**[Read the full Skin System documentation](SKIN_SYSTEM.md)**
 
 ### Lua Scripting System
 
@@ -62,6 +84,46 @@ Extend Minecraft with Lua scripts - no Java required! AmbleKit's built-in script
 Build custom Minecraft screens entirely in JSON - no Java required! Define layouts, backgrounds (colors or textures), text elements, and interactive buttons with hover/press states. Attach Lua scripts to buttons for dynamic behavior like updating text, playing sounds, or accessing player data. GUIs load from resource packs and can be opened via Lua scripts or Java code.
 
 **[Read the full GUI System documentation](GUI_SYSTEM.md)**
+
+### Block Behavior System
+
+Build modular, composable blocks with reusable behaviors:
+
+- **Horizontal Facing** - Easy directional block placement
+- **Block Entities** - Simplified block entity integration
+- **Render Behaviors** - Control block rendering (invisible blocks, etc.)
+- **Composable Design** - Mix and match behaviors as needed
+
+### Extended Registry Containers
+
+Beyond just blocks and items, register any Minecraft content type:
+
+| Container | Description |
+|-----------|-------------|
+| `BlockContainer` | Blocks with automatic BlockItem registration |
+| `ItemContainer` | Standalone items |
+| `EntityContainer` | Entity types with automatic bedrock renderer support |
+| `BlockEntityContainer` | Block entity types |
+| `SoundContainer` | Sound events |
+| `FluidContainer` | Fluid types |
+| `PaintingContainer` | Painting variants |
+| `ItemGroupContainer` | Creative mode tabs |
+
+### Extended Data Generation
+
+Comprehensive datagen utilities beyond translations:
+
+| Provider | Features |
+|----------|----------|
+| `AmbleLanguageProvider` | Automatic translations from identifiers |
+| `AmbleModelProvider` | Block/item model generation with `@AutomaticModel` |
+| `AmbleRecipeProvider` | Shaped, shapeless, stonecutting, smithing, blasting recipes |
+| `AmbleAdvancementProvider` | Fluent API for advancement trees |
+| `AmbleSoundProvider` | Sound definition generation |
+| `AmbleBlockTagProvider` | Block tags with mineable annotations (`@PickaxeMineable`, etc.) |
+| `AmbleBlockLootTable` | Block loot table generation |
+
+### Much more!
 
 <h2>
   <img src="https://cdn.modrinth.com/data/cached_images/808c7934614530076d21dd0cf5c5e2e992595985.png"
@@ -78,39 +140,33 @@ Build custom Minecraft screens entirely in JSON - no Java required! Define layou
 
 ### If you have an already existing mod and want the amblekit then add this to your **build.gradle**!
 
+> [!IMPORTANT]
+> We have moved away from JitPack to our own maven repository. If you were using JitPack previously, please update your configuration. See [Issue #55](https://github.com/amblelabs/modkit/issues/55) for more details.
 
-  ```
+  ```groovy
   repositories {
       maven {
-          url "https://jitpack.io"
-  
-          metadataSources {
-              artifact() // Look directly for artifact
-          }
+          url "https://amblelabs.dev/maven"
       }
   }
 
   dependencies {
-      modImplementation("com.github.amblelabs:modkit:${project.modkit_version}") {
+      modImplementation("dev.amble:lib:${project.amblekit_version}") {
           exclude(group: "net.fabricmc.fabric-api")
       }
   }
   ```
   or if you are using kotlin
-  ```
-    repositories {
+  ```kotlin
+  repositories {
       maven {
-          url = uri("https://jitpack.io")
-          metadataSources {
-              artifact() // Look directly for artifact
-          }
+          url = uri("https://amblelabs.dev/maven")
       }
       mavenCentral()
   }
-  
-  
+
   dependencies {
-      modImplementation("com.github.amblelabs:modkit:${project.property("modkit_version")}")
+      modImplementation("dev.amble:lib:${project.property("amblekit_version")}")
   }
   ```
 

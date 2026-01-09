@@ -40,3 +40,7 @@ src/main/generated/.cache
 src/main/generated
 
 .direnv
+
+# cursor
+
+.cursorrules

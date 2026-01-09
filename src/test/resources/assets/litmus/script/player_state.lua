@@ -3,7 +3,7 @@
 --
 -- Note: minecraft data is passed as first argument to callbacks
 
-function onExecute(mc)
+function onExecute(mc, args)
     local player = mc:player()
     
     -- Header - username is client-only, so we use player name instead

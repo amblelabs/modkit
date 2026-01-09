@@ -1,6 +1,7 @@
 package dev.amble.lib.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.amble.lib.AmbleKit;
@@ -8,6 +9,7 @@ import dev.amble.lib.script.LuaScript;
 import dev.amble.lib.script.ServerScriptManager;
 import dev.amble.lib.script.lua.LuaBinder;
 import dev.amble.lib.script.lua.ServerMinecraftData;
+import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.IdentifierArgumentType;
@@ -82,7 +84,9 @@ public class ServerScriptCommand {
 				.then(literal("execute")
 						.then(argument("id", IdentifierArgumentType.identifier())
 								.suggests(EXECUTABLE_SCRIPT_SUGGESTIONS)
-								.executes(ServerScriptCommand::execute)))
+								.executes(context -> execute(context, ""))
+								.then(argument("args", StringArgumentType.greedyString())
+										.executes(context -> execute(context, StringArgumentType.getString(context, "args"))))))
 				.then(literal("enable")
 						.then(argument("id", IdentifierArgumentType.identifier())
 								.suggests(TICKABLE_SCRIPT_SUGGESTIONS)
@@ -101,7 +105,7 @@ public class ServerScriptCommand {
 						.executes(ServerScriptCommand::listAvailable)));
 	}
 
-	private static int execute(CommandContext<ServerCommandSource> context) {
+	private static int execute(CommandContext<ServerCommandSource> context, String argsString) {
 		Identifier scriptId = context.getArgument("id", Identifier.class);
 		Identifier fullScriptId = toFullScriptId(scriptId);
 
@@ -127,8 +131,17 @@ public class ServerScriptCommand {
 					player
 			);
 			LuaValue boundData = LuaBinder.bind(data);
-			
-			script.onExecute().call(boundData);
+
+			// Parse arguments into a Lua table
+			LuaTable argsTable = new LuaTable();
+			if (!argsString.isEmpty()) {
+				String[] args = argsString.split(" ");
+				for (int i = 0; i < args.length; i++) {
+					argsTable.set(i + 1, LuaValue.valueOf(args[i]));
+				}
+			}
+
+			script.onExecute().call(boundData, argsTable);
 			context.getSource().sendFeedback(() -> Text.literal("Executed server script: " + scriptId), true);
 			return 1;
 		} catch (Exception e) {

@@ -1,6 +1,7 @@
 package dev.amble.lib.client.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.amble.lib.AmbleKit;
@@ -13,6 +14,7 @@ import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import org.luaj.vm2.LuaTable;
 import org.luaj.vm2.LuaValue;
 
 import java.util.Set;
@@ -65,7 +67,9 @@ public class ClientScriptCommand {
 				.then(literal("execute")
 						.then(argument("id", IdentifierArgumentType.identifier())
 								.suggests(SCRIPT_SUGGESTIONS)
-								.executes(ClientScriptCommand::execute)))
+								.executes(context -> execute(context, ""))
+								.then(argument("args", StringArgumentType.greedyString())
+										.executes(context -> execute(context, StringArgumentType.getString(context, "args"))))))
 				.then(literal("enable")
 						.then(argument("id", IdentifierArgumentType.identifier())
 								.suggests(SCRIPT_SUGGESTIONS)
@@ -84,7 +88,7 @@ public class ClientScriptCommand {
 						.executes(ClientScriptCommand::listAvailable)));
 	}
 
-	private static int execute(CommandContext<FabricClientCommandSource> context) {
+	private static int execute(CommandContext<FabricClientCommandSource> context, String argsString) {
 		Identifier scriptId = context.getArgument("id", Identifier.class);
 		Identifier fullScriptId = toFullScriptId(scriptId);
 
@@ -100,7 +104,17 @@ public class ClientScriptCommand {
 			}
 
 			LuaValue data = ScriptManager.getInstance().getScriptData(fullScriptId);
-			script.onExecute().call(data);
+
+			// Parse arguments into a Lua table
+			LuaTable argsTable = new LuaTable();
+			if (!argsString.isEmpty()) {
+				String[] args = argsString.split(" ");
+				for (int i = 0; i < args.length; i++) {
+					argsTable.set(i + 1, LuaValue.valueOf(args[i]));
+				}
+			}
+
+			script.onExecute().call(data, argsTable);
 			context.getSource().sendFeedback(Text.literal("Executed script: " + scriptId));
 			return 1;
 		} catch (Exception e) {

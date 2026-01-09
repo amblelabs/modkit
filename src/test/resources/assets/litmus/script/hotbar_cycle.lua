@@ -6,7 +6,7 @@
 local cycleIndex = 1
 local cycleDirection = 1
 
-function onExecute(mc)
+function onExecute(mc, args)
     -- Check if we're on the client side
     if not mc:isClientSide() then
         mc:sendMessage("§cThis script requires client-side features!", false)

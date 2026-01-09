@@ -1,6 +1,8 @@
 package dev.amble.lib.script.lua;
 
 import dev.amble.lib.AmbleKit;
+import dev.amble.lib.skin.SkinData;
+import dev.amble.lib.skin.SkinTracker;
 import dev.amble.lib.util.ServerLifecycleHooks;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
@@ -11,6 +13,7 @@ import net.minecraft.text.Text;
 import net.minecraft.world.World;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -223,5 +226,189 @@ public class ServerMinecraftData extends MinecraftData {
 				.map(key -> key.getValue().toString())
 				.collect(Collectors.toList())
 			: List.of();
+	}
+
+	// ===== Skin Management =====
+
+	/**
+	 * Gets the UUID for a player by name.
+	 * @param playerName the player's name
+	 * @return the UUID, or null if player not found
+	 */
+	private UUID getPlayerUuid(String playerName) {
+		MinecraftServer srv = getServer();
+		if (srv == null) return null;
+		ServerPlayerEntity target = srv.getPlayerManager().getPlayer(playerName);
+		return target != null ? target.getUuid() : null;
+	}
+
+	/**
+	 * Parses a UUID string.
+	 * @param uuidString the UUID as a string
+	 * @return the UUID, or null if invalid
+	 */
+	private UUID parseUuid(String uuidString) {
+		try {
+			return UUID.fromString(uuidString);
+		} catch (IllegalArgumentException e) {
+			AmbleKit.LOGGER.warn("Invalid UUID format: '{}'", uuidString);
+			return null;
+		}
+	}
+
+	/**
+	 * Sets a player's skin to match another player's skin (by username).
+	 * This performs an async lookup of the skin and applies it when ready.
+	 * 
+	 * @param playerName the player whose skin to change
+	 * @param skinUsername the username to copy the skin from
+	 * @return true if the player was found, false otherwise
+	 */
+	@LuaExpose
+	public boolean setSkin(String playerName, String skinUsername) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) {
+			AmbleKit.LOGGER.warn("Cannot set skin: player '{}' not found", playerName);
+			return false;
+		}
+		SkinData.usernameUpload(skinUsername, uuid);
+		return true;
+	}
+
+	/**
+	 * Sets a player's skin from a direct URL.
+	 * 
+	 * @param playerName the player whose skin to change
+	 * @param url the URL to the skin image
+	 * @param slim true for slim (Alex) arms, false for wide (Steve) arms
+	 * @return true if the player was found, false otherwise
+	 */
+	@LuaExpose
+	public boolean setSkinUrl(String playerName, String url, boolean slim) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) {
+			AmbleKit.LOGGER.warn("Cannot set skin: player '{}' not found", playerName);
+			return false;
+		}
+		SkinData.url(url, slim).upload(uuid);
+		return true;
+	}
+
+	/**
+	 * Changes a player's arm model (slim or wide) without changing the skin texture.
+	 * 
+	 * @param playerName the player whose arm model to change
+	 * @param slim true for slim (Alex) arms, false for wide (Steve) arms
+	 * @return true if successful, false if player not found or has no custom skin
+	 */
+	@LuaExpose
+	public boolean setSkinSlim(String playerName, boolean slim) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) {
+			AmbleKit.LOGGER.warn("Cannot set skin slim: player '{}' not found", playerName);
+			return false;
+		}
+		SkinData existingSkin = SkinTracker.getInstance().get(uuid);
+		if (existingSkin == null) {
+			AmbleKit.LOGGER.warn("Cannot set skin slim: player '{}' has no custom skin", playerName);
+			return false;
+		}
+		SkinTracker.getInstance().putSynced(uuid, existingSkin.withSlim(slim));
+		return true;
+	}
+
+	/**
+	 * Clears a player's custom skin, restoring their original skin.
+	 * 
+	 * @param playerName the player whose skin to clear
+	 * @return true if the player was found, false otherwise
+	 */
+	@LuaExpose
+	public boolean clearSkin(String playerName) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) {
+			AmbleKit.LOGGER.warn("Cannot clear skin: player '{}' not found", playerName);
+			return false;
+		}
+		SkinTracker.getInstance().removeSynced(uuid);
+		return true;
+	}
+
+	/**
+	 * Checks if a player has a custom skin applied.
+	 * 
+	 * @param playerName the player to check
+	 * @return true if the player has a custom skin, false otherwise
+	 */
+	@LuaExpose
+	public boolean hasSkin(String playerName) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) return false;
+		return SkinTracker.getInstance().containsKey(uuid);
+	}
+
+	/**
+	 * Sets a skin by UUID string.
+	 * This performs an async lookup of the skin and applies it when ready.
+	 * 
+	 * @param uuidString the UUID of the entity whose skin to change
+	 * @param skinUsername the username to copy the skin from
+	 * @return true if the UUID was valid, false otherwise
+	 */
+	@LuaExpose
+	public boolean setSkinByUuid(String uuidString, String skinUsername) {
+		UUID uuid = parseUuid(uuidString);
+		if (uuid == null) {
+			return false;
+		}
+		SkinData.usernameUpload(skinUsername, uuid);
+		return true;
+	}
+
+	/**
+	 * Sets a skin from a URL by UUID string.
+	 * 
+	 * @param uuidString the UUID of the entity whose skin to change
+	 * @param url the URL to the skin image
+	 * @param slim true for slim (Alex) arms, false for wide (Steve) arms
+	 * @return true if the UUID was valid, false otherwise
+	 */
+	@LuaExpose
+	public boolean setSkinUrlByUuid(String uuidString, String url, boolean slim) {
+		UUID uuid = parseUuid(uuidString);
+		if (uuid == null) {
+			return false;
+		}
+		SkinData.url(url, slim).upload(uuid);
+		return true;
+	}
+
+	/**
+	 * Clears a custom skin by UUID string.
+	 * 
+	 * @param uuidString the UUID of the entity whose skin to clear
+	 * @return true if the UUID was valid, false otherwise
+	 */
+	@LuaExpose
+	public boolean clearSkinByUuid(String uuidString) {
+		UUID uuid = parseUuid(uuidString);
+		if (uuid == null) {
+			return false;
+		}
+		SkinTracker.getInstance().removeSynced(uuid);
+		return true;
+	}
+
+	/**
+	 * Checks if an entity has a custom skin applied by UUID string.
+	 * 
+	 * @param uuidString the UUID to check
+	 * @return true if the entity has a custom skin, false otherwise
+	 */
+	@LuaExpose
+	public boolean hasSkinByUuid(String uuidString) {
+		UUID uuid = parseUuid(uuidString);
+		if (uuid == null) return false;
+		return SkinTracker.getInstance().containsKey(uuid);
 	}
 }

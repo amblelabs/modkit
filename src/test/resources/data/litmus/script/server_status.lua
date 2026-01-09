@@ -4,7 +4,7 @@
 -- This is a SERVER-SIDE script. It runs on the server and has access to
 -- all players, server TPS, and other server-specific information.
 
-function onExecute(mc)
+function onExecute(mc, args)
     -- Confirm we're on the server
     if mc:isClientSide() then
         mc:sendMessage("§cThis script should only run on the server!", false)

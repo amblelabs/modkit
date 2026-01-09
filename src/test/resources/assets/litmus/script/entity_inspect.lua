@@ -3,7 +3,7 @@
 --
 -- Note: Uses client-only lookingAtEntity feature
 
-function onExecute(mc)
+function onExecute(mc, args)
     local target = nil
     
     -- lookingAtEntity is client-only

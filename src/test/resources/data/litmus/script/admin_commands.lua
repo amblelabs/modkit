@@ -3,7 +3,7 @@
 --
 -- This is a SERVER-SIDE script with various admin utilities.
 
-function onExecute(mc)
+function onExecute(mc, args)
     mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)
     mc:sendMessage("§e§l✦ Admin Commands Executed ✦", false)
     mc:sendMessage("§6§l━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", false)

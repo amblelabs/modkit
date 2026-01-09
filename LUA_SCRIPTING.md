@@ -27,22 +27,40 @@ AmbleKit includes a powerful Lua scripting engine (powered by LuaJ) that allows 
 
 ### Client-side (available to all players)
 ```
-/amblescript execute <script_id>   - Run a script's onExecute function
-/amblescript enable <script_id>    - Enable a script (starts onTick loop)
-/amblescript disable <script_id>   - Disable a running script
-/amblescript toggle <script_id>    - Toggle script enabled state
-/amblescript list                  - Show enabled scripts
-/amblescript available             - Show all available scripts
+/amblescript execute <script_id> [args...]   - Run a script's onExecute function with optional arguments
+/amblescript enable <script_id>              - Enable a script (starts onTick loop)
+/amblescript disable <script_id>             - Disable a running script
+/amblescript toggle <script_id>              - Toggle script enabled state
+/amblescript list                            - Show enabled scripts
+/amblescript available                       - Show all available scripts
 ```
 
 ### Server-side (requires operator permissions)
 ```
-/serverscript execute <script_id>  - Run a script's onExecute function
-/serverscript enable <script_id>   - Enable a script (starts onTick loop)
-/serverscript disable <script_id>  - Disable a running script
-/serverscript toggle <script_id>   - Toggle script enabled state
-/serverscript list                 - Show enabled scripts
-/serverscript available            - Show all available scripts
+/serverscript execute <script_id> [args...]  - Run a script's onExecute function with optional arguments
+/serverscript enable <script_id>             - Enable a script (starts onTick loop)
+/serverscript disable <script_id>            - Disable a running script
+/serverscript toggle <script_id>             - Toggle script enabled state
+/serverscript list                           - Show enabled scripts
+/serverscript available                      - Show all available scripts
+```
+
+### Command Arguments
+
+The `execute` command accepts optional space-separated arguments that are passed to the script's `onExecute` function as a Lua table:
+
+```
+/serverscript execute mymod:my_script arg1 arg2 arg3
+```
+
+In the script, access arguments via the second parameter:
+
+```lua
+function onExecute(mc, args)
+    if args[1] then
+        mc:sendMessage("First argument: " .. args[1], false)
+    end
+end
 ```
 
 ---
@@ -53,10 +71,12 @@ Scripts can define the following callback functions. Each receives a `mc` (Minec
 
 | Callback | When Called | Use Case |
 |----------|-------------|----------|
-| `onExecute(mc)` | Via `/amblescript execute` or `/serverscript execute` | One-time actions, info displays |
+| `onExecute(mc, args)` | Via `/amblescript execute` or `/serverscript execute` | One-time actions, parameterized commands |
 | `onEnable(mc)` | When script is enabled | Initialize state, play sounds |
 | `onTick(mc)` | Every game tick while enabled | Continuous monitoring, automation |
 | `onDisable(mc)` | When script is disabled | Cleanup, final messages |
+
+The `args` parameter in `onExecute` is a Lua table containing space-separated arguments from the command (1-indexed, may be empty).
 
 ---
 
@@ -115,6 +135,22 @@ The `mc` parameter provides access to Minecraft data. Methods vary by side:
 | `mc:isDedicatedServer()` | True if dedicated server |
 | `mc:runCommandAs(playerName, command)` | Run command as specific player |
 
+### Skin Management (Server-Only)
+
+All skin methods return `true` on success, `false` on failure.
+
+| Method | Description |
+|--------|-------------|
+| `mc:setSkin(playerName, skinUsername)` | Set player's skin to another player's skin |
+| `mc:setSkinUrl(playerName, url, slim)` | Set player's skin from URL (slim: true/false) |
+| `mc:setSkinSlim(playerName, slim)` | Change arm model without changing texture |
+| `mc:clearSkin(playerName)` | Remove custom skin, restore original |
+| `mc:hasSkin(playerName)` | Check if player has a custom skin |
+| `mc:setSkinByUuid(uuid, skinUsername)` | Set skin by UUID string |
+| `mc:setSkinUrlByUuid(uuid, url, slim)` | Set skin from URL by UUID string |
+| `mc:clearSkinByUuid(uuid)` | Clear skin by UUID string |
+| `mc:hasSkinByUuid(uuid)` | Check if entity has custom skin by UUID |
+
 ---
 
 ## Entity API
@@ -165,6 +201,46 @@ ItemStacks from inventories provide:
 
 ## Example Scripts
 
+### Script with Arguments
+Set a player's skin with command arguments:
+
+```lua
+-- data/mymod/script/skin_set.lua
+-- Usage:
+--   /serverscript execute mymod:skin_set Notch true
+--   /serverscript execute mymod:skin_set Notch false duzo
+
+function onExecute(mc, args)
+    -- Validate arguments
+    if args == nil or #args < 2 then
+        mc:sendMessage("§cUsage: /serverscript execute mymod:skin_set <skin_username> <slim> [target_player]", false)
+        return
+    end
+
+    local skinUsername = args[1]
+    local slim = args[2] == "true"
+    local targetPlayer = args[3]
+
+    -- If no target player specified, use the executing player
+    if targetPlayer == nil then
+        local player = mc:player()
+        if player == nil then
+            mc:sendMessage("§cNo player context!", false)
+            return
+        end
+        targetPlayer = player:name()
+    end
+
+    -- Apply the skin
+    if mc:setSkin(targetPlayer, skinUsername) then
+        mc:sendMessage("§aSkin applied to " .. targetPlayer .. "!", false)
+        mc:setSkinSlim(targetPlayer, slim)
+    else
+        mc:sendMessage("§cFailed to apply skin!", false)
+    end
+end
+```
+
 ### Simple Execute Script
 Display world info on command:
 
@@ -172,7 +248,7 @@ Display world info on command:
 -- assets/mymod/script/world_info.lua
 -- Run with: /amblescript execute mymod:world_info
 
-function onExecute(mc)
+function onExecute(mc, args)
     local player = mc:player()
     local pos = player:blockPosition()
     
@@ -222,7 +298,7 @@ Admin broadcast utility:
 -- data/mymod/script/server_status.lua
 -- Run with: /serverscript execute mymod:server_status
 
-function onExecute(mc)
+function onExecute(mc, args)
     local playerCount = mc:playerCount()
     local maxPlayers = mc:maxPlayers()
     local tps = string.format("%.1f", mc:serverTps())
@@ -230,6 +306,128 @@ function onExecute(mc)
     mc:broadcast("§6[Server] §fPlayers: §e" .. playerCount .. "/" .. maxPlayers)
     mc:broadcast("§6[Server] §fTPS: §a" .. tps)
     mc:log("Server status broadcast by admin")
+end
+```
+
+### Skin Management Script
+Change player skins on the server:
+
+```lua
+-- data/mymod/script/disguise.lua
+-- Run with: /serverscript execute mymod:disguise
+-- Or with args: /serverscript execute mymod:disguise Herobrine
+
+function onExecute(mc, args)
+    local player = mc:player()
+    if player == nil then
+        mc:log("No player context for this script")
+        return
+    end
+    
+    local playerName = player:name()
+    local skinName = args[1] or "Notch"  -- Default to Notch if no argument provided
+    
+    -- Set the player's skin to look like the specified user (returns true/false)
+    if mc:setSkin(playerName, skinName) then
+        mc:broadcastToPlayer(playerName, "§aYou are now disguised as " .. skinName .. "!", false)
+    else
+        mc:broadcastToPlayer(playerName, "§cFailed to apply disguise!", false)
+    end
+end
+
+-- Example: Disguise all players as the same skin
+function disguiseAll(mc, skinUsername)
+    local success = 0
+    for _, playerName in pairs(mc:allPlayerNames()) do
+        if mc:setSkin(playerName, skinUsername) then
+            success = success + 1
+        end
+    end
+    mc:broadcast("§eDisguised " .. success .. " players!")
+end
+
+-- Example: Clear all disguises
+function clearAllDisguises(mc)
+    for _, playerName in pairs(mc:allPlayerNames()) do
+        if mc:hasSkin(playerName) then
+            mc:clearSkin(playerName)
+        end
+    end
+    mc:broadcast("§7All disguises have been removed.")
+end
+```
+
+### Skin from URL Example
+Apply custom skins from URLs:
+
+```lua
+-- data/mymod/script/custom_skin.lua
+-- Run with: /serverscript execute mymod:custom_skin <url> [slim]
+-- Example: /serverscript execute mymod:custom_skin https://example.com/skin.png true
+
+function onExecute(mc, args)
+    local player = mc:player()
+    if player == nil then return end
+    
+    local playerName = player:name()
+    local skinUrl = args[1] or "https://example.com/skins/custom_skin.png"
+    local slim = args[2] == "true"
+    
+    -- Set skin from URL with slim (Alex-style) arms
+    if mc:setSkinUrl(playerName, skinUrl, slim) then
+        mc:broadcastToPlayer(playerName, "§aCustom skin applied!", false)
+    else
+        mc:broadcastToPlayer(playerName, "§cFailed to apply skin!", false)
+    end
+end
+
+-- Toggle between slim and wide arm models
+function toggleSlimArms(mc)
+    local player = mc:player()
+    if player == nil then return end
+    
+    local playerName = player:name()
+    
+    if mc:hasSkin(playerName) then
+        if mc:setSkinSlim(playerName, true) then
+            mc:broadcastToPlayer(playerName, "§7Switched to slim arms.", false)
+        end
+    else
+        mc:broadcastToPlayer(playerName, "§cYou don't have a custom skin!", false)
+    end
+end
+```
+
+### UUID-Based Skin Management
+Use UUIDs directly for non-player entities or stored references:
+
+```lua
+-- data/mymod/script/npc_skins.lua
+-- Run with: /serverscript execute mymod:npc_skins [skin_username]
+
+function onExecute(mc, args)
+    local player = mc:player()
+    if player == nil then return end
+    
+    -- Get the player's UUID
+    local uuid = player:uuid()
+    local skinName = args[1] or "Herobrine"
+    
+    -- Set skin using UUID string
+    if mc:setSkinByUuid(uuid, skinName) then
+        mc:sendMessage("§cSkin applied via UUID!", false)
+    end
+end
+
+-- Apply skin to a stored NPC UUID
+function applyNpcSkin(mc)
+    local npcUuid = "550e8400-e29b-41d4-a716-446655440000"  -- example UUID
+    
+    if mc:setSkinUrlByUuid(npcUuid, "https://example.com/npc_skin.png", false) then
+        mc:log("NPC skin updated successfully")
+    else
+        mc:logWarn("Failed to update NPC skin")
+    end
 end
 ```
 
@@ -381,3 +579,4 @@ end
 ## See Also
 
 - [JSON GUI System](GUI_SYSTEM.md) - Full GUI definition documentation
+- [Dynamic Skin System](SKIN_SYSTEM.md) - Skin commands, Java API, and persistence

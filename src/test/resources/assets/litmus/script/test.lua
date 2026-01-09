@@ -37,7 +37,7 @@ function onClick(self, mouseX, mouseY, button)
     end
 end
 
-function onExecute(mc)
+function onExecute(mc, args)
     mc:log("Test script executed via command!")
     mc:sendMessage("§aTest script executed!", false)
 end
