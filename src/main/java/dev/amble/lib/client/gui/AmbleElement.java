@@ -1,10 +1,11 @@
 package dev.amble.lib.client.gui;
 
 import dev.amble.lib.api.Identifiable;
+import it.unimi.dsi.fastutil.ints.IntIntImmutablePair;
+import it.unimi.dsi.fastutil.ints.IntIntPair;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
 import net.minecraft.util.math.Vec2f;
 import org.jetbrains.annotations.Nullable;
 
@@ -81,14 +82,14 @@ public interface AmbleElement extends Drawable, Identifiable {
 		}
 	}
 
-	private Pair<Integer, Integer> layoutRow(
+	private IntIntPair layoutRow(
 			List<AmbleElement> row,
 			int startX,
 			int maxWidth,
 			int cursorY,
 			int rowHeight
 	) {
-		if (row.isEmpty()) return new Pair<>(cursorY, rowHeight);
+		if (row.isEmpty()) return IntIntImmutablePair.of(cursorY, rowHeight);
 
 		int rowWidth = row.stream()
 				.mapToInt(e -> e.getPreferredLayout().width)
@@ -108,7 +109,7 @@ public interface AmbleElement extends Drawable, Identifiable {
 
 		int innerHeight = getLayout().height - getPadding() * 2;
 
-		for (var e : row) {
+		for (AmbleElement e : row) {
 			int y;
 
 			if (singleElementFullCenter) {
@@ -136,7 +137,7 @@ public interface AmbleElement extends Drawable, Identifiable {
 		cursorY += rowHeight + getSpacing();
 		row.clear();
 		rowHeight = 0;
-		return new Pair<>(cursorY, rowHeight);
+		return IntIntImmutablePair.of(cursorY, rowHeight);
 	}
 
 	default void recalcuateLayout() {
@@ -150,28 +151,24 @@ public interface AmbleElement extends Drawable, Identifiable {
 
 		List<AmbleElement> row = new ArrayList<>();
 
-		for (var child : getChildren())
-		{
+		for (AmbleElement child : getChildren()) {
 			int w = child.getPreferredLayout().width;
 			int h = child.getPreferredLayout().height;
 
-			if (cursorX + w > startX + maxWidth || child.requiresNewRow())
-			{
-				Pair<Integer, Integer> result = layoutRow(
+			if (cursorX + w > startX + maxWidth || child.requiresNewRow()) {
+				IntIntPair result = layoutRow(
 						row,
 						startX,
 						maxWidth,
 						cursorY,
 						rowHeight
 				);
-				cursorY = result.getLeft();
-				rowHeight = result.getRight();
+				cursorY = result.leftInt();
+				rowHeight = result.rightInt();
 				cursorX = startX;
 			}
 
 			row.add(child);
-
-			//child.LayerDepth = LayerDepth + 0.025F;
 			child.recalcuateLayout();
 
 			cursorX += w + getSpacing();

@@ -5,9 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.client.gui.*;
-import dev.amble.lib.script.AmbleScript;
+import dev.amble.lib.script.LuaScript;
 import dev.amble.lib.script.ScriptManager;
-import dev.amble.lib.script.lua.LuaBinder;
 import dev.amble.lib.register.datapack.DatapackRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
@@ -32,7 +31,14 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 
 	private AmbleGuiRegistry() {
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES).registerReloadListener(this);
+	}
 
+	/**
+	 * Initializes the GUI registry and related systems.
+	 * Should be called during client initialization.
+	 */
+	public static void init() {
+		getInstance();
 		ScriptManager.getInstance();
 	}
 
@@ -46,21 +52,45 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 		return AmbleKit.id("gui");
 	}
 
+	/**
+	 * Parses a JSON object into an AmbleContainer.
+	 *
+	 * @param json the JSON object to parse
+	 * @return the parsed AmbleContainer
+	 * @throws IllegalStateException if required fields are missing or invalid
+	 */
 	public static AmbleContainer parse(JsonObject json) {
+		return parse(json, null);
+	}
+
+	/**
+	 * Parses a JSON object into an AmbleContainer.
+	 *
+	 * @param json the JSON object to parse
+	 * @param resourceId the identifier of the resource being parsed (for error context), may be null
+	 * @return the parsed AmbleContainer
+	 * @throws IllegalStateException if required fields are missing or invalid
+	 */
+	public static AmbleContainer parse(JsonObject json, Identifier resourceId) {
+		String context = resourceId != null ? " (resource: " + resourceId + ")" : "";
+
 		// first parse background
 		AmbleDisplayType background;
 		if (json.has("background")) {
 			background = AmbleDisplayType.parse(json.get("background"));
 		} else {
-			throw new IllegalStateException("Amble container is missing background data | " + json);
+			throw new IllegalStateException("Amble container is missing background data" + context);
 		}
 
 		Rectangle layout = new Rectangle();
 		if (json.has("layout") && json.get("layout").isJsonArray()) {
 			JsonArray layoutArray = json.get("layout").getAsJsonArray();
+			if (layoutArray.size() < 2) {
+				throw new IllegalStateException("Amble container layout must have at least 2 elements (width, height)" + context);
+			}
 			layout.setSize(layoutArray.get(0).getAsInt(), layoutArray.get(1).getAsInt());
 		} else {
-			throw new IllegalStateException("Amble container is missing layout data | " + json);
+			throw new IllegalStateException("Amble container is missing layout data" + context);
 		}
 
 		int padding = 0;
@@ -77,10 +107,13 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 		UIAlign vertAlign = UIAlign.START;
 		if (json.has("alignment")) {
 			if (!json.get("alignment").isJsonArray()) {
-				throw new IllegalStateException("UI Alignment must be array [horizontal, vertical] | " + json);
+				throw new IllegalStateException("UI Alignment must be array [horizontal, vertical]" + context);
 			}
 
 			JsonArray alignmentArray = json.get("alignment").getAsJsonArray();
+			if (alignmentArray.size() < 2) {
+				throw new IllegalStateException("UI Alignment array must have at least 2 elements" + context);
+			}
 			String horizAlignKey = alignmentArray.get(0).getAsString();
 			String vertAlignKey = alignmentArray.get(1).getAsString();
 
@@ -100,7 +133,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 		boolean shouldPause = false;
 		if (json.has("should_pause")) {
 			if (!json.get("should_pause").isJsonPrimitive()) {
-				throw new IllegalStateException("UI should_pause should be boolean | " + json);
+				throw new IllegalStateException("UI should_pause should be boolean" + context);
 			}
 
 			shouldPause = json.get("should_pause").getAsBoolean();
@@ -109,24 +142,24 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 		List<AmbleElement> children = new ArrayList<>();
 		if (json.has("children")) {
 			if (!json.get("children").isJsonArray()) {
-				throw new IllegalStateException("UI children should be an object array of other ui elements | " + json);
+				throw new IllegalStateException("UI children should be an object array of other ui elements" + context);
 			}
 
 			JsonArray childrenArray = json.get("children").getAsJsonArray();
 
 			for (int i = 0; i < childrenArray.size(); i++) {
 				if (!(childrenArray.get(i).isJsonObject())) {
-					throw new IllegalStateException("UI child at index " + i + " is invalid, got " + childrenArray.get(i) + " | " + json);
+					throw new IllegalStateException("UI child at index " + i + " is invalid, got " + childrenArray.get(i) + context);
 				}
 
-				children.add(parse(childrenArray.get(i).getAsJsonObject()));
+				children.add(parse(childrenArray.get(i).getAsJsonObject(), resourceId));
 			}
 		}
 
 		boolean requiresNewRow = false;
 		if (json.has("requires_new_row")) {
 			if (!json.get("requires_new_row").isJsonPrimitive()) {
-				throw new IllegalStateException("UI requires_new_row should be boolean | " + json);
+				throw new IllegalStateException("UI requires_new_row should be boolean" + context);
 			}
 			requiresNewRow = json.get("requires_new_row").getAsBoolean();
 		}
@@ -135,7 +168,11 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 
 		if (json.has("id")) {
 			String idStr = json.get("id").getAsString();
-			created.setIdentifier(new Identifier(idStr));
+			Identifier parsedId = Identifier.tryParse(idStr);
+			if (parsedId == null) {
+				throw new IllegalStateException("Invalid identifier '" + idStr + "'" + context);
+			}
+			created.setIdentifier(parsedId);
 		}
 
 		if (json.has("text")) {
@@ -148,10 +185,13 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 			UIAlign textVertAlign = UIAlign.CENTRE;
 			if (json.has("text_alignment")) {
 				if (!json.get("text_alignment").isJsonArray()) {
-					throw new IllegalStateException("UI text Alignment must be array [horizontal, vertical] | " + json);
+					throw new IllegalStateException("UI text Alignment must be array [horizontal, vertical]" + context);
 				}
 
 				JsonArray alignmentArray = json.get("text_alignment").getAsJsonArray();
+				if (alignmentArray.size() < 2) {
+					throw new IllegalStateException("UI text Alignment array must have at least 2 elements" + context);
+				}
 				String horizAlignKey = alignmentArray.get(0).getAsString();
 				String vertAlignKey = alignmentArray.get(1).getAsString();
 
@@ -193,10 +233,10 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 
 			if (json.has("script")) {
 				Identifier scriptId = new Identifier(json.get("script").getAsString()).withPrefixedPath("script/").withSuffixedPath(".lua");
-				AmbleScript script = ScriptManager.load(
-						scriptId,
-						MinecraftClient.getInstance().getResourceManager()
-				);
+			LuaScript script = ScriptManager.getInstance().load(
+					scriptId,
+					MinecraftClient.getInstance().getResourceManager()
+			);
 
 				button.setScript(script);
 			}
@@ -231,7 +271,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 				Identifier id = Identifier.of(rawId.getNamespace(), idPath);
 
 				JsonObject json = JsonParser.parseReader(new InputStreamReader(stream)).getAsJsonObject();
-				AmbleContainer model = parse(json);
+				AmbleContainer model = parse(json, id);
 				model.setIdentifier(id);
 
 				register(model);

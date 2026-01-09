@@ -16,21 +16,69 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
 public class AmbleText extends AmbleContainer {
+	@Setter
 	private Text text;
+	@Setter
 	private UIAlign textHorizontalAlign = UIAlign.CENTRE;
+	@Setter
 	private UIAlign textVerticalAlign = UIAlign.CENTRE;
+	@Setter
 	private boolean shadow = true;
+
+	// Cached wrapped lines to avoid recalculating every frame
+	private transient List<OrderedText> cachedLines;
+	private transient int cachedWidth = -1;
+	private transient Text cachedText;
+
+	/**
+	 * Sets the text and invalidates the cache.
+	 */
+	public void setText(Text text) {
+		if (this.text != text) {
+			this.text = text;
+			invalidateTextCache();
+		}
+	}
+
+	/**
+	 * Invalidates the cached wrapped lines, forcing recalculation on next render.
+	 */
+	public void invalidateTextCache() {
+		cachedLines = null;
+		cachedWidth = -1;
+		cachedText = null;
+	}
+
+	@Override
+	public void recalcuateLayout() {
+		super.recalcuateLayout();
+		invalidateTextCache();
+	}
+
+	private List<OrderedText> getWrappedLines(TextRenderer tr) {
+		int currentWidth = getLayout().width - getPadding() * 2;
+
+		// Recalculate if width changed or text changed
+		if (cachedLines == null || cachedWidth != currentWidth || cachedText != text) {
+			cachedLines = tr.wrapLines(text, currentWidth);
+			cachedWidth = currentWidth;
+			cachedText = text;
+		}
+
+		return cachedLines;
+	}
 
 	@Override
 	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
 		super.render(context, mouseX, mouseY, delta);
 
+		if (text == null) return;
+
 		TextRenderer tr = MinecraftClient.getInstance().textRenderer;
 
-		// 1. Wrap text first
-		List<OrderedText> lines = tr.wrapLines(text, getLayout().width - getPadding() * 2);
+		// Use cached wrapped lines
+		List<OrderedText> lines = getWrappedLines(tr);
 
 		int lineHeight = tr.fontHeight;
 		int wrappedHeight = lines.size() * lineHeight;
@@ -40,7 +88,7 @@ public class AmbleText extends AmbleContainer {
 			wrappedWidth = Math.max(wrappedWidth, tr.getWidth(line));
 		}
 
-		// 2. Calculate aligned position using WRAPPED size
+		// Calculate aligned position using WRAPPED size
 		int textX = getLayout().x;
 		int textY = getLayout().y;
 
@@ -56,7 +104,6 @@ public class AmbleText extends AmbleContainer {
 			case END -> textY += getLayout().height - wrappedHeight - getPadding();
 		}
 
-		// 3. Draw
 		drawWrappedLines(context, tr, lines, textX, textY, 0xFFFFFF, shadow);
 	}
 

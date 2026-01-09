@@ -21,6 +21,24 @@ import java.util.stream.StreamSupport;
  */
 public abstract class MinecraftData {
 
+	private String scriptName = null;
+
+	/**
+	 * Sets the name of the script using this data, for logging purposes.
+	 *
+	 * @param scriptName the script name or identifier
+	 */
+	public void setScriptName(String scriptName) {
+		this.scriptName = scriptName;
+	}
+
+	/**
+	 * Gets the log prefix including the script name if available.
+	 */
+	private String getLogPrefix() {
+		return scriptName != null ? "[Script: " + scriptName + "]" : "[Script]";
+	}
+
 	/**
 	 * @return true if this is client-side data, false if server-side
 	 */
@@ -165,16 +183,16 @@ public abstract class MinecraftData {
 	 */
 	@LuaExpose
 	public void log(String message) {
-		AmbleKit.LOGGER.info("[Script] {}", message);
+		AmbleKit.LOGGER.info("{} {}", getLogPrefix(), message);
 	}
 
 	@LuaExpose
 	public void logWarn(String message) {
-		AmbleKit.LOGGER.warn("[Script] {}", message);
+		AmbleKit.LOGGER.warn("{} {}", getLogPrefix(), message);
 	}
 
 	@LuaExpose
 	public void logError(String message) {
-		AmbleKit.LOGGER.error("[Script] {}", message);
+		AmbleKit.LOGGER.error("{} {}", getLogPrefix(), message);
 	}
 }

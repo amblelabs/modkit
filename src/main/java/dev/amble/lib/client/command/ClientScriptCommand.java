@@ -1,16 +1,17 @@
-package dev.amble.lib.command;
+package dev.amble.lib.client.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.amble.lib.AmbleKit;
-import dev.amble.lib.script.AmbleScript;
+import dev.amble.lib.script.LuaScript;
 import dev.amble.lib.script.ScriptManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.luaj.vm2.LuaValue;
 
@@ -19,20 +20,42 @@ import java.util.Set;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.argument;
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal;
 
-public class ExecuteScriptCommand {
+/**
+ * Client-side command for managing client scripts.
+ * Usage: /amblescript [execute|enable|disable|toggle|list|available] [script_id]
+ */
+public class ClientScriptCommand {
+
+	private static final String SCRIPT_PREFIX = "script/";
+	private static final String SCRIPT_SUFFIX = ".lua";
+
+	/**
+	 * Converts a full script identifier to a display-friendly format.
+	 * Removes the "script/" prefix and ".lua" suffix.
+	 */
+	private static String getDisplayId(Identifier id) {
+		return id.getPath().replace(SCRIPT_PREFIX, "").replace(SCRIPT_SUFFIX, "");
+	}
+
+	/**
+	 * Converts a user-provided script ID to the full internal identifier.
+	 */
+	private static Identifier toFullScriptId(Identifier scriptId) {
+		return scriptId.withPrefixedPath(SCRIPT_PREFIX).withSuffixedPath(SCRIPT_SUFFIX);
+	}
 
 	private static final SuggestionProvider<FabricClientCommandSource> SCRIPT_SUGGESTIONS = (context, builder) -> {
 		return CommandSource.suggestIdentifiers(
-				ScriptManager.getCache().keySet().stream()
-						.map(id -> Identifier.of(id.getNamespace(), id.getPath().replace("script/", "").replace(".lua", ""))),
+				ScriptManager.getInstance().getCache().keySet().stream()
+						.map(id -> Identifier.of(id.getNamespace(), getDisplayId(id))),
 				builder
 		);
 	};
 
 	private static final SuggestionProvider<FabricClientCommandSource> ENABLED_SCRIPT_SUGGESTIONS = (context, builder) -> {
 		return CommandSource.suggestIdentifiers(
-				ScriptManager.getEnabledScripts().stream()
-						.map(id -> Identifier.of(id.getNamespace(), id.getPath().replace("script/", "").replace(".lua", ""))),
+				ScriptManager.getInstance().getEnabledScripts().stream()
+						.map(id -> Identifier.of(id.getNamespace(), getDisplayId(id))),
 				builder
 		);
 	};
@@ -42,31 +65,31 @@ public class ExecuteScriptCommand {
 				.then(literal("execute")
 						.then(argument("id", IdentifierArgumentType.identifier())
 								.suggests(SCRIPT_SUGGESTIONS)
-								.executes(ExecuteScriptCommand::execute)))
+								.executes(ClientScriptCommand::execute)))
 				.then(literal("enable")
 						.then(argument("id", IdentifierArgumentType.identifier())
 								.suggests(SCRIPT_SUGGESTIONS)
-								.executes(ExecuteScriptCommand::enable)))
+								.executes(ClientScriptCommand::enable)))
 				.then(literal("disable")
 						.then(argument("id", IdentifierArgumentType.identifier())
 								.suggests(ENABLED_SCRIPT_SUGGESTIONS)
-								.executes(ExecuteScriptCommand::disable)))
+								.executes(ClientScriptCommand::disable)))
 				.then(literal("toggle")
 						.then(argument("id", IdentifierArgumentType.identifier())
 								.suggests(SCRIPT_SUGGESTIONS)
-								.executes(ExecuteScriptCommand::toggle)))
+								.executes(ClientScriptCommand::toggle)))
 				.then(literal("list")
-						.executes(ExecuteScriptCommand::listEnabled))
+						.executes(ClientScriptCommand::listEnabled))
 				.then(literal("available")
-						.executes(ExecuteScriptCommand::listAvailable)));
+						.executes(ClientScriptCommand::listAvailable)));
 	}
 
 	private static int execute(CommandContext<FabricClientCommandSource> context) {
 		Identifier scriptId = context.getArgument("id", Identifier.class);
-		Identifier fullScriptId = scriptId.withPrefixedPath("script/").withSuffixedPath(".lua");
+		Identifier fullScriptId = toFullScriptId(scriptId);
 
 		try {
-			AmbleScript script = ScriptManager.load(
+			LuaScript script = ScriptManager.getInstance().load(
 					fullScriptId,
 					MinecraftClient.getInstance().getResourceManager()
 			);
@@ -76,7 +99,7 @@ public class ExecuteScriptCommand {
 				return 0;
 			}
 
-			LuaValue data = ScriptManager.getScriptData(fullScriptId);
+			LuaValue data = ScriptManager.getInstance().getScriptData(fullScriptId);
 			script.onExecute().call(data);
 			context.getSource().sendFeedback(Text.literal("Executed script: " + scriptId));
 			return 1;
@@ -89,23 +112,23 @@ public class ExecuteScriptCommand {
 
 	private static int enable(CommandContext<FabricClientCommandSource> context) {
 		Identifier scriptId = context.getArgument("id", Identifier.class);
-		Identifier fullScriptId = scriptId.withPrefixedPath("script/").withSuffixedPath(".lua");
+		Identifier fullScriptId = toFullScriptId(scriptId);
 
 		// Ensure script is loaded
 		try {
-			ScriptManager.load(fullScriptId, MinecraftClient.getInstance().getResourceManager());
+			ScriptManager.getInstance().load(fullScriptId, MinecraftClient.getInstance().getResourceManager());
 		} catch (Exception e) {
 			context.getSource().sendError(Text.literal("Script '" + scriptId + "' not found"));
 			return 0;
 		}
 
-		if (ScriptManager.isEnabled(fullScriptId)) {
+		if (ScriptManager.getInstance().isEnabled(fullScriptId)) {
 			context.getSource().sendError(Text.literal("Script '" + scriptId + "' is already enabled"));
 			return 0;
 		}
 
-		if (ScriptManager.enable(fullScriptId)) {
-			context.getSource().sendFeedback(Text.literal("§aEnabled script: " + scriptId));
+		if (ScriptManager.getInstance().enable(fullScriptId)) {
+			context.getSource().sendFeedback(Text.literal("Enabled script: " + scriptId).formatted(Formatting.GREEN));
 			return 1;
 		} else {
 			context.getSource().sendError(Text.literal("Failed to enable script '" + scriptId + "'"));
@@ -115,15 +138,15 @@ public class ExecuteScriptCommand {
 
 	private static int disable(CommandContext<FabricClientCommandSource> context) {
 		Identifier scriptId = context.getArgument("id", Identifier.class);
-		Identifier fullScriptId = scriptId.withPrefixedPath("script/").withSuffixedPath(".lua");
+		Identifier fullScriptId = toFullScriptId(scriptId);
 
-		if (!ScriptManager.isEnabled(fullScriptId)) {
+		if (!ScriptManager.getInstance().isEnabled(fullScriptId)) {
 			context.getSource().sendError(Text.literal("Script '" + scriptId + "' is not enabled"));
 			return 0;
 		}
 
-		if (ScriptManager.disable(fullScriptId)) {
-			context.getSource().sendFeedback(Text.literal("§cDisabled script: " + scriptId));
+		if (ScriptManager.getInstance().disable(fullScriptId)) {
+			context.getSource().sendFeedback(Text.literal("Disabled script: " + scriptId).formatted(Formatting.RED));
 			return 1;
 		} else {
 			context.getSource().sendError(Text.literal("Failed to disable script '" + scriptId + "'"));
@@ -133,59 +156,65 @@ public class ExecuteScriptCommand {
 
 	private static int toggle(CommandContext<FabricClientCommandSource> context) {
 		Identifier scriptId = context.getArgument("id", Identifier.class);
-		Identifier fullScriptId = scriptId.withPrefixedPath("script/").withSuffixedPath(".lua");
+		Identifier fullScriptId = toFullScriptId(scriptId);
 
 		// Ensure script is loaded
 		try {
-			ScriptManager.load(fullScriptId, MinecraftClient.getInstance().getResourceManager());
+			ScriptManager.getInstance().load(fullScriptId, MinecraftClient.getInstance().getResourceManager());
 		} catch (Exception e) {
 			context.getSource().sendError(Text.literal("Script '" + scriptId + "' not found"));
 			return 0;
 		}
 
-		boolean wasEnabled = ScriptManager.isEnabled(fullScriptId);
-		ScriptManager.toggle(fullScriptId);
+		boolean wasEnabled = ScriptManager.getInstance().isEnabled(fullScriptId);
+		ScriptManager.getInstance().toggle(fullScriptId);
 
 		if (wasEnabled) {
-			context.getSource().sendFeedback(Text.literal("§cDisabled script: " + scriptId));
+			context.getSource().sendFeedback(Text.literal("Disabled script: " + scriptId).formatted(Formatting.RED));
 		} else {
-			context.getSource().sendFeedback(Text.literal("§aEnabled script: " + scriptId));
+			context.getSource().sendFeedback(Text.literal("Enabled script: " + scriptId).formatted(Formatting.GREEN));
 		}
 		return 1;
 	}
 
 	private static int listEnabled(CommandContext<FabricClientCommandSource> context) {
-		Set<Identifier> enabled = ScriptManager.getEnabledScripts();
+		Set<Identifier> enabled = ScriptManager.getInstance().getEnabledScripts();
 
 		if (enabled.isEmpty()) {
-			context.getSource().sendFeedback(Text.literal("§7No client scripts are currently enabled"));
+			context.getSource().sendFeedback(Text.literal("No client scripts are currently enabled").formatted(Formatting.GRAY));
 			return 1;
 		}
 
-		context.getSource().sendFeedback(Text.literal("§6§l━━━ Enabled Client Scripts (" + enabled.size() + ") ━━━"));
+		context.getSource().sendFeedback(Text.literal("━━━ Enabled Client Scripts (" + enabled.size() + ") ━━━").formatted(Formatting.GOLD, Formatting.BOLD));
 		for (Identifier id : enabled) {
-			String displayId = id.getPath().replace("script/", "").replace(".lua", "");
-			context.getSource().sendFeedback(Text.literal("§a✓ §f" + id.getNamespace() + ":" + displayId));
+			String displayId = getDisplayId(id);
+			context.getSource().sendFeedback(
+					Text.literal("✓ ").formatted(Formatting.GREEN)
+							.append(Text.literal(id.getNamespace() + ":" + displayId).formatted(Formatting.WHITE))
+			);
 		}
 		return 1;
 	}
 
 	private static int listAvailable(CommandContext<FabricClientCommandSource> context) {
-		Set<Identifier> available = ScriptManager.getCache().keySet();
-		Set<Identifier> enabled = ScriptManager.getEnabledScripts();
+		Set<Identifier> available = ScriptManager.getInstance().getCache().keySet();
+		Set<Identifier> enabled = ScriptManager.getInstance().getEnabledScripts();
 
 		if (available.isEmpty()) {
-			context.getSource().sendFeedback(Text.literal("§7No client scripts available"));
+			context.getSource().sendFeedback(Text.literal("No client scripts available").formatted(Formatting.GRAY));
 			return 1;
 		}
 
-		context.getSource().sendFeedback(Text.literal("§6§l━━━ Available Client Scripts (" + available.size() + ") ━━━"));
+		context.getSource().sendFeedback(Text.literal("━━━ Available Client Scripts (" + available.size() + ") ━━━").formatted(Formatting.GOLD, Formatting.BOLD));
 		for (Identifier id : available) {
-			String displayId = id.getPath().replace("script/", "").replace(".lua", "");
-			String status = enabled.contains(id) ? "§a✓" : "§7○";
-			context.getSource().sendFeedback(Text.literal(status + " §f" + id.getNamespace() + ":" + displayId));
+			String displayId = getDisplayId(id);
+			Text statusIcon = enabled.contains(id)
+					? Text.literal("✓ ").formatted(Formatting.GREEN)
+					: Text.literal("○ ").formatted(Formatting.GRAY);
+			context.getSource().sendFeedback(
+					statusIcon.copy().append(Text.literal(id.getNamespace() + ":" + displayId).formatted(Formatting.WHITE))
+			);
 		}
 		return 1;
 	}
-
 }

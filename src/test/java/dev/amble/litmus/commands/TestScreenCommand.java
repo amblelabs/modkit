@@ -1,5 +1,6 @@
 package dev.amble.litmus.commands;
 
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import dev.amble.lib.client.gui.*;
 import dev.amble.lib.client.gui.registry.AmbleGuiRegistry;
@@ -13,7 +14,8 @@ import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Rectangle;
 
 
 public class TestScreenCommand {
@@ -27,9 +29,9 @@ public class TestScreenCommand {
 
 			MinecraftClient.getInstance().execute(() -> {
 				ClientScheduler.get().runTaskLater(() -> {
-					var container = AmbleContainer.builder().layout(new Rectangle(0,0, 216, 138)).background(AmbleDisplayType.texture(new AmbleDisplayType.TextureData(new Identifier(LitmusMod.MOD_ID, "textures/gui/test_screen.png"), 0, 0, 216, 138, 256, 256))).build();
-					var child1 = AmbleContainer.builder().layout(new Rectangle(0,0, 50, 50)).background(AmbleDisplayType.color(Color.BLUE)).build();
-					var child2 = AmbleContainer.builder().layout(new Rectangle(0,0, 25, 25)).background(AmbleDisplayType.color(Color.ORANGE)).build();
+					AmbleContainer container = AmbleContainer.builder().layout(new Rectangle(0,0, 216, 138)).background(AmbleDisplayType.texture(new AmbleDisplayType.TextureData(new Identifier(LitmusMod.MOD_ID, "textures/gui/test_screen.png"), 0, 0, 216, 138, 256, 256))).build();
+					AmbleContainer child1 = AmbleContainer.builder().layout(new Rectangle(0,0, 50, 50)).background(AmbleDisplayType.color(Color.BLUE)).build();
+					AmbleContainer child2 = AmbleContainer.builder().layout(new Rectangle(0,0, 25, 25)).background(AmbleDisplayType.color(Color.ORANGE)).build();
 					AmbleButton child3 = AmbleButton.buttonBuilder().layout(new Rectangle(0,0, 75, 40)).horizontalAlign(UIAlign.CENTRE).background(Color.GREEN).hoverDisplay(Color.YELLOW).pressDisplay(Color.RED).onClick(() -> {
 						System.out.println("Button Clicked!");
 					}).build();
@@ -48,7 +50,7 @@ public class TestScreenCommand {
 					container.display();
 				}, TimeUnit.SECONDS, 1);
 			});
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		}).then(ClientCommandManager.argument("id", IdentifierArgumentType.identifier()).executes(source -> {
 			Identifier id = source.getArgument("id", Identifier.class);
 			AmbleContainer container = AmbleGuiRegistry.getInstance().get(id);
@@ -59,7 +61,7 @@ public class TestScreenCommand {
 
 			ClientScheduler.get().runTaskLater(container::display, TimeUnit.SECONDS, 1);
 
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		})));
 	}
 }

@@ -2,6 +2,7 @@ package dev.amble.lib.client.gui;
 
 import dev.amble.lib.AmbleKit;
 import lombok.*;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -68,11 +69,9 @@ public class AmbleContainer implements AmbleElement {
 	public Identifier id() {
 		if (identifier == null) {
 			if (parent != null) {
-				identifier = new Identifier(parent.id().getNamespace(),
-						parent.id().getPath() + "/" + System.identityHashCode(this));
+				identifier = parent.id().withPath(parent.id().getPath() + "/" + System.identityHashCode(this));
 			} else {
-				identifier = new Identifier("amble",
-						"container/" + System.identityHashCode(this));
+				identifier = AmbleKit.id("container/" + System.identityHashCode(this));
 				AmbleKit.LOGGER.error("GUI element missing identifier, no parent found to derive from. Generated id: {}", identifier);
 			}
 		}
@@ -98,10 +97,12 @@ public class AmbleContainer implements AmbleElement {
 		return preferredLayout;
 	}
 
+	private static final Rectangle FALLBACK_LAYOUT = new Rectangle(0, 0, 100, 100);
+
 	protected Rectangle fallbackLayout() {
 		AmbleKit.LOGGER.error("GUI element {} is missing layout data, using fallback layout", id());
 
-		return new Rectangle(0, 0, 100, 100);
+		return new Rectangle(FALLBACK_LAYOUT);
 	}
 
 	public Screen toScreen() {
@@ -116,11 +117,11 @@ public class AmbleContainer implements AmbleElement {
 	}
 
 	public void display() {
-		var primary = AmbleContainer.primaryContainer();
+		AmbleContainer primary = AmbleContainer.primaryContainer();
 		primary.addChild(this);
 		primary.setShouldPause(shouldPause);
 		Screen screen = primary.toScreen();
-		net.minecraft.client.MinecraftClient.getInstance().setScreen(screen);
+		MinecraftClient.getInstance().setScreen(screen);
 	}
 
 	public void copyFrom(AmbleContainer other) {
@@ -146,8 +147,8 @@ public class AmbleContainer implements AmbleElement {
 	public static AmbleContainer primaryContainer() {
 		return AmbleContainer.builder()
 				.layout(new Rectangle(0, 0,
-						net.minecraft.client.MinecraftClient.getInstance().getWindow().getScaledWidth(),
-						net.minecraft.client.MinecraftClient.getInstance().getWindow().getScaledHeight()))
+						MinecraftClient.getInstance().getWindow().getScaledWidth(),
+						MinecraftClient.getInstance().getWindow().getScaledHeight()))
 				.background(new Color(0, 0, 0, 0))
 				.build();
 	}

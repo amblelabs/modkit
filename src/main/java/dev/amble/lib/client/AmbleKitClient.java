@@ -4,7 +4,7 @@ import dev.amble.lib.client.bedrock.BedrockAnimationRegistry;
 import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.client.bedrock.BedrockModelRegistry;
 import dev.amble.lib.client.gui.registry.AmbleGuiRegistry;
-import dev.amble.lib.command.ExecuteScriptCommand;
+import dev.amble.lib.client.command.ClientScriptCommand;
 import dev.amble.lib.register.AmbleRegistries;
 import dev.amble.lib.script.ScriptManager;
 import dev.amble.lib.skin.client.SkinGrabber;
@@ -33,15 +33,15 @@ public class AmbleKitClient implements ClientModInitializer {
                 AmbleGuiRegistry.getInstance()
         );
 
-        ScriptManager.getInstance();
+        AmbleGuiRegistry.init();
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, access) -> {
-            ExecuteScriptCommand.register(dispatcher);
+            ClientScriptCommand.register(dispatcher);
         });
 
         ClientTickEvents.END_CLIENT_TICK.register((client) -> {
             SkinGrabber.INSTANCE.tick();
-            ScriptManager.tick();
+            ScriptManager.getInstance().tick();
         });
 
 	}

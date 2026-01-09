@@ -4,7 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.amble.lib.AmbleKit;
-import dev.amble.lib.script.AmbleScript;
+import dev.amble.lib.script.LuaScript;
 import dev.amble.lib.script.ServerScriptManager;
 import dev.amble.lib.script.lua.LuaBinder;
 import dev.amble.lib.script.lua.ServerMinecraftData;
@@ -14,6 +14,7 @@ import net.minecraft.command.argument.IdentifierArgumentType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 
 import java.util.Set;
@@ -27,32 +28,50 @@ import static net.minecraft.server.command.CommandManager.literal;
  */
 public class ServerScriptCommand {
 
+	private static final String SCRIPT_PREFIX = "script/";
+	private static final String SCRIPT_SUFFIX = ".lua";
+
+	/**
+	 * Converts a full script identifier to a display-friendly format.
+	 * Removes the "script/" prefix and ".lua" suffix.
+	 */
+	private static String getDisplayId(Identifier id) {
+		return id.getPath().replace(SCRIPT_PREFIX, "").replace(SCRIPT_SUFFIX, "");
+	}
+
+	/**
+	 * Converts a user-provided script ID to the full internal identifier.
+	 */
+	private static Identifier toFullScriptId(Identifier scriptId) {
+		return scriptId.withPrefixedPath(SCRIPT_PREFIX).withSuffixedPath(SCRIPT_SUFFIX);
+	}
+
 	private static final SuggestionProvider<ServerCommandSource> TICKABLE_SCRIPT_SUGGESTIONS = (context, builder) -> {
 		return CommandSource.suggestIdentifiers(
-				ServerScriptManager.getCache().entrySet().stream()
+				ServerScriptManager.getInstance().getCache().entrySet().stream()
 						.filter(entry -> entry.getValue().onTick() != null && !entry.getValue().onTick().isnil())
-						.map(entry -> Identifier.of(entry.getKey().getNamespace(), entry.getKey().getPath().replace("script/", "").replace(".lua", ""))),
+						.map(entry -> Identifier.of(entry.getKey().getNamespace(), getDisplayId(entry.getKey()))),
 				builder
 		);
 	};
 
 	private static final SuggestionProvider<ServerCommandSource> ENABLED_TICKABLE_SCRIPT_SUGGESTIONS = (context, builder) -> {
 		return CommandSource.suggestIdentifiers(
-				ServerScriptManager.getEnabledScripts().stream()
+				ServerScriptManager.getInstance().getEnabledScripts().stream()
 						.filter(id -> {
-							AmbleScript script = ServerScriptManager.getCache().get(id);
+							LuaScript script = ServerScriptManager.getInstance().getCache().get(id);
 							return script != null && script.onTick() != null && !script.onTick().isnil();
 						})
-						.map(id -> Identifier.of(id.getNamespace(), id.getPath().replace("script/", "").replace(".lua", ""))),
+						.map(id -> Identifier.of(id.getNamespace(), getDisplayId(id))),
 				builder
 		);
 	};
 
 	private static final SuggestionProvider<ServerCommandSource> EXECUTABLE_SCRIPT_SUGGESTIONS = (context, builder) -> {
 		return CommandSource.suggestIdentifiers(
-				ServerScriptManager.getCache().entrySet().stream()
+				ServerScriptManager.getInstance().getCache().entrySet().stream()
 						.filter(entry -> entry.getValue().onExecute() != null && !entry.getValue().onExecute().isnil())
-						.map(entry -> Identifier.of(entry.getKey().getNamespace(), entry.getKey().getPath().replace("script/", "").replace(".lua", ""))),
+						.map(entry -> Identifier.of(entry.getKey().getNamespace(), getDisplayId(entry.getKey()))),
 				builder
 		);
 	};
@@ -84,10 +103,10 @@ public class ServerScriptCommand {
 
 	private static int execute(CommandContext<ServerCommandSource> context) {
 		Identifier scriptId = context.getArgument("id", Identifier.class);
-		Identifier fullScriptId = scriptId.withPrefixedPath("script/").withSuffixedPath(".lua");
+		Identifier fullScriptId = toFullScriptId(scriptId);
 
 		try {
-			AmbleScript script = ServerScriptManager.getCache().get(fullScriptId);
+			LuaScript script = ServerScriptManager.getInstance().getCache().get(fullScriptId);
 
 			if (script == null) {
 				context.getSource().sendError(Text.literal("Server script '" + scriptId + "' not found"));
@@ -121,20 +140,20 @@ public class ServerScriptCommand {
 
 	private static int enable(CommandContext<ServerCommandSource> context) {
 		Identifier scriptId = context.getArgument("id", Identifier.class);
-		Identifier fullScriptId = scriptId.withPrefixedPath("script/").withSuffixedPath(".lua");
+		Identifier fullScriptId = toFullScriptId(scriptId);
 
-		if (!ServerScriptManager.getCache().containsKey(fullScriptId)) {
+		if (!ServerScriptManager.getInstance().getCache().containsKey(fullScriptId)) {
 			context.getSource().sendError(Text.literal("Server script '" + scriptId + "' not found"));
 			return 0;
 		}
 
-		if (ServerScriptManager.isEnabled(fullScriptId)) {
+		if (ServerScriptManager.getInstance().isEnabled(fullScriptId)) {
 			context.getSource().sendError(Text.literal("Server script '" + scriptId + "' is already enabled"));
 			return 0;
 		}
 
-		if (ServerScriptManager.enable(fullScriptId)) {
-			context.getSource().sendFeedback(() -> Text.literal("§aEnabled server script: " + scriptId), true);
+		if (ServerScriptManager.getInstance().enable(fullScriptId)) {
+			context.getSource().sendFeedback(() -> Text.literal("Enabled server script: " + scriptId).formatted(Formatting.GREEN), true);
 			return 1;
 		} else {
 			context.getSource().sendError(Text.literal("Failed to enable server script '" + scriptId + "'"));
@@ -144,15 +163,15 @@ public class ServerScriptCommand {
 
 	private static int disable(CommandContext<ServerCommandSource> context) {
 		Identifier scriptId = context.getArgument("id", Identifier.class);
-		Identifier fullScriptId = scriptId.withPrefixedPath("script/").withSuffixedPath(".lua");
+		Identifier fullScriptId = toFullScriptId(scriptId);
 
-		if (!ServerScriptManager.isEnabled(fullScriptId)) {
+		if (!ServerScriptManager.getInstance().isEnabled(fullScriptId)) {
 			context.getSource().sendError(Text.literal("Server script '" + scriptId + "' is not enabled"));
 			return 0;
 		}
 
-		if (ServerScriptManager.disable(fullScriptId)) {
-			context.getSource().sendFeedback(() -> Text.literal("§cDisabled server script: " + scriptId), true);
+		if (ServerScriptManager.getInstance().disable(fullScriptId)) {
+			context.getSource().sendFeedback(() -> Text.literal("Disabled server script: " + scriptId).formatted(Formatting.RED), true);
 			return 1;
 		} else {
 			context.getSource().sendError(Text.literal("Failed to disable server script '" + scriptId + "'"));
@@ -162,54 +181,59 @@ public class ServerScriptCommand {
 
 	private static int toggle(CommandContext<ServerCommandSource> context) {
 		Identifier scriptId = context.getArgument("id", Identifier.class);
-		Identifier fullScriptId = scriptId.withPrefixedPath("script/").withSuffixedPath(".lua");
+		Identifier fullScriptId = toFullScriptId(scriptId);
 
-		if (!ServerScriptManager.getCache().containsKey(fullScriptId)) {
+		if (!ServerScriptManager.getInstance().getCache().containsKey(fullScriptId)) {
 			context.getSource().sendError(Text.literal("Server script '" + scriptId + "' not found"));
 			return 0;
 		}
 
-		boolean wasEnabled = ServerScriptManager.isEnabled(fullScriptId);
-		ServerScriptManager.toggle(fullScriptId);
+		boolean wasEnabled = ServerScriptManager.getInstance().isEnabled(fullScriptId);
+		ServerScriptManager.getInstance().toggle(fullScriptId);
 
 		if (wasEnabled) {
-			context.getSource().sendFeedback(() -> Text.literal("§cDisabled server script: " + scriptId), true);
+			context.getSource().sendFeedback(() -> Text.literal("Disabled server script: " + scriptId).formatted(Formatting.RED), true);
 		} else {
-			context.getSource().sendFeedback(() -> Text.literal("§aEnabled server script: " + scriptId), true);
+			context.getSource().sendFeedback(() -> Text.literal("Enabled server script: " + scriptId).formatted(Formatting.GREEN), true);
 		}
 		return 1;
 	}
 
 	private static int listEnabled(CommandContext<ServerCommandSource> context) {
-		Set<Identifier> enabled = ServerScriptManager.getEnabledScripts();
+		Set<Identifier> enabled = ServerScriptManager.getInstance().getEnabledScripts();
 
 		if (enabled.isEmpty()) {
-			context.getSource().sendFeedback(() -> Text.literal("§7No server scripts are currently enabled"), false);
+			context.getSource().sendFeedback(() -> Text.literal("No server scripts are currently enabled").formatted(Formatting.GRAY), false);
 			return 1;
 		}
 
-		context.getSource().sendFeedback(() -> Text.literal("§6§l━━━ Enabled Server Scripts (" + enabled.size() + ") ━━━"), false);
+		context.getSource().sendFeedback(() -> Text.literal("━━━ Enabled Server Scripts (" + enabled.size() + ") ━━━").formatted(Formatting.GOLD, Formatting.BOLD), false);
 		for (Identifier id : enabled) {
-			String displayId = id.getPath().replace("script/", "").replace(".lua", "");
-			context.getSource().sendFeedback(() -> Text.literal("§a✓ §f" + id.getNamespace() + ":" + displayId), false);
+			String displayId = getDisplayId(id);
+			context.getSource().sendFeedback(() ->
+					Text.literal("✓ ").formatted(Formatting.GREEN)
+							.append(Text.literal(id.getNamespace() + ":" + displayId).formatted(Formatting.WHITE)), false);
 		}
 		return 1;
 	}
 
 	private static int listAvailable(CommandContext<ServerCommandSource> context) {
-		Set<Identifier> available = ServerScriptManager.getCache().keySet();
-		Set<Identifier> enabled = ServerScriptManager.getEnabledScripts();
+		Set<Identifier> available = ServerScriptManager.getInstance().getCache().keySet();
+		Set<Identifier> enabled = ServerScriptManager.getInstance().getEnabledScripts();
 
 		if (available.isEmpty()) {
-			context.getSource().sendFeedback(() -> Text.literal("§7No server scripts available"), false);
+			context.getSource().sendFeedback(() -> Text.literal("No server scripts available").formatted(Formatting.GRAY), false);
 			return 1;
 		}
 
-		context.getSource().sendFeedback(() -> Text.literal("§6§l━━━ Available Server Scripts (" + available.size() + ") ━━━"), false);
+		context.getSource().sendFeedback(() -> Text.literal("━━━ Available Server Scripts (" + available.size() + ") ━━━").formatted(Formatting.GOLD, Formatting.BOLD), false);
 		for (Identifier id : available) {
-			String displayId = id.getPath().replace("script/", "").replace(".lua", "");
-			String status = enabled.contains(id) ? "§a✓" : "§7○";
-			context.getSource().sendFeedback(() -> Text.literal(status + " §f" + id.getNamespace() + ":" + displayId), false);
+			String displayId = getDisplayId(id);
+			Text statusIcon = enabled.contains(id)
+					? Text.literal("✓ ").formatted(Formatting.GREEN)
+					: Text.literal("○ ").formatted(Formatting.GRAY);
+			context.getSource().sendFeedback(() ->
+					statusIcon.copy().append(Text.literal(id.getNamespace() + ":" + displayId).formatted(Formatting.WHITE)), false);
 		}
 		return 1;
 	}

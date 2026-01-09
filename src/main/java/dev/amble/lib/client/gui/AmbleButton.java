@@ -4,7 +4,7 @@ package dev.amble.lib.client.gui;
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.script.lua.LuaBinder;
 import dev.amble.lib.client.gui.lua.LuaElement;
-import dev.amble.lib.script.AmbleScript;
+import dev.amble.lib.script.LuaScript;
 import lombok.*;
 import net.minecraft.client.gui.DrawContext;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +24,7 @@ public class AmbleButton extends AmbleContainer {
 	private @Nullable Runnable onClick;
 	private @Nullable AmbleDisplayType normalDisplay = null;
 	private boolean isClicked = false;
-	private @Nullable AmbleScript script;
+	private @Nullable LuaScript script;
 
 	@Override
 	public void onRelease(double mouseX, double mouseY, int button) {
@@ -115,7 +115,7 @@ public class AmbleButton extends AmbleContainer {
 		return normalDisplay;
 	}
 
-	public void setScript(AmbleScript script) {
+	public void setScript(LuaScript script) {
 		this.script = script;
 		if (script.onInit() != null && !script.onInit().isnil()) {
 			try {

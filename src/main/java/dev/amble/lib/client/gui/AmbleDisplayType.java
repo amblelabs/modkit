@@ -3,12 +3,12 @@ package dev.amble.lib.client.gui;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import dev.amble.lib.api.Identifiable;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Rectangle;
 
 public record AmbleDisplayType(@Nullable Color color, @Nullable TextureData texture) {
 	public AmbleDisplayType {

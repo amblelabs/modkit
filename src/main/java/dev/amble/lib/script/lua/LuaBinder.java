@@ -2,6 +2,9 @@ package dev.amble.lib.script.lua;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
@@ -15,6 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Binds Java objects to Lua, exposing methods annotated with @LuaExpose.
+ */
 public final class LuaBinder {
 
     private static final Map<Class<?>, LuaTable> CACHE = new HashMap<>();
@@ -30,56 +36,228 @@ public final class LuaBinder {
         return userdata;
     }
 
-	private static LuaValue coerceResult(Object obj) {
-		if (obj == null) return LuaValue.NIL;
-		if (obj instanceof LuaValue lv) return lv;
+    // ===== Separate coerceResult methods for each type =====
 
-		// at language level 21 this would be a switch expression
-		if (obj instanceof String
-				|| obj instanceof Number
-				|| obj instanceof Boolean) {
-			return CoerceJavaToLua.coerce(obj);
-		} else if (obj instanceof List<?> list) {
-			LuaTable table = new LuaTable();
-			for (int i = 0; i < list.size(); i++) {
-				table.set(i + 1, coerceResult(list.get(i))); // recursive
-			}
-			return table;
-		} else if (obj instanceof Vector3f vec3) {
-			LuaTable table = new LuaTable();
-			table.set("x", vec3.x());
-			table.set("y", vec3.y());
-			table.set("z", vec3.z());
-			return table;
-		} else if (obj instanceof Vec3d vec3) {
-			LuaTable table = new LuaTable();
-			table.set("x", vec3.x);
-			table.set("y", vec3.y);
-			table.set("z", vec3.z);
-			table.set("toString", new ZeroArgFunction() {
-				@Override
-				public LuaValue call() {
-					return LuaString.valueOf("(" + vec3.x + ", " + vec3.y + ", " + vec3.z + ")");
-				}
-			});
-			return table;
-		} else if (obj instanceof BlockPos pos) {
-			LuaTable table = new LuaTable();
-			table.set("x", pos.getX());
-			table.set("y", pos.getY());
-			table.set("z", pos.getZ());
-			return table;
-		} else if (obj instanceof ItemStack stack) {
-			return bind(new LuaItemStack(stack));
-		} else if (obj instanceof Entity entity) {
-			return bind(new MinecraftEntity(entity));
-		}
+    /**
+     * Coerces a null value to Lua NIL.
+     */
+    public static LuaValue coerceNull() {
+        return LuaValue.NIL;
+    }
 
-		return bind(obj);
-	}
+    /**
+     * Coerces a String to a Lua string.
+     */
+    public static LuaValue coerceString(String value) {
+        return LuaString.valueOf(value);
+    }
 
+    /**
+     * Coerces an integer to a Lua number.
+     */
+    public static LuaValue coerceInt(int value) {
+        return LuaInteger.valueOf(value);
+    }
 
-	private static LuaTable buildMetatable(Class<?> clazz) {
+    /**
+     * Coerces a long to a Lua number.
+     */
+    public static LuaValue coerceLong(long value) {
+        return LuaInteger.valueOf(value);
+    }
+
+    /**
+     * Coerces a float to a Lua number.
+     */
+    public static LuaValue coerceFloat(float value) {
+        return LuaDouble.valueOf(value);
+    }
+
+    /**
+     * Coerces a double to a Lua number.
+     */
+    public static LuaValue coerceDouble(double value) {
+        return LuaDouble.valueOf(value);
+    }
+
+    /**
+     * Coerces a boolean to a Lua boolean.
+     */
+    public static LuaValue coerceBoolean(boolean value) {
+        return LuaBoolean.valueOf(value);
+    }
+
+    /**
+     * Coerces a List to a Lua table (1-indexed array).
+     */
+    public static LuaValue coerceList(List<?> list) {
+        LuaTable table = new LuaTable();
+        for (int i = 0; i < list.size(); i++) {
+            table.set(i + 1, coerceResult(list.get(i)));
+        }
+        return table;
+    }
+
+    /**
+     * Coerces a Vector3f to a Lua table with x, y, z fields.
+     */
+    public static LuaValue coerceVector3f(Vector3f vec3) {
+        LuaTable table = new LuaTable();
+        table.set("x", vec3.x());
+        table.set("y", vec3.y());
+        table.set("z", vec3.z());
+        table.set("toString", new ZeroArgFunction() {
+            @Override
+            public LuaValue call() {
+                return LuaString.valueOf("(" + vec3.x() + ", " + vec3.y() + ", " + vec3.z() + ")");
+            }
+        });
+        return table;
+    }
+
+    /**
+     * Coerces a Vec3d to a Lua table with x, y, z fields.
+     */
+    public static LuaValue coerceVec3d(Vec3d vec3) {
+        LuaTable table = new LuaTable();
+        table.set("x", vec3.x);
+        table.set("y", vec3.y);
+        table.set("z", vec3.z);
+        table.set("toString", new ZeroArgFunction() {
+            @Override
+            public LuaValue call() {
+                return LuaString.valueOf("(" + vec3.x + ", " + vec3.y + ", " + vec3.z + ")");
+            }
+        });
+        return table;
+    }
+
+    /**
+     * Coerces a BlockPos to a Lua table with x, y, z fields.
+     */
+    public static LuaValue coerceBlockPos(BlockPos pos) {
+        LuaTable table = new LuaTable();
+        table.set("x", pos.getX());
+        table.set("y", pos.getY());
+        table.set("z", pos.getZ());
+        table.set("toString", new ZeroArgFunction() {
+            @Override
+            public LuaValue call() {
+                return LuaString.valueOf("(" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")");
+            }
+        });
+        return table;
+    }
+
+    /**
+     * Coerces an ItemStack to a bound LuaItemStack.
+     */
+    public static LuaValue coerceItemStack(ItemStack stack) {
+        return bind(new LuaItemStack(stack));
+    }
+
+    /**
+     * Coerces an Entity to a bound MinecraftEntity.
+     */
+    public static LuaValue coerceEntity(Entity entity) {
+        return bind(new MinecraftEntity(entity));
+    }
+
+    /**
+     * Coerces an NbtCompound to a Lua table.
+     */
+    public static LuaValue coerceNbtCompound(NbtCompound nbt) {
+        LuaTable table = new LuaTable();
+        for (String key : nbt.getKeys()) {
+            NbtElement element = nbt.get(key);
+            table.set(key, coerceNbtElement(element));
+        }
+        return table;
+    }
+
+    /**
+     * Coerces any NbtElement to the appropriate Lua type.
+     */
+    public static LuaValue coerceNbtElement(NbtElement element) {
+        if (element == null) {
+            return LuaValue.NIL;
+        }
+
+        return switch (element.getType()) {
+            case NbtElement.BYTE_TYPE -> LuaInteger.valueOf(((net.minecraft.nbt.NbtByte) element).byteValue());
+            case NbtElement.SHORT_TYPE -> LuaInteger.valueOf(((net.minecraft.nbt.NbtShort) element).shortValue());
+            case NbtElement.INT_TYPE -> LuaInteger.valueOf(((net.minecraft.nbt.NbtInt) element).intValue());
+            case NbtElement.LONG_TYPE -> LuaInteger.valueOf(((net.minecraft.nbt.NbtLong) element).longValue());
+            case NbtElement.FLOAT_TYPE -> LuaDouble.valueOf(((net.minecraft.nbt.NbtFloat) element).floatValue());
+            case NbtElement.DOUBLE_TYPE -> LuaDouble.valueOf(((net.minecraft.nbt.NbtDouble) element).doubleValue());
+            case NbtElement.STRING_TYPE -> LuaString.valueOf(element.asString());
+            case NbtElement.BYTE_ARRAY_TYPE -> {
+                byte[] bytes = ((net.minecraft.nbt.NbtByteArray) element).getByteArray();
+                LuaTable table = new LuaTable();
+                for (int i = 0; i < bytes.length; i++) {
+                    table.set(i + 1, LuaInteger.valueOf(bytes[i]));
+                }
+                yield table;
+            }
+            case NbtElement.INT_ARRAY_TYPE -> {
+                int[] ints = ((net.minecraft.nbt.NbtIntArray) element).getIntArray();
+                LuaTable table = new LuaTable();
+                for (int i = 0; i < ints.length; i++) {
+                    table.set(i + 1, LuaInteger.valueOf(ints[i]));
+                }
+                yield table;
+            }
+            case NbtElement.LONG_ARRAY_TYPE -> {
+                long[] longs = ((net.minecraft.nbt.NbtLongArray) element).getLongArray();
+                LuaTable table = new LuaTable();
+                for (int i = 0; i < longs.length; i++) {
+                    table.set(i + 1, LuaInteger.valueOf(longs[i]));
+                }
+                yield table;
+            }
+            case NbtElement.LIST_TYPE -> {
+                NbtList list = (NbtList) element;
+                LuaTable table = new LuaTable();
+                for (int i = 0; i < list.size(); i++) {
+                    table.set(i + 1, coerceNbtElement(list.get(i)));
+                }
+                yield table;
+            }
+            case NbtElement.COMPOUND_TYPE -> coerceNbtCompound((NbtCompound) element);
+            default -> LuaString.valueOf(element.asString());
+        };
+    }
+
+    // ===== Main coerceResult dispatcher =====
+
+    /**
+     * Coerces any Java object to an appropriate Lua value.
+     * Dispatches to type-specific coercion methods.
+     */
+    public static LuaValue coerceResult(Object obj) {
+        if (obj == null) return coerceNull();
+        if (obj instanceof LuaValue lv) return lv;
+        if (obj instanceof String s) return coerceString(s);
+        if (obj instanceof Integer i) return coerceInt(i);
+        if (obj instanceof Long l) return coerceLong(l);
+        if (obj instanceof Float f) return coerceFloat(f);
+        if (obj instanceof Double d) return coerceDouble(d);
+        if (obj instanceof Boolean b) return coerceBoolean(b);
+        if (obj instanceof Number n) return CoerceJavaToLua.coerce(n);
+        if (obj instanceof List<?> list) return coerceList(list);
+        if (obj instanceof Vector3f vec3) return coerceVector3f(vec3);
+        if (obj instanceof Vec3d vec3) return coerceVec3d(vec3);
+        if (obj instanceof BlockPos pos) return coerceBlockPos(pos);
+        if (obj instanceof ItemStack stack) return coerceItemStack(stack);
+        if (obj instanceof Entity entity) return coerceEntity(entity);
+        if (obj instanceof NbtCompound nbt) return coerceNbtCompound(nbt);
+        if (obj instanceof NbtElement nbt) return coerceNbtElement(nbt);
+
+        // Fall back to binding the object
+        return bind(obj);
+    }
+
+    private static LuaTable buildMetatable(Class<?> clazz) {
         LuaTable meta = new LuaTable();
         LuaTable index = new LuaTable();
 
@@ -92,10 +270,10 @@ public final class LuaBinder {
                     : expose.name();
 
             index.set(luaName, new VarArgFunction() {
-	            @Override
+                @Override
                 public Varargs invoke(Varargs args) {
                     try {
-						LuaValue selfValue = args.arg1();
+                        LuaValue selfValue = args.arg1();
                         if (!selfValue.isuserdata()) {
                             throw new LuaError("Expected userdata but got " + selfValue.typename());
                         }
@@ -111,8 +289,8 @@ public final class LuaBinder {
                                     method.getParameterTypes()[i]
                             );
                         }
-	                    Object result = method.invoke(javaSelf, javaArgs);
-	                    return LuaBinder.coerceResult(result);
+                        Object result = method.invoke(javaSelf, javaArgs);
+                        return LuaBinder.coerceResult(result);
                     } catch (Exception e) {
                         throw new LuaError("Lua call failed: " + method.getName() + " " + e);
                     }

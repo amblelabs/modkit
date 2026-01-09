@@ -5,10 +5,15 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
+import org.luaj.vm2.LuaValue;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Lua wrapper for Minecraft ItemStack.
+ * Provides access to item properties and NBT data from Lua scripts.
+ */
 @AllArgsConstructor
 public class LuaItemStack {
 	public final ItemStack stack;
@@ -101,6 +106,25 @@ public class LuaItemStack {
 		return stack.hasNbt();
 	}
 
+	/**
+	 * Returns the NBT data as a Lua table for structured access.
+	 * @return Lua table representation of the NBT data, or NIL if no NBT
+	 */
+	@LuaExpose
+	public LuaValue nbt() {
+		NbtCompound nbt = stack.getNbt();
+		if (nbt == null) {
+			return LuaValue.NIL;
+		}
+		return LuaBinder.coerceNbtCompound(nbt);
+	}
+
+	/**
+	 * Returns the NBT data as a string (for debugging/display purposes).
+	 * @return String representation of the NBT data
+	 * @deprecated Use nbt() for structured access
+	 */
+	@Deprecated
 	@LuaExpose
 	public String nbtString() {
 		NbtCompound nbt = stack.getNbt();

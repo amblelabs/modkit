@@ -6,6 +6,7 @@ import dev.amble.lib.script.lua.LuaExpose;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec2f;
+import org.jetbrains.annotations.ApiStatus;
 
 public final class LuaElement {
 
@@ -99,7 +100,13 @@ public final class LuaElement {
 		return minecraftData;
 	}
 
-	// INTERNAL — NOT EXPOSED
+	/**
+	 * Returns the underlying AmbleElement wrapped by this LuaElement.
+	 * This method is for internal use only and should not be called from Lua scripts.
+	 *
+	 * @return the wrapped AmbleElement
+	 */
+	@ApiStatus.Internal
 	AmbleElement unwrap() {
 		return element;
 	}
