@@ -51,6 +51,18 @@ There are more datagen utilities akin to this.
 
 ### Much more!
 
+### Lua Scripting System
+
+Extend Minecraft with Lua scripts - no Java required! AmbleKit's built-in scripting engine lets you create client-side automation, server utilities, and GUI interactions using simple Lua code. Scripts load from resource packs (client) or data packs (server) and have full access to player data, world info, entities, inventories, and more.
+
+**[Read the full Lua Scripting documentation](LUA_SCRIPTING.md)**
+
+### JSON GUI System
+
+Build custom Minecraft screens entirely in JSON - no Java required! Define layouts, backgrounds (colors or textures), text elements, and interactive buttons with hover/press states. Attach Lua scripts to buttons for dynamic behavior like updating text, playing sounds, or accessing player data. GUIs load from resource packs and can be opened via Lua scripts or Java code.
+
+**[Read the full GUI System documentation](GUI_SYSTEM.md)**
+
 <h2>
   <img src="https://cdn.modrinth.com/data/cached_images/808c7934614530076d21dd0cf5c5e2e992595985.png"
        alt="Where can I start with this?"

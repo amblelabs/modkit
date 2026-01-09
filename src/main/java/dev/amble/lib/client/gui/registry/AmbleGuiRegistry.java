@@ -176,12 +176,13 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 			created.setIdentifier(parsedId);
 		}
 
+		// Check if this is a button (has button-specific properties)
+		boolean isButton = json.has("on_click") || json.has("script") || json.has("hover_background") || json.has("press_background");
+
 		if (json.has("text")) {
 			String text = json.get("text").getAsString();
-			AmbleText ambleText = AmbleText.textBuilder().text(Text.translatable(text)).build();
-			ambleText.copyFrom(created);
-			created = ambleText;
 
+			// Parse text alignment (used for both standalone text and button text)
 			UIAlign textHorizAlign = UIAlign.CENTRE;
 			UIAlign textVertAlign = UIAlign.CENTRE;
 			if (json.has("text_alignment")) {
@@ -196,16 +197,31 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 				String horizAlignKey = alignmentArray.get(0).getAsString();
 				String vertAlignKey = alignmentArray.get(1).getAsString();
 
-				// try parse to enums
 				textHorizAlign = UIAlign.valueOf(horizAlignKey.toUpperCase());
 				textVertAlign = UIAlign.valueOf(vertAlignKey.toUpperCase());
+			}
 
-				((AmbleText) created).setTextHorizontalAlign(textHorizAlign);
-				((AmbleText) created).setTextVerticalAlign(textVertAlign);
+			if (isButton) {
+				// For buttons with text, create a child AmbleText element with transparent background
+				AmbleText textChild = AmbleText.textBuilder()
+						.text(Text.translatable(text))
+						.textHorizontalAlign(textHorizAlign)
+						.textVerticalAlign(textVertAlign)
+						.layout(new Rectangle(layout))
+						.background(new Color(0, 0, 0, 0))
+						.build();
+				created.addChild(textChild);
+			} else {
+				// For non-buttons, convert the container to AmbleText
+				AmbleText ambleText = AmbleText.textBuilder().text(Text.translatable(text)).build();
+				ambleText.copyFrom(created);
+				ambleText.setTextHorizontalAlign(textHorizAlign);
+				ambleText.setTextVerticalAlign(textVertAlign);
+				created = ambleText;
 			}
 		}
 
-		if (json.has("command") || json.has("script") || json.has("hover_background") || json.has("press_background")) {
+		if (isButton) {
 			AmbleButton button = AmbleButton.buttonBuilder().build();
 			button.copyFrom(created);
 			created = button;
@@ -234,10 +250,10 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 
 			if (json.has("script")) {
 				Identifier scriptId = new Identifier(json.get("script").getAsString()).withPrefixedPath("script/").withSuffixedPath(".lua");
-			LuaScript script = ScriptManager.getInstance().load(
-					scriptId,
-					MinecraftClient.getInstance().getResourceManager()
-			);
+				LuaScript script = ScriptManager.getInstance().load(
+						scriptId,
+						MinecraftClient.getInstance().getResourceManager()
+				);
 
 				button.setScript(script);
 			}
