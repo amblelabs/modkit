@@ -5,6 +5,7 @@ import dev.amble.lib.client.gui.AmbleContainer;
 import dev.amble.lib.client.gui.registry.AmbleGuiRegistry;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
@@ -125,21 +126,131 @@ public class ClientMinecraftData extends MinecraftData {
 
 	// ===== Input =====
 
+	/**
+	 * Checks if a key or keybind is currently pressed.
+	 * <p>
+	 * Supports multiple input types:
+	 * <ul>
+	 *   <li>Shorthand keybind names: "forward", "jump", "inventory", "sprint", etc.</li>
+	 *   <li>Raw keyboard keys: "r", "h", "space", "left_shift", "escape", "f1", etc.</li>
+	 *   <li>Registered keybind translation keys: "key.inventory", "key.sprint", etc.</li>
+	 * </ul>
+	 *
+	 * @param keyName the name of the key or keybind to check
+	 * @return true if the key is currently pressed
+	 */
 	@LuaExpose
 	public boolean isKeyPressed(String keyName) {
-		if (mc.options == null) return false;
-		return switch (keyName.toLowerCase()) {
-			case "forward" -> mc.options.forwardKey.isPressed();
-			case "back" -> mc.options.backKey.isPressed();
-			case "left" -> mc.options.leftKey.isPressed();
-			case "right" -> mc.options.rightKey.isPressed();
-			case "jump" -> mc.options.jumpKey.isPressed();
-			case "sneak" -> mc.options.sneakKey.isPressed();
-			case "sprint" -> mc.options.sprintKey.isPressed();
-			case "attack" -> mc.options.attackKey.isPressed();
-			case "use" -> mc.options.useKey.isPressed();
-			default -> false;
+		if (mc.getWindow() == null) return false;
+
+		String lowerName = keyName.toLowerCase();
+
+		// Check common shorthand keybind names first for backwards compatibility
+		if (mc.options != null) {
+			Boolean result = switch (lowerName) {
+				case "forward" -> mc.options.forwardKey.isPressed();
+				case "back" -> mc.options.backKey.isPressed();
+				case "left" -> mc.options.leftKey.isPressed();
+				case "right" -> mc.options.rightKey.isPressed();
+				case "jump" -> mc.options.jumpKey.isPressed();
+				case "sneak" -> mc.options.sneakKey.isPressed();
+				case "sprint" -> mc.options.sprintKey.isPressed();
+				case "attack" -> mc.options.attackKey.isPressed();
+				case "use" -> mc.options.useKey.isPressed();
+				case "inventory" -> mc.options.inventoryKey.isPressed();
+				case "drop" -> mc.options.dropKey.isPressed();
+				case "chat" -> mc.options.chatKey.isPressed();
+				case "pick_item" -> mc.options.pickItemKey.isPressed();
+				case "swap_hands" -> mc.options.swapHandsKey.isPressed();
+				default -> null;
+			};
+
+			if (result != null) {
+				return result;
+			}
+
+			// Search all registered keybinds by translation key
+			for (net.minecraft.client.option.KeyBinding keyBinding : mc.options.allKeys) {
+				String translationKey = keyBinding.getTranslationKey();
+				// Match by exact translation key or by the suffix after the last dot
+				if (translationKey.equals(keyName) || translationKey.endsWith("." + lowerName)) {
+					return keyBinding.isPressed();
+				}
+			}
+		}
+
+		// Fall back to checking raw keyboard key
+		long windowHandle = mc.getWindow().getHandle();
+		String translationKey = "key.keyboard." + lowerName;
+
+		try {
+			InputUtil.Key key = InputUtil.fromTranslationKey(translationKey);
+			if (key != InputUtil.UNKNOWN_KEY) {
+				return InputUtil.isKeyPressed(windowHandle, key.getCode());
+			}
+		} catch (Exception e) {
+			// Key not found
+		}
+
+		return false;
+	}
+
+	/**
+	 * Checks if a mouse button is currently pressed.
+	 * Accepts button names like "left", "right", "middle", or button numbers (0, 1, 2, etc.).
+	 *
+	 * @param button the mouse button to check (e.g., "left", "right", "middle", or "0", "1", "2")
+	 * @return true if the mouse button is currently pressed
+	 */
+	@LuaExpose
+	public boolean isMouseButtonPressed(String button) {
+		if (mc.getWindow() == null) return false;
+
+		long windowHandle = mc.getWindow().getHandle();
+		String lowerButton = button.toLowerCase();
+
+		int buttonCode = switch (lowerButton) {
+			case "left" -> 0;
+			case "right" -> 1;
+			case "middle" -> 2;
+			default -> {
+				try {
+					yield Integer.parseInt(button);
+				} catch (NumberFormatException e) {
+					yield -1;
+				}
+			}
 		};
+
+		if (buttonCode >= 0) {
+			String translationKey = "key.mouse." + (buttonCode + 1);
+			try {
+				InputUtil.Key key = InputUtil.fromTranslationKey(translationKey);
+				if (key != InputUtil.UNKNOWN_KEY) {
+					return InputUtil.isKeyPressed(windowHandle, key.getCode());
+				}
+			} catch (Exception e) {
+				// Button not found
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Gets a list of all registered keybind translation keys.
+	 * Useful for discovering available keybinds.
+	 *
+	 * @return list of all keybind translation keys
+	 */
+	@LuaExpose
+	public List<String> getKeybinds() {
+		if (mc.options == null) return List.of();
+		List<String> keybinds = new java.util.ArrayList<>();
+		for (net.minecraft.client.option.KeyBinding keyBinding : mc.options.allKeys) {
+			keybinds.add(keyBinding.getTranslationKey());
+		}
+		return keybinds;
 	}
 
 	@LuaExpose
