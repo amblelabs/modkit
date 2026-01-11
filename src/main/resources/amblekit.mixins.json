@@ -10,6 +10,7 @@
     "ItemMixin",
     "PlayerEntityMixin",
     "SaveLoadingMixin",
+    "ServerPlayerEntityMixin",
     "ServerPlayerInteractionManagerMixin",
     "SkeletonEntityMixin",
     "StructureTemplateMixin",
@@ -24,10 +25,12 @@
     "client.CameraMixin",
     "client.ClientPlayerEntityMixin",
     "client.ClientPlayerInteractionManagerMixin",
+    "client.EntityRendererMixin",
     "client.GameRendererMixin",
     "client.PerspectiveMixin",
     "client.PlayerEntityModelMixin",
     "client.PlayerEntityRendererMixin",
+    "client.PlayerListEntryMixin",
     "client.WorldRendererMixin"
   ],
   "injectors": {

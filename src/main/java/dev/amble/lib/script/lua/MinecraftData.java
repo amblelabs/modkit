@@ -3,11 +3,14 @@ package dev.amble.lib.script.lua;
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.script.AbstractScriptManager;
 import dev.amble.lib.script.LuaScript;
+import dev.amble.lib.skin.SkinTracker;
+import dev.amble.lib.username.UsernameTracker;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
+import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -16,6 +19,7 @@ import org.luaj.vm2.Varargs;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -202,6 +206,115 @@ public abstract class MinecraftData {
 	@LuaExpose
 	public void logError(String message) {
 		AmbleKit.LOGGER.error("{} {}", getLogPrefix(), message);
+	}
+
+	// ===== Skin Management =====
+
+	/**
+	 * Parses a UUID string.
+	 * @param uuidString the UUID as a string
+	 * @return the UUID, or null if invalid
+	 */
+	protected UUID parseUuid(String uuidString) {
+		try {
+			return UUID.fromString(uuidString);
+		} catch (IllegalArgumentException e) {
+			AmbleKit.LOGGER.warn("Invalid UUID format: '{}'", uuidString);
+			return null;
+		}
+	}
+
+	/**
+	 * Sets a player's skin to match another player's skin (by username).
+	 */
+	@LuaExpose
+	public abstract boolean setSkin(String playerName, String skinUsername);
+
+	/**
+	 * Sets a player's skin from a direct URL.
+	 */
+	@LuaExpose
+	public abstract boolean setSkinUrl(String playerName, String url, boolean slim);
+
+	/**
+	 * Changes a player's arm model (slim or wide) without changing the skin texture.
+	 */
+	@LuaExpose
+	public abstract boolean setSkinSlim(String playerName, boolean slim);
+
+	/**
+	 * Clears a player's custom skin, restoring their original skin.
+	 */
+	@LuaExpose
+	public abstract boolean clearSkin(String playerName);
+
+	/**
+	 * Checks if a player has a custom skin applied.
+	 */
+	@LuaExpose
+	public abstract boolean hasSkin(String playerName);
+
+	/**
+	 * Checks if an entity has a custom skin applied by UUID string.
+	 */
+	@LuaExpose
+	public boolean hasSkinByUuid(String uuidString) {
+		UUID uuid = parseUuid(uuidString);
+		if (uuid == null) return false;
+		return SkinTracker.getInstance().containsKey(uuid);
+	}
+
+	// ===== Username/Nametag Management =====
+
+	/**
+	 * Sets a player's display name (nametag).
+	 */
+	@LuaExpose
+	public abstract boolean setUsername(String playerName, String displayName);
+
+	/**
+	 * Sets a player's display name using a JSON Text component.
+	 */
+	@LuaExpose
+	public abstract boolean setUsernameJson(String playerName, String jsonText);
+
+	/**
+	 * Clears a player's custom display name, restoring their original nametag.
+	 */
+	@LuaExpose
+	public abstract boolean clearUsername(String playerName);
+
+	/**
+	 * Checks if a player has a custom display name applied.
+	 */
+	@LuaExpose
+	public abstract boolean hasUsername(String playerName);
+
+	/**
+	 * Gets a player's current custom display name.
+	 */
+	@LuaExpose
+	public abstract String getUsername(String playerName);
+
+	/**
+	 * Checks if an entity has a custom display name applied by UUID string.
+	 */
+	@LuaExpose
+	public boolean hasUsernameByUuid(String uuidString) {
+		UUID uuid = parseUuid(uuidString);
+		if (uuid == null) return false;
+		return UsernameTracker.getInstance().containsKey(uuid);
+	}
+
+	/**
+	 * Gets an entity's current custom display name by UUID string.
+	 */
+	@LuaExpose
+	public String getUsernameByUuid(String uuidString) {
+		UUID uuid = parseUuid(uuidString);
+		if (uuid == null) return null;
+		Text text = UsernameTracker.getInstance().get(uuid);
+		return text != null ? text.getString() : null;
 	}
 
 	// ===== Cross-script function calling =====

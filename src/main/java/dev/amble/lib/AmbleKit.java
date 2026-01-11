@@ -9,8 +9,10 @@ import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.command.PlayAnimationCommand;
 import dev.amble.lib.command.ServerScriptCommand;
 import dev.amble.lib.command.SetSkinCommand;
+import dev.amble.lib.command.SetUsernameCommand;
 import dev.amble.lib.script.ServerScriptManager;
 import dev.amble.lib.skin.SkinTracker;
+import dev.amble.lib.username.UsernameTracker;
 import dev.drtheo.multidim.MultiDimMod;
 import dev.drtheo.scheduler.SchedulerMod;
 import net.fabricmc.api.ModInitializer;
@@ -36,11 +38,13 @@ public class AmbleKit implements ModInitializer {
         AmbleRegistries.getInstance();
         ServerLifecycleHooks.init();
 		SkinTracker.init();
+		UsernameTracker.init();
 		AnimationTracker.init();
 		ServerScriptManager.getInstance().init();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> {
 			SetSkinCommand.register(dispatcher);
+			SetUsernameCommand.register(dispatcher);
 			PlayAnimationCommand.register(dispatcher);
 			ServerScriptCommand.register(dispatcher);
 		});

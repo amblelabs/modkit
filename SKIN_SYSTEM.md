@@ -9,6 +9,7 @@ AmbleKit provides a dynamic player skin system that allows you to change player 
 - [Skin Sources](#skin-sources)
 - [Persistence](#persistence)
 - [Integration](#integration)
+- [Username/Nametag System](#usernamenametag-system)
 
 ---
 
@@ -253,11 +254,14 @@ function onExecute(mc)
 end
 ```
 
-#### Server-Side Skin API Methods
+#### Skin API Methods (Client & Server)
 
 All skin methods return `true` on success, `false` on failure (player not found, invalid UUID, etc.).
 
-**By Player Name:**
+On server: Methods directly modify the skin tracker and sync to clients.
+On client: Methods run the equivalent `/amblekit skin` command (requires op permissions).
+
+**By Player Name (Client & Server):**
 | Method | Description |
 |--------|-------------|
 | `mc:setSkin(playerName, skinUsername)` | Set player's skin to another player's skin |
@@ -265,14 +269,14 @@ All skin methods return `true` on success, `false` on failure (player not found,
 | `mc:setSkinSlim(playerName, slim)` | Change arm model (true = slim/Alex, false = wide/Steve) |
 | `mc:clearSkin(playerName)` | Remove custom skin, restore original |
 | `mc:hasSkin(playerName)` | Check if player has a custom skin |
+| `mc:hasSkinByUuid(uuid)` | Check if entity has custom skin by UUID |
 
-**By UUID String:**
+**By UUID String (Server-Only):**
 | Method | Description |
 |--------|-------------|
 | `mc:setSkinByUuid(uuid, skinUsername)` | Set skin by UUID string |
 | `mc:setSkinUrlByUuid(uuid, url, slim)` | Set skin from URL by UUID string |
 | `mc:clearSkinByUuid(uuid)` | Clear skin by UUID string |
-| `mc:hasSkinByUuid(uuid)` | Check if entity has custom skin by UUID |
 
 #### Complete Example: Disguise System
 
@@ -465,6 +469,110 @@ SkinData data = SkinData.url(url, true); // slim = true
 
 // Or modify existing
 data = data.withSlim(true);
+```
+
+---
+
+## Username/Nametag System
+
+AmbleKit includes a dynamic username/nametag system that allows you to change entity display names at runtime. This works similarly to the skin system.
+
+### Overview
+
+The Username System provides:
+- **Runtime Name Changes** - Change entity nametags without relogging
+- **Rich Text Support** - Full Minecraft Text component support (colors, styles, hover events)
+- **Server Synchronization** - Names sync automatically to all connected clients
+- **Persistent Storage** - Custom names persist across server restarts (saved to `amblekit/usernames.json`)
+- **Universal Entity Support** - Works with any entity by UUID
+
+### Commands
+
+All username commands require operator permissions (level 2).
+
+#### Set Display Name
+
+```
+/amblekit username <target> set <name>
+```
+
+The name supports Minecraft formatting codes (§) and JSON Text format.
+
+**Examples:**
+```
+/amblekit username @p set §c§lRed Bold Name
+/amblekit username @p set {"text":"Admin","color":"gold","bold":true}
+```
+
+#### Clear Display Name
+
+```
+/amblekit username <target> clear
+```
+
+### Java API
+
+```java
+import dev.amble.lib.username.UsernameTracker;
+import net.minecraft.text.Text;
+
+// Get the target entity's UUID
+UUID targetUuid = entity.getUuid();
+
+// Set simple display name
+Text displayName = Text.of("§aGreen Name");
+UsernameTracker.getInstance().putSynced(targetUuid, displayName);
+
+// Set rich text display name
+Text richName = Text.literal("Admin")
+    .styled(style -> style.withColor(0xFFAA00).withBold(true));
+UsernameTracker.getInstance().putSynced(targetUuid, richName);
+
+// Clear custom display name
+UsernameTracker.getInstance().removeSynced(targetUuid);
+
+// Check if entity has custom name
+boolean hasCustomName = UsernameTracker.getInstance().containsKey(targetUuid);
+
+// Get custom name (may be null)
+Text customName = UsernameTracker.getInstance().get(targetUuid);
+```
+
+### Lua API (Client & Server)
+
+See [Lua Scripting System](LUA_SCRIPTING.md) for full documentation.
+
+On server: Methods directly modify the username tracker and sync to clients.
+On client: Methods run the equivalent `/amblekit username` command (requires op permissions).
+
+```lua
+-- Set display name with formatting codes (Client & Server)
+mc:setUsername("Steve", "§c§lRed Steve")
+
+-- Set display name with JSON Text (Client & Server)
+mc:setUsernameJson("Steve", '{"text":"Admin","color":"gold"}')
+
+-- Clear custom name (Client & Server)
+mc:clearUsername("Steve")
+
+-- Check if player has custom name (Client & Server)
+if mc:hasUsername("Steve") then
+    local name = mc:getUsername("Steve")
+end
+
+-- By UUID (Server-Only)
+mc:setUsernameByUuid(uuid, "§bCustom Name")
+mc:clearUsernameByUuid(uuid)
+```
+
+### Persistence
+
+Custom display names are saved to `<world>/amblekit/usernames.json` and automatically loaded when the server starts. The format is:
+
+```json
+{
+  "uuid-string": {"text":"Display Name","color":"red"}
+}
 ```
 
 ---
