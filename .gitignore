@@ -38,6 +38,9 @@ run/
 
 src/main/generated/.cache
 src/main/generated
+src/test/generated
+src/test/generated/.cache
+
 
 .direnv
 
