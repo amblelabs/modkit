@@ -40,7 +40,8 @@ public class ClientScriptCommand {
 	 * Removes the "script/" prefix and ".lua" suffix.
 	 */
 	private static String getDisplayId(Identifier id) {
-		return id.getPath().replace(SCRIPT_PREFIX, "").replace(SCRIPT_SUFFIX, "");
+		String path = id.getPath();
+		return path.substring(SCRIPT_PREFIX.length(), path.length() - SCRIPT_SUFFIX.length());
 	}
 
 	/**
