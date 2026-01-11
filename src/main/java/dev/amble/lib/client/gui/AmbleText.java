@@ -1,6 +1,9 @@
 package dev.amble.lib.client.gui;
 
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import dev.amble.lib.client.gui.registry.AmbleElementParser;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +13,8 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -157,6 +162,59 @@ public class AmbleText extends AmbleContainer {
 		public Builder shadow(boolean shadow) {
 			container.setShadow(shadow);
 			return this;
+		}
+	}
+
+	/**
+	 * Parser for AmbleText elements.
+	 * <p>
+	 * This parser handles JSON objects that have the "text" property but are not buttons.
+	 * Note: This parser has lower priority than AmbleButton.Parser, so buttons with text
+	 * will be handled by the button parser instead.
+	 */
+	public static class Parser implements AmbleElementParser {
+
+		@Override
+		public @Nullable AmbleContainer parse(JsonObject json, @Nullable Identifier resourceId, AmbleContainer base) {
+			if (!json.has("text")) {
+				return null;
+			}
+
+			String context = resourceId != null ? " (resource: " + resourceId + ")" : "";
+			String text = json.get("text").getAsString();
+
+			// Parse text alignment
+			UIAlign textHorizAlign = UIAlign.CENTRE;
+			UIAlign textVertAlign = UIAlign.CENTRE;
+			if (json.has("text_alignment")) {
+				if (!json.get("text_alignment").isJsonArray()) {
+					throw new IllegalStateException("UI text Alignment must be array [horizontal, vertical]" + context);
+				}
+
+				JsonArray alignmentArray = json.get("text_alignment").getAsJsonArray();
+				if (alignmentArray.size() < 2) {
+					throw new IllegalStateException("UI text Alignment array must have at least 2 elements" + context);
+				}
+				String horizAlignKey = alignmentArray.get(0).getAsString();
+				String vertAlignKey = alignmentArray.get(1).getAsString();
+
+				textHorizAlign = UIAlign.valueOf(horizAlignKey.toUpperCase());
+				textVertAlign = UIAlign.valueOf(vertAlignKey.toUpperCase());
+			}
+
+			// Convert the container to AmbleText
+			AmbleText ambleText = AmbleText.textBuilder().text(Text.translatable(text)).build();
+			ambleText.copyFrom(base);
+			ambleText.setTextHorizontalAlign(textHorizAlign);
+			ambleText.setTextVerticalAlign(textVertAlign);
+
+			return ambleText;
+		}
+
+		@Override
+		public int priority() {
+			// Lower priority than button parser since buttons can have text
+			return 50;
 		}
 	}
 }
