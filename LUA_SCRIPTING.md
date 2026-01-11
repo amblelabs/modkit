@@ -7,6 +7,7 @@ AmbleKit includes a powerful Lua scripting engine (powered by LuaJ) that allows 
 - [Commands](#commands)
 - [Lifecycle Callbacks](#lifecycle-callbacks)
 - [Minecraft API Reference](#minecraft-api-reference)
+- [Module System (require)](#module-system-require)
 - [Entity API](#entity-api)
 - [ItemStack API](#itemstack-api)
 - [Example Scripts](#example-scripts)
@@ -142,10 +143,14 @@ The `mc` parameter provides access to Minecraft data. Methods vary by side:
 | `mc:isDedicatedServer()` | True if dedicated server |
 | `mc:runCommandAs(playerName, command)` | Run command as specific player |
 
-### Skin Management (Server-Only)
+### Skin Management (Client & Server)
 
 All skin methods return `true` on success, `false` on failure.
 
+On server: Methods directly modify the skin tracker and sync to clients.
+On client: Methods run the equivalent `/amblekit skin` command (requires op permissions).
+
+**By Player Name (Client & Server):**
 | Method | Description |
 |--------|-------------|
 | `mc:setSkin(playerName, skinUsername)` | Set player's skin to another player's skin |
@@ -153,10 +158,120 @@ All skin methods return `true` on success, `false` on failure.
 | `mc:setSkinSlim(playerName, slim)` | Change arm model without changing texture |
 | `mc:clearSkin(playerName)` | Remove custom skin, restore original |
 | `mc:hasSkin(playerName)` | Check if player has a custom skin |
+| `mc:hasSkinByUuid(uuid)` | Check if entity has custom skin by UUID |
+
+**By UUID String (Server-Only):**
+| Method | Description |
+|--------|-------------|
 | `mc:setSkinByUuid(uuid, skinUsername)` | Set skin by UUID string |
 | `mc:setSkinUrlByUuid(uuid, url, slim)` | Set skin from URL by UUID string |
 | `mc:clearSkinByUuid(uuid)` | Clear skin by UUID string |
-| `mc:hasSkinByUuid(uuid)` | Check if entity has custom skin by UUID |
+
+### Username/Nametag Management (Client & Server)
+
+Custom display names (nametags) can be set for any entity. These override the rendered nametag and sync to all clients.
+
+On server: Methods directly modify the username tracker and sync to clients.
+On client: Methods run the equivalent `/amblekit username` command (requires op permissions).
+
+All username methods return `true` on success, `false` on failure (except getters).
+
+**By Player Name (Client & Server):**
+| Method | Description |
+|--------|-------------|
+| `mc:setUsername(playerName, displayName)` | Set player's display name (supports § formatting) |
+| `mc:setUsernameJson(playerName, jsonText)` | Set display name using JSON Text component |
+| `mc:clearUsername(playerName)` | Remove custom display name, restore original |
+| `mc:hasUsername(playerName)` | Check if player has a custom display name |
+| `mc:getUsername(playerName)` | Get current custom display name (or nil) |
+| `mc:hasUsernameByUuid(uuid)` | Check if entity has custom name by UUID |
+| `mc:getUsernameByUuid(uuid)` | Get custom display name by UUID (or nil) |
+
+**By UUID String (Server-Only):**
+| Method | Description |
+|--------|-------------|
+| `mc:setUsernameByUuid(uuid, displayName)` | Set display name by UUID string |
+| `mc:setUsernameJsonByUuid(uuid, jsonText)` | Set JSON display name by UUID string |
+| `mc:clearUsernameByUuid(uuid)` | Clear display name by UUID string |
+
+**Example - Simple colored name:**
+```lua
+mc:setUsername("Steve", "§c§lRed Steve")  -- Bold red name
+```
+
+**Example - JSON Text with hover:**
+```lua
+mc:setUsernameJson("Steve", '{"text":"Admin","color":"gold","bold":true}')
+```
+
+---
+
+## Module System (require)
+
+Scripts can import other scripts as modules using the `require` function. This allows you to share code between scripts.
+
+### Usage
+
+```lua
+local MyModule = require("namespace:module_name")
+```
+
+The module path follows the format `namespace:script_name` (without `.lua` extension or `script/` prefix).
+
+### Creating a Module
+
+Modules should return a table containing their exported functions and values:
+
+```lua
+-- assets/mymod/script/utils.lua
+local Utils = {}
+
+function Utils.greet(name)
+    return "Hello, " .. name .. "!"
+end
+
+function Utils.clamp(value, min, max)
+    return math.max(min, math.min(max, value))
+end
+
+return Utils
+```
+
+### Using a Module
+
+```lua
+-- assets/mymod/script/main.lua
+local Utils = require("mymod:utils")
+
+function onExecute(mc)
+    local message = Utils.greet(mc:username())
+    mc:sendMessage(message, false)
+    
+    local clamped = Utils.clamp(150, 0, 100)  -- Returns 100
+end
+```
+
+### Module Caching
+
+Modules are cached after first load - calling `require` multiple times with the same path returns the same cached instance. The cache is cleared when resources are reloaded.
+
+### Nested Requires
+
+Modules can require other modules:
+
+```lua
+-- assets/mymod/script/advanced.lua
+local Utils = require("mymod:utils")
+local Config = require("mymod:config")
+
+local Advanced = {}
+
+function Advanced.doSomething()
+    return Utils.greet(Config.defaultName)
+end
+
+return Advanced
+```
 
 ---
 

@@ -5,6 +5,7 @@ import dev.amble.lib.script.AbstractScriptManager;
 import dev.amble.lib.script.ServerScriptManager;
 import dev.amble.lib.skin.SkinData;
 import dev.amble.lib.skin.SkinTracker;
+import dev.amble.lib.username.UsernameTracker;
 import dev.amble.lib.util.ServerLifecycleHooks;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
@@ -245,20 +246,6 @@ public class ServerMinecraftData extends MinecraftData {
 	}
 
 	/**
-	 * Parses a UUID string.
-	 * @param uuidString the UUID as a string
-	 * @return the UUID, or null if invalid
-	 */
-	private UUID parseUuid(String uuidString) {
-		try {
-			return UUID.fromString(uuidString);
-		} catch (IllegalArgumentException e) {
-			AmbleKit.LOGGER.warn("Invalid UUID format: '{}'", uuidString);
-			return null;
-		}
-	}
-
-	/**
 	 * Sets a player's skin to match another player's skin (by username).
 	 * This performs an async lookup of the skin and applies it when ready.
 	 * 
@@ -266,6 +253,7 @@ public class ServerMinecraftData extends MinecraftData {
 	 * @param skinUsername the username to copy the skin from
 	 * @return true if the player was found, false otherwise
 	 */
+	@Override
 	@LuaExpose
 	public boolean setSkin(String playerName, String skinUsername) {
 		UUID uuid = getPlayerUuid(playerName);
@@ -285,6 +273,7 @@ public class ServerMinecraftData extends MinecraftData {
 	 * @param slim true for slim (Alex) arms, false for wide (Steve) arms
 	 * @return true if the player was found, false otherwise
 	 */
+	@Override
 	@LuaExpose
 	public boolean setSkinUrl(String playerName, String url, boolean slim) {
 		UUID uuid = getPlayerUuid(playerName);
@@ -303,6 +292,7 @@ public class ServerMinecraftData extends MinecraftData {
 	 * @param slim true for slim (Alex) arms, false for wide (Steve) arms
 	 * @return true if successful, false if player not found or has no custom skin
 	 */
+	@Override
 	@LuaExpose
 	public boolean setSkinSlim(String playerName, boolean slim) {
 		UUID uuid = getPlayerUuid(playerName);
@@ -325,6 +315,7 @@ public class ServerMinecraftData extends MinecraftData {
 	 * @param playerName the player whose skin to clear
 	 * @return true if the player was found, false otherwise
 	 */
+	@Override
 	@LuaExpose
 	public boolean clearSkin(String playerName) {
 		UUID uuid = getPlayerUuid(playerName);
@@ -342,6 +333,7 @@ public class ServerMinecraftData extends MinecraftData {
 	 * @param playerName the player to check
 	 * @return true if the player has a custom skin, false otherwise
 	 */
+	@Override
 	@LuaExpose
 	public boolean hasSkin(String playerName) {
 		UUID uuid = getPlayerUuid(playerName);
@@ -401,17 +393,165 @@ public class ServerMinecraftData extends MinecraftData {
 		return true;
 	}
 
+	// ===== Username/Nametag Management =====
+
 	/**
-	 * Checks if an entity has a custom skin applied by UUID string.
-	 * 
-	 * @param uuidString the UUID to check
-	 * @return true if the entity has a custom skin, false otherwise
+	 * Sets a player's display name (nametag).
+	 * Supports Minecraft formatting codes (§ prefix).
+	 *
+	 * @param playerName the player whose name to change
+	 * @param displayName the new display name (supports § formatting codes)
+	 * @return true if the player was found, false otherwise
+	 */
+	@Override
+	@LuaExpose
+	public boolean setUsername(String playerName, String displayName) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) {
+			AmbleKit.LOGGER.warn("Cannot set username: player '{}' not found", playerName);
+			return false;
+		}
+		Text text = Text.of(displayName);
+		UsernameTracker.getInstance().putSynced(uuid, text);
+		return true;
+	}
+
+	/**
+	 * Sets a player's display name using a JSON Text component.
+	 * Allows for rich text formatting (colors, styles, hover events, etc.)
+	 *
+	 * @param playerName the player whose name to change
+	 * @param jsonText the display name as a JSON text component
+	 * @return true if the player was found and JSON was valid, false otherwise
+	 */
+	@Override
+	@LuaExpose
+	public boolean setUsernameJson(String playerName, String jsonText) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) {
+			AmbleKit.LOGGER.warn("Cannot set username: player '{}' not found", playerName);
+			return false;
+		}
+		try {
+			Text text = Text.Serializer.fromJson(jsonText);
+			if (text == null) {
+				AmbleKit.LOGGER.warn("Cannot set username: invalid JSON text '{}'", jsonText);
+				return false;
+			}
+			UsernameTracker.getInstance().putSynced(uuid, text);
+			return true;
+		} catch (Exception e) {
+			AmbleKit.LOGGER.warn("Cannot set username: failed to parse JSON text '{}': {}", jsonText, e.getMessage());
+			return false;
+		}
+	}
+
+	/**
+	 * Clears a player's custom display name, restoring their original nametag.
+	 *
+	 * @param playerName the player whose name to clear
+	 * @return true if the player was found, false otherwise
+	 */
+	@Override
+	@LuaExpose
+	public boolean clearUsername(String playerName) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) {
+			AmbleKit.LOGGER.warn("Cannot clear username: player '{}' not found", playerName);
+			return false;
+		}
+		UsernameTracker.getInstance().removeSynced(uuid);
+		return true;
+	}
+
+	/**
+	 * Checks if a player has a custom display name applied.
+	 *
+	 * @param playerName the player to check
+	 * @return true if the player has a custom display name, false otherwise
+	 */
+	@Override
+	@LuaExpose
+	public boolean hasUsername(String playerName) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) return false;
+		return UsernameTracker.getInstance().containsKey(uuid);
+	}
+
+	/**
+	 * Gets a player's current custom display name.
+	 *
+	 * @param playerName the player to check
+	 * @return the custom display name as a string, or null if none set
+	 */
+	@Override
+	@LuaExpose
+	public String getUsername(String playerName) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) return null;
+		Text text = UsernameTracker.getInstance().get(uuid);
+		return text != null ? text.getString() : null;
+	}
+
+	/**
+	 * Sets a display name by UUID string.
+	 *
+	 * @param uuidString the UUID of the entity whose name to change
+	 * @param displayName the new display name (supports § formatting codes)
+	 * @return true if the UUID was valid, false otherwise
 	 */
 	@LuaExpose
-	public boolean hasSkinByUuid(String uuidString) {
+	public boolean setUsernameByUuid(String uuidString, String displayName) {
 		UUID uuid = parseUuid(uuidString);
-		if (uuid == null) return false;
-		return SkinTracker.getInstance().containsKey(uuid);
+		if (uuid == null) {
+			return false;
+		}
+		Text text = Text.of(displayName);
+		UsernameTracker.getInstance().putSynced(uuid, text);
+		return true;
+	}
+
+	/**
+	 * Sets a display name by UUID string using a JSON Text component.
+	 *
+	 * @param uuidString the UUID of the entity whose name to change
+	 * @param jsonText the display name as a JSON text component
+	 * @return true if the UUID was valid and JSON was valid, false otherwise
+	 */
+	@LuaExpose
+	public boolean setUsernameJsonByUuid(String uuidString, String jsonText) {
+		UUID uuid = parseUuid(uuidString);
+		if (uuid == null) {
+			return false;
+		}
+		try {
+			Text text = Text.Serializer.fromJson(jsonText);
+			if (text == null) {
+				AmbleKit.LOGGER.warn("Cannot set username: invalid JSON text '{}'", jsonText);
+				return false;
+			}
+			UsernameTracker.getInstance().putSynced(uuid, text);
+			return true;
+		} catch (Exception e) {
+			AmbleKit.LOGGER.warn("Cannot set username: failed to parse JSON text '{}': {}", jsonText, e.getMessage());
+			return false;
+		}
+	}
+
+	/**
+	 * Clears a custom display name by UUID string.
+	 *
+	 * @param uuidString the UUID of the entity whose name to clear
+	 * @return true if the UUID was valid, false otherwise
+	 */
+	@LuaExpose
+	public boolean clearUsernameByUuid(String uuidString) {
+		UUID uuid = parseUuid(uuidString);
+		if (uuid == null) {
+			return false;
+		}
+		UsernameTracker.getInstance().removeSynced(uuid);
+		return true;
 	}
 
 	// ===== Cross-script function calling =====

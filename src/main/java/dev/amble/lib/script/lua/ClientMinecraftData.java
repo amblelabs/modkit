@@ -5,6 +5,8 @@ import dev.amble.lib.client.gui.AmbleContainer;
 import dev.amble.lib.client.gui.registry.AmbleGuiRegistry;
 import dev.amble.lib.script.AbstractScriptManager;
 import dev.amble.lib.script.ScriptManager;
+import dev.amble.lib.skin.SkinTracker;
+import dev.amble.lib.username.UsernameTracker;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
@@ -22,6 +24,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -326,6 +329,98 @@ public class ClientMinecraftData extends MinecraftData {
 	@LuaExpose
 	public int windowHeight() {
 		return mc.getWindow() != null ? mc.getWindow().getScaledHeight() : 0;
+	}
+
+	// ===== Skin Management (via commands) =====
+
+	/**
+	 * Gets the UUID for a player by name from the client's world.
+	 */
+	private UUID getPlayerUuid(String playerName) {
+		if (mc.world == null) return null;
+		for (Entity entity : mc.world.getPlayers()) {
+			if (entity.getName().getString().equalsIgnoreCase(playerName)) {
+				return entity.getUuid();
+			}
+		}
+		return null;
+	}
+
+	@Override
+	@LuaExpose
+	public boolean setSkin(String playerName, String skinUsername) {
+		runCommand("/amblekit skin " + playerName + " set " + skinUsername);
+		return true;
+	}
+
+	@Override
+	@LuaExpose
+	public boolean setSkinUrl(String playerName, String url, boolean slim) {
+		runCommand("/amblekit skin " + playerName + " slim " + slim + " " + url);
+		return true;
+	}
+
+	@Override
+	@LuaExpose
+	public boolean setSkinSlim(String playerName, boolean slim) {
+		runCommand("/amblekit skin " + playerName + " slim " + slim);
+		return true;
+	}
+
+	@Override
+	@LuaExpose
+	public boolean clearSkin(String playerName) {
+		runCommand("/amblekit skin " + playerName + " clear");
+		return true;
+	}
+
+	@Override
+	@LuaExpose
+	public boolean hasSkin(String playerName) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) return false;
+		return SkinTracker.getInstance().containsKey(uuid);
+	}
+
+	// ===== Username/Nametag Management (via commands) =====
+
+	@Override
+	@LuaExpose
+	public boolean setUsername(String playerName, String displayName) {
+		runCommand("/amblekit username " + playerName + " set " + displayName);
+		return true;
+	}
+
+	@Override
+	@LuaExpose
+	public boolean setUsernameJson(String playerName, String jsonText) {
+		// JSON text needs to be passed as-is
+		runCommand("/amblekit username " + playerName + " set " + jsonText);
+		return true;
+	}
+
+	@Override
+	@LuaExpose
+	public boolean clearUsername(String playerName) {
+		runCommand("/amblekit username " + playerName + " clear");
+		return true;
+	}
+
+	@Override
+	@LuaExpose
+	public boolean hasUsername(String playerName) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) return false;
+		return UsernameTracker.getInstance().containsKey(uuid);
+	}
+
+	@Override
+	@LuaExpose
+	public String getUsername(String playerName) {
+		UUID uuid = getPlayerUuid(playerName);
+		if (uuid == null) return null;
+		Text text = UsernameTracker.getInstance().get(uuid);
+		return text != null ? text.getString() : null;
 	}
 
 	// ===== Cross-script function calling =====
