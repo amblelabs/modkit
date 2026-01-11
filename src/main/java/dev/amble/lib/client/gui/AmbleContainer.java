@@ -218,6 +218,14 @@ public class AmbleContainer implements AmbleElement {
 				textInput.onMouseDragged(mouseX, mouseY, button);
 				return true;
 			}
+			if (focusedElement instanceof AmbleSlider slider) {
+				slider.onMouseDragged(mouseX, mouseY, button);
+				return true;
+			}
+			if (focusedElement instanceof AmbleColorPicker colorPicker) {
+				colorPicker.onMouseDragged(mouseX, mouseY, button);
+				return true;
+			}
 			return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
 		}
 

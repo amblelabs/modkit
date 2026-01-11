@@ -97,7 +97,7 @@
           "placeholder": "Enter username...",
           "max_length": 16,
           "layout": [
-            154,
+            130,
             20
           ],
           "background": [
@@ -129,6 +129,18 @@
           ]
         },
         {
+          "id": "litmus:name_color_picker",
+          "color_picker": true,
+          "initial_color": [255, 255, 255],
+          "include_alpha": false,
+          "layout": [20, 20],
+          "background": [20, 20, 30, 255],
+          "border_collapsed": [80, 80, 100],
+          "border_collapsed_hover": [100, 140, 220],
+          "background_expanded": [30, 30, 45, 245],
+          "border_expanded": [60, 60, 80]
+        },
+        {
           "id": "litmus:set_skin_btn",
           "script": "litmus:skin_changer",
           "hover_background": [
@@ -157,34 +169,6 @@
           ]
         },
         {
-          "id": "litmus:slim_toggle_btn",
-          "script": "litmus:skin_changer_slim",
-          "hover_background": [
-            80,
-            80,
-            120
-          ],
-          "press_background": [
-            50,
-            50,
-            80
-          ],
-          "layout": [
-            154,
-            20
-          ],
-          "background": [
-            60,
-            60,
-            90
-          ],
-          "text": "§fModel: Classic",
-          "text_alignment": [
-            "centre",
-            "centre"
-          ]
-        },
-        {
           "id": "litmus:set_username_btn",
           "script": "litmus:username_changer",
           "hover_background": [
@@ -207,6 +191,34 @@
             50
           ],
           "text": "§fSet Username",
+          "text_alignment": [
+            "centre",
+            "centre"
+          ]
+        },
+        {
+          "id": "litmus:slim_toggle_btn",
+          "script": "litmus:skin_changer_slim",
+          "hover_background": [
+            80,
+            80,
+            120
+          ],
+          "press_background": [
+            50,
+            50,
+            80
+          ],
+          "layout": [
+            154,
+            20
+          ],
+          "background": [
+            60,
+            60,
+            90
+          ],
+          "text": "§fModel: Classic",
           "text_alignment": [
             "centre",
             "centre"
