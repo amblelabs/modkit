@@ -33,6 +33,10 @@ public class ServerScriptCommand {
 	private static final String SCRIPT_PREFIX = "script/";
 	private static final String SCRIPT_SUFFIX = ".lua";
 
+	private static String translationKey(String key) {
+		return "command." + AmbleKit.MOD_ID + ".script." + key;
+	}
+
 	/**
 	 * Converts a full script identifier to a display-friendly format.
 	 * Removes the "script/" prefix and ".lua" suffix.
@@ -113,12 +117,12 @@ public class ServerScriptCommand {
 			LuaScript script = ServerScriptManager.getInstance().getCache().get(fullScriptId);
 
 			if (script == null) {
-				context.getSource().sendError(Text.literal("Server script '" + scriptId + "' not found"));
+				context.getSource().sendError(Text.translatable(translationKey("error.not_found"), scriptId));
 				return 0;
 			}
 
 			if (script.onExecute() == null || script.onExecute().isnil()) {
-				context.getSource().sendError(Text.literal("Server script '" + scriptId + "' has no onExecute function"));
+				context.getSource().sendError(Text.translatable(translationKey("error.no_execute"), scriptId));
 				return 0;
 			}
 
@@ -142,10 +146,10 @@ public class ServerScriptCommand {
 			}
 
 			script.onExecute().call(boundData, argsTable);
-			context.getSource().sendFeedback(() -> Text.literal("Executed server script: " + scriptId), true);
+			context.getSource().sendFeedback(() -> Text.translatable(translationKey("executed"), scriptId), true);
 			return 1;
 		} catch (Exception e) {
-			context.getSource().sendError(Text.literal("Failed to execute server script '" + scriptId + "': " + e.getMessage()));
+			context.getSource().sendError(Text.translatable(translationKey("error.execute_failed"), scriptId, e.getMessage()));
 			AmbleKit.LOGGER.error("Failed to execute server script {}", scriptId, e);
 			return 0;
 		}
@@ -156,20 +160,20 @@ public class ServerScriptCommand {
 		Identifier fullScriptId = toFullScriptId(scriptId);
 
 		if (!ServerScriptManager.getInstance().getCache().containsKey(fullScriptId)) {
-			context.getSource().sendError(Text.literal("Server script '" + scriptId + "' not found"));
+			context.getSource().sendError(Text.translatable(translationKey("error.not_found"), scriptId));
 			return 0;
 		}
 
 		if (ServerScriptManager.getInstance().isEnabled(fullScriptId)) {
-			context.getSource().sendError(Text.literal("Server script '" + scriptId + "' is already enabled"));
+			context.getSource().sendError(Text.translatable(translationKey("error.already_enabled"), scriptId));
 			return 0;
 		}
 
 		if (ServerScriptManager.getInstance().enable(fullScriptId)) {
-			context.getSource().sendFeedback(() -> Text.literal("Enabled server script: " + scriptId).formatted(Formatting.GREEN), true);
+			context.getSource().sendFeedback(() -> Text.translatable(translationKey("enabled"), scriptId).formatted(Formatting.GREEN), true);
 			return 1;
 		} else {
-			context.getSource().sendError(Text.literal("Failed to enable server script '" + scriptId + "'"));
+			context.getSource().sendError(Text.translatable(translationKey("error.enable_failed"), scriptId));
 			return 0;
 		}
 	}
@@ -179,15 +183,15 @@ public class ServerScriptCommand {
 		Identifier fullScriptId = toFullScriptId(scriptId);
 
 		if (!ServerScriptManager.getInstance().isEnabled(fullScriptId)) {
-			context.getSource().sendError(Text.literal("Server script '" + scriptId + "' is not enabled"));
+			context.getSource().sendError(Text.translatable(translationKey("error.not_enabled"), scriptId));
 			return 0;
 		}
 
 		if (ServerScriptManager.getInstance().disable(fullScriptId)) {
-			context.getSource().sendFeedback(() -> Text.literal("Disabled server script: " + scriptId).formatted(Formatting.RED), true);
+			context.getSource().sendFeedback(() -> Text.translatable(translationKey("disabled"), scriptId).formatted(Formatting.RED), true);
 			return 1;
 		} else {
-			context.getSource().sendError(Text.literal("Failed to disable server script '" + scriptId + "'"));
+			context.getSource().sendError(Text.translatable(translationKey("error.disable_failed"), scriptId));
 			return 0;
 		}
 	}
@@ -197,7 +201,7 @@ public class ServerScriptCommand {
 		Identifier fullScriptId = toFullScriptId(scriptId);
 
 		if (!ServerScriptManager.getInstance().getCache().containsKey(fullScriptId)) {
-			context.getSource().sendError(Text.literal("Server script '" + scriptId + "' not found"));
+			context.getSource().sendError(Text.translatable(translationKey("error.not_found"), scriptId));
 			return 0;
 		}
 
@@ -205,9 +209,9 @@ public class ServerScriptCommand {
 		ServerScriptManager.getInstance().toggle(fullScriptId);
 
 		if (wasEnabled) {
-			context.getSource().sendFeedback(() -> Text.literal("Disabled server script: " + scriptId).formatted(Formatting.RED), true);
+			context.getSource().sendFeedback(() -> Text.translatable(translationKey("disabled"), scriptId).formatted(Formatting.RED), true);
 		} else {
-			context.getSource().sendFeedback(() -> Text.literal("Enabled server script: " + scriptId).formatted(Formatting.GREEN), true);
+			context.getSource().sendFeedback(() -> Text.translatable(translationKey("enabled"), scriptId).formatted(Formatting.GREEN), true);
 		}
 		return 1;
 	}
@@ -216,11 +220,11 @@ public class ServerScriptCommand {
 		Set<Identifier> enabled = ServerScriptManager.getInstance().getEnabledScripts();
 
 		if (enabled.isEmpty()) {
-			context.getSource().sendFeedback(() -> Text.literal("No server scripts are currently enabled").formatted(Formatting.GRAY), false);
+			context.getSource().sendFeedback(() -> Text.translatable(translationKey("list.none_enabled")).formatted(Formatting.GRAY), false);
 			return 1;
 		}
 
-		context.getSource().sendFeedback(() -> Text.literal("━━━ Enabled Server Scripts (" + enabled.size() + ") ━━━").formatted(Formatting.GOLD, Formatting.BOLD), false);
+		context.getSource().sendFeedback(() -> Text.translatable(translationKey("list.enabled_header"), enabled.size()).formatted(Formatting.GOLD, Formatting.BOLD), false);
 		for (Identifier id : enabled) {
 			String displayId = getDisplayId(id);
 			context.getSource().sendFeedback(() ->
@@ -235,11 +239,11 @@ public class ServerScriptCommand {
 		Set<Identifier> enabled = ServerScriptManager.getInstance().getEnabledScripts();
 
 		if (available.isEmpty()) {
-			context.getSource().sendFeedback(() -> Text.literal("No server scripts available").formatted(Formatting.GRAY), false);
+			context.getSource().sendFeedback(() -> Text.translatable(translationKey("list.none_available")).formatted(Formatting.GRAY), false);
 			return 1;
 		}
 
-		context.getSource().sendFeedback(() -> Text.literal("━━━ Available Server Scripts (" + available.size() + ") ━━━").formatted(Formatting.GOLD, Formatting.BOLD), false);
+		context.getSource().sendFeedback(() -> Text.translatable(translationKey("list.available_header"), available.size()).formatted(Formatting.GOLD, Formatting.BOLD), false);
 		for (Identifier id : available) {
 			String displayId = getDisplayId(id);
 			Text statusIcon = enabled.contains(id)

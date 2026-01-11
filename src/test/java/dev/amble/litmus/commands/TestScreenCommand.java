@@ -19,12 +19,16 @@ import java.awt.Rectangle;
 
 
 public class TestScreenCommand {
+	private static String translationKey(String key) {
+		return "command." + LitmusMod.MOD_ID + ".screen." + key;
+	}
+
 	public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
 		dispatcher.register(ClientCommandManager.literal("ambleScreen").executes(source -> {
-			source.getSource().sendFeedback(Text.literal("Available screens: "));
+			source.getSource().sendFeedback(Text.translatable(translationKey("available")));
 
 			for (AmbleContainer container : AmbleGuiRegistry.getInstance().toList()) {
-				source.getSource().sendFeedback(Text.literal(" - " + container.id().toString()));
+				source.getSource().sendFeedback(Text.translatable(translationKey("list_item"), container.id().toString()));
 			}
 
 			MinecraftClient.getInstance().execute(() -> {
@@ -35,7 +39,7 @@ public class TestScreenCommand {
 					AmbleButton child3 = AmbleButton.buttonBuilder().layout(new Rectangle(0,0, 75, 40)).horizontalAlign(UIAlign.CENTRE).background(Color.GREEN).hoverDisplay(Color.YELLOW).pressDisplay(Color.RED).onClick(() -> {
 						System.out.println("Button Clicked!");
 					}).build();
-					AmbleText child4 = AmbleText.textBuilder().background(AmbleDisplayType.color(new Color(0,0,0,0))).text(Text.literal("press me")).build();
+					AmbleText child4 = AmbleText.textBuilder().background(AmbleDisplayType.color(new Color(0,0,0,0))).text(Text.translatable("gui." + LitmusMod.MOD_ID + ".test_button")).build();
 					child4.setPreferredLayout(child3.getPreferredLayout());
 					child3.addChild(child4);
 					container.setPadding(10);
@@ -55,7 +59,7 @@ public class TestScreenCommand {
 			Identifier id = source.getArgument("id", Identifier.class);
 			AmbleContainer container = AmbleGuiRegistry.getInstance().get(id);
 			if (container == null) {
-				source.getSource().sendError(Text.literal("No screen found with id: " + id.toString()));
+				source.getSource().sendError(Text.translatable(translationKey("not_found"), id.toString()));
 				return 0;
 			}
 

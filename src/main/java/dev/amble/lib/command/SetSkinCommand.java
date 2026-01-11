@@ -12,13 +12,16 @@ import dev.amble.lib.skin.SkinTracker;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import static net.minecraft.server.command.CommandManager.argument;
 import static net.minecraft.server.command.CommandManager.literal;
 
 public class SetSkinCommand {
+	private static String translationKey(String key) {
+		return "command." + AmbleKit.MOD_ID + ".skin." + key;
+	}
+
 	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
 		dispatcher.register(literal(AmbleKit.MOD_ID)
 				.requires(source -> source.hasPermissionLevel(2))
@@ -38,19 +41,19 @@ public class SetSkinCommand {
 			entity = EntityArgumentType.getEntity(context, "target");
 
 			if (!(entity instanceof PlayerSkinTexturable)) {
-				context.getSource().sendError(Text.literal("Target is not a PlayerSkinTexturable"));
+				context.getSource().sendError(Text.translatable(translationKey("error.not_texturable")));
 				return 0;
 			}
 			texturable = (PlayerSkinTexturable) entity;
 
 		} catch (CommandSyntaxException e) {
-			context.getSource().sendError(Text.literal("Invalid Target"));
+			context.getSource().sendError(Text.translatable(translationKey("error.invalid_target")));
 			return 0;
 		}
 
 		SkinTracker.getInstance().removeSynced(texturable.getUuid());
 		String username = entity.getEntityName();
-		context.getSource().sendFeedback(() -> Text.literal("Cleared skin of "+ username), true);
+		context.getSource().sendFeedback(() -> Text.translatable(translationKey("cleared"), username), true);
 
 		return 1;
 	}
@@ -64,19 +67,19 @@ public class SetSkinCommand {
 			entity = EntityArgumentType.getEntity(context, "target");
 
 			if (!(entity instanceof PlayerSkinTexturable)) {
-				context.getSource().sendError(Text.literal("Target is not a PlayerSkinTexturable"));
+				context.getSource().sendError(Text.translatable(translationKey("error.not_texturable")));
 				return 0;
 			}
 			texturable = (PlayerSkinTexturable) entity;
 
 		} catch (CommandSyntaxException e) {
-			context.getSource().sendError(Text.literal("Invalid Target"));
+			context.getSource().sendError(Text.translatable(translationKey("error.invalid_target")));
 			return 0;
 		}
 
 		SkinData data = SkinTracker.getInstance().get(texturable.getUuid());
 		if (data == null) {
-			context.getSource().sendError(Text.literal("Target is not disguised."));
+			context.getSource().sendError(Text.translatable(translationKey("error.not_disguised")));
 			return 0;
 		}
 
@@ -85,7 +88,7 @@ public class SetSkinCommand {
 		SkinTracker.getInstance().putSynced(texturable.getUuid(), data);
 
 		String username = entity.getEntityName();
-		context.getSource().sendFeedback(() -> Text.literal("Set slimness of "+ username +" to " + slim), true);
+		context.getSource().sendFeedback(() -> Text.translatable(translationKey("slimness_set"), username, slim), true);
 
 		return 1;
 	}
@@ -99,13 +102,13 @@ public class SetSkinCommand {
 			entity = EntityArgumentType.getEntity(context, "target");
 
 			if (!(entity instanceof PlayerSkinTexturable)) {
-				context.getSource().sendError(Text.literal("Target is not a PlayerSkinTexturable"));
+				context.getSource().sendError(Text.translatable(translationKey("error.not_texturable")));
 				return 0;
 			}
 			texturable = (PlayerSkinTexturable) entity;
 
 		} catch (CommandSyntaxException e) {
-			context.getSource().sendError(Text.literal("Invalid Target"));
+			context.getSource().sendError(Text.translatable(translationKey("error.invalid_target")));
 			return 0;
 		}
 
@@ -117,7 +120,7 @@ public class SetSkinCommand {
 			SkinTracker.getInstance().putSynced(texturable.getUuid(), data);
 
 			String username = entity.getEntityName();
-			context.getSource().sendFeedback(() -> Text.literal("Set skin of " + username + " to " + value), true);
+			context.getSource().sendFeedback(() -> Text.translatable(translationKey("set"), username, value), true);
 
 			return 1;
 		}
@@ -126,7 +129,7 @@ public class SetSkinCommand {
 			result.upload(entity.getUuid());
 
 			String username = entity.getEntityName();
-			context.getSource().sendFeedback(() -> Text.literal("Set skin of " + username + " to " + value), true);
+			context.getSource().sendFeedback(() -> Text.translatable(translationKey("set"), username, value), true);
 		});
 
 		return 1;
@@ -142,13 +145,13 @@ public class SetSkinCommand {
 			entity = EntityArgumentType.getEntity(context, "target");
 
 			if (!(entity instanceof PlayerSkinTexturable)) {
-				context.getSource().sendError(Text.literal("Target is not a PlayerSkinTexturable"));
+				context.getSource().sendError(Text.translatable(translationKey("error.not_texturable")));
 				return 0;
 			}
 			texturable = (PlayerSkinTexturable) entity;
 
 		} catch (CommandSyntaxException e) {
-			context.getSource().sendError(Text.literal("Invalid Target"));
+			context.getSource().sendError(Text.translatable(translationKey("error.invalid_target")));
 			return 0;
 		}
 
@@ -159,7 +162,7 @@ public class SetSkinCommand {
 		SkinTracker.getInstance().putSynced(texturable.getUuid(), data);
 
 		String username = entity.getEntityName();
-		context.getSource().sendFeedback(() -> Text.literal("Set skin of "+ username +" to " + value), true);
+		context.getSource().sendFeedback(() -> Text.translatable(translationKey("set"), username, value), true);
 
 		return 1;
 	}

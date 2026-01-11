@@ -21,6 +21,9 @@
 		],
 		"client": [
 			"dev.amble.lib.client.AmbleKitClient"
+		],
+		"fabric-datagen": [
+			"dev.amble.lib.datagen.AmbleKitDatagen"
 		]
 	},
 	"mixins": [
