@@ -159,6 +159,10 @@ public class AmbleContainer implements AmbleElement {
 
 	public static class AmbleScreen extends Screen {
 		public final AmbleContainer source;
+		private @Nullable AmbleElement focusedElement = null;
+		private long lastClickTime = 0;
+		private double lastClickX = 0;
+		private double lastClickY = 0;
 
 		public AmbleScreen(AmbleContainer source) {
 			super(source.getTitle());
@@ -174,6 +178,30 @@ public class AmbleContainer implements AmbleElement {
 
 		@Override
 		public boolean mouseClicked(double mouseX, double mouseY, int button) {
+			// Find if we clicked on a focusable element
+			AmbleElement clickedFocusable = findFocusableAt(source, mouseX, mouseY);
+
+			// Update focus
+			if (clickedFocusable != focusedElement) {
+				if (focusedElement != null) {
+					if (focusedElement instanceof Focusable focusable) {
+						focusable.setFocused(false);
+						focusable.onFocusChanged(false);
+					} else {
+						focusedElement.onFocusChanged(false);
+					}
+				}
+				focusedElement = clickedFocusable;
+				if (focusedElement != null) {
+					if (focusedElement instanceof Focusable focusable) {
+						focusable.setFocused(true);
+						focusable.onFocusChanged(true);
+					} else {
+						focusedElement.onFocusChanged(true);
+					}
+				}
+			}
+
 			source.onClick((int) mouseX, (int) mouseY, button);
 			return super.mouseClicked(mouseX, mouseY, button);
 		}
@@ -182,6 +210,111 @@ public class AmbleContainer implements AmbleElement {
 		public boolean mouseReleased(double mouseX, double mouseY, int button) {
 			source.onRelease((int) mouseX, (int) mouseY, button);
 			return super.mouseReleased(mouseX, mouseY, button);
+		}
+
+		@Override
+		public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+			if (focusedElement instanceof AmbleTextInput textInput) {
+				textInput.onMouseDragged(mouseX, mouseY, button);
+				return true;
+			}
+			return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+		}
+
+		@Override
+		public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+			// Handle Tab for focus navigation
+			if (keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_TAB) {
+				cycleFocus(hasShiftDown());
+				return true;
+			}
+
+			// Delegate to focused element - prefer Focusable interface
+			if (focusedElement != null) {
+				boolean handled = focusedElement instanceof Focusable focusable
+						? focusable.onKeyPressed(keyCode, scanCode, modifiers)
+						: focusedElement.onKeyPressed(keyCode, scanCode, modifiers);
+				if (handled) return true;
+			}
+
+			return super.keyPressed(keyCode, scanCode, modifiers);
+		}
+
+		@Override
+		public boolean charTyped(char chr, int modifiers) {
+			// Delegate to focused element - prefer Focusable interface
+			if (focusedElement != null) {
+				boolean handled = focusedElement instanceof Focusable focusable
+						? focusable.onCharTyped(chr, modifiers)
+						: focusedElement.onCharTyped(chr, modifiers);
+				if (handled) return true;
+			}
+
+			return super.charTyped(chr, modifiers);
+		}
+
+		/**
+		 * Cycles focus to the next/previous focusable element.
+		 */
+		private void cycleFocus(boolean reverse) {
+			java.util.List<AmbleElement> focusable = new java.util.ArrayList<>();
+			source.findFocusableElements(focusable);
+
+			if (focusable.isEmpty()) return;
+
+			int currentIndex = focusedElement != null ? focusable.indexOf(focusedElement) : -1;
+
+			int nextIndex;
+			if (reverse) {
+				nextIndex = currentIndex <= 0 ? focusable.size() - 1 : currentIndex - 1;
+			} else {
+				nextIndex = currentIndex >= focusable.size() - 1 ? 0 : currentIndex + 1;
+			}
+
+			// Remove focus from current element
+			if (focusedElement != null) {
+				if (focusedElement instanceof Focusable focusableElement) {
+					focusableElement.setFocused(false);
+					focusableElement.onFocusChanged(false);
+				} else {
+					focusedElement.onFocusChanged(false);
+				}
+			}
+
+			// Set focus to new element
+			focusedElement = focusable.get(nextIndex);
+			if (focusedElement instanceof Focusable focusableElement) {
+				focusableElement.setFocused(true);
+				focusableElement.onFocusChanged(true);
+			} else {
+				focusedElement.onFocusChanged(true);
+			}
+		}
+
+		/**
+		 * Finds the topmost focusable element at the given coordinates.
+		 */
+		private @Nullable AmbleElement findFocusableAt(AmbleElement element, double mouseX, double mouseY) {
+			// Check children first (reverse order for proper z-order)
+			java.util.List<AmbleElement> children = element.getChildren();
+			for (int i = children.size() - 1; i >= 0; i--) {
+				AmbleElement child = children.get(i);
+				if (child.isVisible() && child.isHovered(mouseX, mouseY)) {
+					AmbleElement found = findFocusableAt(child, mouseX, mouseY);
+					if (found != null) return found;
+				}
+			}
+
+			// Check this element - prefer Focusable interface
+			boolean canFocus = element instanceof Focusable focusable
+					? focusable.canFocus()
+					: element.canFocus();
+
+			if (canFocus && element.isHovered(mouseX, mouseY)) {
+				return element;
+			}
+
+			return null;
 		}
 
 		@Override

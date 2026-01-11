@@ -71,12 +71,15 @@ Scripts can define the following callback functions. Each receives a `mc` (Minec
 
 | Callback | When Called | Use Case |
 |----------|-------------|----------|
+| `onRegister(mc)` | When script is loaded into the ScriptManager | Early initialization, setup globals |
 | `onExecute(mc, args)` | Via `/amblescript execute` or `/serverscript execute` | One-time actions, parameterized commands |
 | `onEnable(mc)` | When script is enabled | Initialize state, play sounds |
 | `onTick(mc)` | Every game tick while enabled | Continuous monitoring, automation |
 | `onDisable(mc)` | When script is disabled | Cleanup, final messages |
 
 The `args` parameter in `onExecute` is a Lua table containing space-separated arguments from the command (1-indexed, may be empty).
+
+**Note:** `onRegister` is called once when the script is first loaded (during resource pack loading). Use it for one-time setup that doesn't require the game to be fully loaded.
 
 ---
 
@@ -590,10 +593,13 @@ GUI scripts use different callbacks than standalone scripts. Instead of `mc`, th
 
 | Callback | When Called | Parameters |
 |----------|-------------|------------|
-| `onInit(self)` | When script is attached | `self` |
+| `onAttached(self)` | When script is attached during JSON parsing (GUI tree not built yet) | `self` |
+| `onDisplay(self)` | On first render when GUI tree is fully built | `self` |
 | `onClick(self, mouseX, mouseY, button)` | Mouse pressed on element | `self`, coordinates, button (0=left) |
 | `onRelease(self, mouseX, mouseY, button)` | Mouse released on element | `self`, coordinates, button |
 | `onHover(self, mouseX, mouseY)` | Mouse hovering over element | `self`, coordinates |
+
+**Note:** Use `onDisplay` for operations that require traversing the GUI tree (finding elements by ID, accessing parent/children). Use `onAttached` only for early setup that doesn't depend on other elements.
 
 ### LuaElement API
 
@@ -662,9 +668,9 @@ end
 
 local clickCount = 0
 
-function onInit(self)
-    -- Initialize when script is attached to the button
-    print("Button initialized: " .. self:id())
+function onDisplay(self)
+    -- Called when the GUI is first displayed (tree is fully built)
+    print("Button displayed: " .. self:id())
 end
 
 function onClick(self, mouseX, mouseY, button)

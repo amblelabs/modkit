@@ -34,7 +34,7 @@ function formatHealth(current, max)
     return string.format("%.1f/%.1f", current, max)
 end
 
-function onInit(self)
+function onDisplay(self)
     local mc = self:minecraft()
     local player = mc:player()
 
@@ -131,7 +131,7 @@ end
 
 function onClick(self, mouseX, mouseY, button)
     -- Refresh entity info when clicked
-    onInit(self)
+    onDisplay(self)
 
     local mc = self:minecraft()
     mc:playSound("minecraft:ui.button.click", 1.0, 1.0)

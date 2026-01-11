@@ -277,7 +277,8 @@ public final class LuaBinder {
         if (obj instanceof NbtCompound nbt) return coerceNbtCompound(nbt);
         if (obj instanceof NbtElement nbt) return coerceNbtElement(nbt);
         if (obj instanceof Identifier id) return coerceIdentifier(id);
-        if (obj instanceof AmbleElement element) return coerceAmbleElement(element);
+        if (obj instanceof LuaElement luaElement) return bind(luaElement);
+        if (obj instanceof AmbleElement element) return bind(new LuaElement(element));
 
         // Fall back to binding the object
         return bind(obj);

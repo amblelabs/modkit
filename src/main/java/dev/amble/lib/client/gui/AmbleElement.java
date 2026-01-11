@@ -223,6 +223,69 @@ public interface AmbleElement extends Drawable, Identifiable {
 		}
 	}
 
+	/**
+	 * Called when a key is pressed while this element or a child has focus.
+	 *
+	 * @param keyCode the GLFW key code
+	 * @param scanCode the scan code
+	 * @param modifiers modifier keys (shift, ctrl, alt)
+	 * @return true if the event was handled
+	 */
+	default boolean onKeyPressed(int keyCode, int scanCode, int modifiers) {
+		return false;
+	}
+
+	/**
+	 * Called when a character is typed while this element or a child has focus.
+	 *
+	 * @param chr the typed character
+	 * @param modifiers modifier keys
+	 * @return true if the event was handled
+	 */
+	default boolean onCharTyped(char chr, int modifiers) {
+		return false;
+	}
+
+	/**
+	 * Called when focus changes for this element.
+	 *
+	 * @param focused true if gaining focus, false if losing focus
+	 */
+	default void onFocusChanged(boolean focused) {
+		// Default: do nothing
+	}
+
+	/**
+	 * Returns whether this element can receive keyboard focus.
+	 * <p>
+	 * Elements implementing {@link Focusable} should override this or
+	 * implement {@link Focusable#canFocus()} instead.
+	 *
+	 * @return true if focusable
+	 */
+	default boolean canFocus() {
+		return false;
+	}
+
+	/**
+	 * Collects all focusable elements in this subtree.
+	 * <p>
+	 * This method checks both the {@link #canFocus()} method and whether
+	 * the element implements {@link Focusable}.
+	 *
+	 * @param result list to add focusable elements to
+	 */
+	default void findFocusableElements(java.util.List<AmbleElement> result) {
+		if (this instanceof Focusable focusable && focusable.canFocus()) {
+			result.add(this);
+		} else if (canFocus()) {
+			result.add(this);
+		}
+		for (AmbleElement child : getChildren()) {
+			child.findFocusableElements(result);
+		}
+	}
+
 	default Identifier toMcssFile() {
 		return this.id().withPrefixedPath("gui/").withSuffixedPath(".json");
 	}

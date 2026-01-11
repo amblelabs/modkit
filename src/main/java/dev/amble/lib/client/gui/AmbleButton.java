@@ -14,9 +14,9 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.Varargs;
-import org.luaj.vm2.lib.jse.CoerceJavaToLua;
 
 import java.awt.*;
 
@@ -24,13 +24,14 @@ import java.awt.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
-public class AmbleButton extends AmbleContainer {
+public class AmbleButton extends AmbleContainer implements Focusable {
 	private AmbleDisplayType hoverDisplay;
 	private AmbleDisplayType pressDisplay;
 	private @Nullable Runnable onClick;
 	private @Nullable AmbleDisplayType normalDisplay = null;
 	private boolean isClicked = false;
 	private @Nullable LuaScript script;
+	private boolean focused = false;
 
 	@Override
 	public void onRelease(double mouseX, double mouseY, int button) {
@@ -96,23 +97,6 @@ public class AmbleButton extends AmbleContainer {
 		}
 	}
 
-	@Override
-	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-		if (isHovered(mouseX, mouseY)) {
-			onHover(mouseX, mouseY);
-		}
-
-		if (isClicked) {
-			setBackground(pressDisplay);
-		} else if (isHovered(mouseX, mouseY)) {
-			setBackground(hoverDisplay);
-		} else {
-			setBackground(getNormalDisplay());
-		}
-
-		super.render(context, mouseX, mouseY, delta);
-	}
-
 	public @Nullable AmbleDisplayType getNormalDisplay() {
 		if (normalDisplay == null) {
 			normalDisplay = this.getBackground();
@@ -121,15 +105,101 @@ public class AmbleButton extends AmbleContainer {
 		return normalDisplay;
 	}
 
+	private boolean displayCalled = false;
+
 	public void setScript(LuaScript script) {
 		this.script = script;
-		if (script.onInit() != null && !script.onInit().isnil()) {
+		this.displayCalled = false;
+
+		// Call onAttached immediately when script is attached (during JSON parsing)
+		if (script.onAttached() != null && !script.onAttached().isnil()) {
 			try {
-				script.onInit().call(CoerceJavaToLua.coerce(new LuaElement(this)));
+				script.onAttached().call(LuaBinder.bind(new LuaElement(this)));
 			} catch (Exception e) {
-				AmbleKit.LOGGER.error("Error invoking onInit script for AmbleButton {}:", id(), e);
+				AmbleKit.LOGGER.error("Error invoking onAttached script for AmbleButton {}:", id(), e);
 			}
 		}
+	}
+
+	/**
+	 * Calls onDisplay if it hasn't been called yet.
+	 * This is deferred until first render so the GUI tree is fully built.
+	 */
+	private void ensureDisplayCalled() {
+		if (!displayCalled && script != null && script.onDisplay() != null && !script.onDisplay().isnil()) {
+			displayCalled = true;
+			try {
+				script.onDisplay().call(LuaBinder.bind(new LuaElement(this)));
+			} catch (Exception e) {
+				AmbleKit.LOGGER.error("Error invoking onDisplay script for AmbleButton {}:", id(), e);
+			}
+		}
+	}
+
+	@Override
+	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+		// Call onDisplay on first render when GUI tree is fully built
+		ensureDisplayCalled();
+
+		if (isHovered(mouseX, mouseY)) {
+			onHover(mouseX, mouseY);
+		}
+
+		if (isClicked) {
+			setBackground(pressDisplay);
+		} else if (isHovered(mouseX, mouseY) || focused) {
+			setBackground(hoverDisplay);
+		} else {
+			setBackground(getNormalDisplay());
+		}
+
+		super.render(context, mouseX, mouseY, delta);
+	}
+
+
+	// ===== Focusable interface implementation =====
+
+	@Override
+	public boolean canFocus() {
+		return isVisible();
+	}
+
+	@Override
+	public boolean isFocused() {
+		return focused;
+	}
+
+	@Override
+	public void setFocused(boolean focused) {
+		this.focused = focused;
+	}
+
+	@Override
+	public void onFocusChanged(boolean focused) {
+		this.focused = focused;
+	}
+
+	@Override
+	public boolean onKeyPressed(int keyCode, int scanCode, int modifiers) {
+		if (!focused) return false;
+
+		// Enter or Space to activate the button
+		if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER || keyCode == GLFW.GLFW_KEY_SPACE) {
+			// Simulate click
+			Rectangle layout = getLayout();
+			double centerX = layout.x + layout.width / 2.0;
+			double centerY = layout.y + layout.height / 2.0;
+			onClick(centerX, centerY, 0);
+			onRelease(centerX, centerY, 0);
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean onCharTyped(char chr, int modifiers) {
+		return false;
 	}
 
 

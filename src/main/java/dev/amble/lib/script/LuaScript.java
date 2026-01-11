@@ -4,37 +4,72 @@ import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
 
 /**
- * Represents a loaded Lua script with its lifecycle callback functions.
+ * Represents a loaded Lua script with its globals.
  * <p>
- * Core lifecycle callbacks (onInit, onExecute, onEnable, onTick, onDisable) are stored directly.
- * GUI-specific callbacks (onClick, onRelease, onHover) are looked up from globals on demand
- * to keep this record focused on script lifecycle rather than GUI concerns.
+ * All callbacks are looked up from globals on demand.
  */
-public record LuaScript(
-        Globals globals,
-        LuaValue onInit,
-        LuaValue onExecute,
-        LuaValue onEnable,
-        LuaValue onTick,
-        LuaValue onDisable
-) {
+public record LuaScript(Globals globals) {
+
     /**
-     * Gets a GUI callback by name (onClick, onRelease, onHover).
+     * Gets a callback by name.
      * Returns NIL if the callback is not defined.
      */
-    public LuaValue getGuiCallback(String name) {
+    public LuaValue getCallback(String name) {
         return globals.get(name);
     }
 
+    // ===== Core lifecycle callbacks =====
+
+    /**
+     * Called when the script is registered to the ScriptManager.
+     */
+    public LuaValue onRegister() {
+        return getCallback("onRegister");
+    }
+
+    public LuaValue onExecute() {
+        return getCallback("onExecute");
+    }
+
+    public LuaValue onEnable() {
+        return getCallback("onEnable");
+    }
+
+    public LuaValue onTick() {
+        return getCallback("onTick");
+    }
+
+    public LuaValue onDisable() {
+        return getCallback("onDisable");
+    }
+
+    // ===== GUI-specific callbacks =====
+
+    /**
+     * Called when the script is attached to a GUI element (during JSON parsing).
+     * The GUI tree is NOT fully built at this point.
+     */
+    public LuaValue onAttached() {
+        return getCallback("onAttached");
+    }
+
+    /**
+     * Called when the GUI is first displayed and the GUI tree is fully built.
+     * Use this for operations that need to traverse the GUI tree.
+     */
+    public LuaValue onDisplay() {
+        return getCallback("onDisplay");
+    }
+
     public LuaValue onClick() {
-        return getGuiCallback("onClick");
+        return getCallback("onClick");
     }
 
     public LuaValue onRelease() {
-        return getGuiCallback("onRelease");
+        return getCallback("onRelease");
     }
 
     public LuaValue onHover() {
-        return getGuiCallback("onHover");
+        return getCallback("onHover");
     }
 }

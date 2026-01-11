@@ -89,14 +89,18 @@ public abstract class AbstractScriptManager implements SimpleSynchronousResource
                 );
                 chunk.call();
 
-                return new LuaScript(
-                        globals,
-                        globals.get("onInit"),
-                        globals.get("onExecute"),
-                        globals.get("onEnable"),
-                        globals.get("onTick"),
-                        globals.get("onDisable")
-                );
+                LuaScript script = new LuaScript(globals);
+
+                // Call onRegister when script is first loaded into the manager
+                if (script.onRegister() != null && !script.onRegister().isnil()) {
+                    try {
+                        script.onRegister().call(boundData);
+                    } catch (Exception e) {
+                        AmbleKit.LOGGER.error("Error in onRegister for {} {}", getLogPrefix(), key, e);
+                    }
+                }
+
+                return script;
             } catch (Exception e) {
                 throw new RuntimeException("Failed to load " + getLogPrefix() + " " + key, e);
             }

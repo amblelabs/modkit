@@ -212,14 +212,18 @@ public final class LuaElement implements AmbleElement {
 
 	@LuaExpose
 	public void setText(String text) {
-		if (element instanceof AmbleText t) {
+		if (element instanceof AmbleTextInput input) {
+			input.setText(text);
+		} else if (element instanceof AmbleText t) {
 			t.setText(Text.literal(text));
 		}
 	}
 
 	@LuaExpose
 	public String getText() {
-		if (element instanceof AmbleText t) {
+		if (element instanceof AmbleTextInput input) {
+			return input.getText();
+		} else if (element instanceof AmbleText t) {
 			return t.getText().getString();
 		}
 		return null;
@@ -233,6 +237,250 @@ public final class LuaElement implements AmbleElement {
 	@LuaExpose
 	public ClientMinecraftData minecraft() {
 		return minecraftData;
+	}
+
+	// ===== AmbleTextInput methods =====
+
+	/**
+	 * Gets the placeholder text.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @return the placeholder text, or null if not a text input
+	 */
+	@LuaExpose
+	public String getPlaceholder() {
+		if (element instanceof AmbleTextInput input) {
+			return input.getPlaceholder();
+		}
+		return null;
+	}
+
+	/**
+	 * Sets the placeholder text.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @param placeholder the placeholder text
+	 */
+	@LuaExpose
+	public void setPlaceholder(String placeholder) {
+		if (element instanceof AmbleTextInput input) {
+			input.setPlaceholder(placeholder);
+		}
+	}
+
+	/**
+	 * Gets the maximum text length.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @return the max length, or -1 if not a text input
+	 */
+	@LuaExpose
+	public int getMaxLength() {
+		if (element instanceof AmbleTextInput input) {
+			return input.getMaxLength();
+		}
+		return -1;
+	}
+
+	/**
+	 * Sets the maximum text length.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @param maxLength the max length
+	 */
+	@LuaExpose
+	public void setMaxLength(int maxLength) {
+		if (element instanceof AmbleTextInput input) {
+			input.setMaxLength(maxLength);
+		}
+	}
+
+	/**
+	 * Checks if the text input is editable.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @return true if editable, false otherwise
+	 */
+	@LuaExpose
+	public boolean isEditable() {
+		if (element instanceof AmbleTextInput input) {
+			return input.isEditable();
+		}
+		return false;
+	}
+
+	/**
+	 * Sets whether the text input is editable.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @param editable whether the input is editable
+	 */
+	@LuaExpose
+	public void setEditable(boolean editable) {
+		if (element instanceof AmbleTextInput input) {
+			input.setEditable(editable);
+		}
+	}
+
+	/**
+	 * Checks if the text input is focused.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @return true if focused, false otherwise
+	 */
+	@LuaExpose
+	public boolean isInputFocused() {
+		if (element instanceof AmbleTextInput input) {
+			return input.isFocused();
+		}
+		return false;
+	}
+
+	/**
+	 * Sets whether the text input is focused.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @param focused whether the input should be focused
+	 */
+	@LuaExpose
+	public void setInputFocused(boolean focused) {
+		if (element instanceof AmbleTextInput input) {
+			input.setFocused(focused);
+			input.onFocusChanged(focused);
+		}
+	}
+
+	/**
+	 * Gets the selection start position.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @return the selection start, or -1 if not a text input
+	 */
+	@LuaExpose
+	public int getSelectionStart() {
+		if (element instanceof AmbleTextInput input) {
+			return input.getSelectionStart();
+		}
+		return -1;
+	}
+
+	/**
+	 * Gets the selection end position.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @return the selection end, or -1 if not a text input
+	 */
+	@LuaExpose
+	public int getSelectionEnd() {
+		if (element instanceof AmbleTextInput input) {
+			return input.getSelectionEnd();
+		}
+		return -1;
+	}
+
+	/**
+	 * Sets the text selection range.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @param start selection start position
+	 * @param end selection end position
+	 */
+	@LuaExpose
+	public void setSelection(int start, int end) {
+		if (element instanceof AmbleTextInput input) {
+			input.setSelection(start, end);
+		}
+	}
+
+	/**
+	 * Selects all text in the input.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 */
+	@LuaExpose
+	public void selectAll() {
+		if (element instanceof AmbleTextInput input) {
+			input.selectAll();
+		}
+	}
+
+	/**
+	 * Sets the selection color.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @param r red component (0-255)
+	 * @param g green component (0-255)
+	 * @param b blue component (0-255)
+	 * @param a alpha component (0-255)
+	 */
+	@LuaExpose
+	public void setSelectionColor(int r, int g, int b, int a) {
+		if (element instanceof AmbleTextInput input) {
+			input.setSelectionColor(new java.awt.Color(r, g, b, a));
+		}
+	}
+
+	/**
+	 * Sets the border color.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @param r red component (0-255)
+	 * @param g green component (0-255)
+	 * @param b blue component (0-255)
+	 * @param a alpha component (0-255)
+	 */
+	@LuaExpose
+	public void setBorderColor(int r, int g, int b, int a) {
+		if (element instanceof AmbleTextInput input) {
+			input.setBorderColor(new java.awt.Color(r, g, b, a));
+		}
+	}
+
+	/**
+	 * Sets the focused border color.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @param r red component (0-255)
+	 * @param g green component (0-255)
+	 * @param b blue component (0-255)
+	 * @param a alpha component (0-255)
+	 */
+	@LuaExpose
+	public void setFocusedBorderColor(int r, int g, int b, int a) {
+		if (element instanceof AmbleTextInput input) {
+			input.setFocusedBorderColor(new java.awt.Color(r, g, b, a));
+		}
+	}
+
+	/**
+	 * Sets the text color.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @param r red component (0-255)
+	 * @param g green component (0-255)
+	 * @param b blue component (0-255)
+	 * @param a alpha component (0-255)
+	 */
+	@LuaExpose
+	public void setTextColor(int r, int g, int b, int a) {
+		if (element instanceof AmbleTextInput input) {
+			input.setTextColor(new java.awt.Color(r, g, b, a));
+		}
+	}
+
+	/**
+	 * Sets the placeholder color.
+	 * Only works if the underlying element is an AmbleTextInput.
+	 *
+	 * @param r red component (0-255)
+	 * @param g green component (0-255)
+	 * @param b blue component (0-255)
+	 * @param a alpha component (0-255)
+	 */
+	@LuaExpose
+	public void setPlaceholderColor(int r, int g, int b, int a) {
+		if (element instanceof AmbleTextInput input) {
+			input.setPlaceholderColor(new java.awt.Color(r, g, b, a));
+		}
 	}
 
 	// ===== AmbleEntityDisplay methods =====

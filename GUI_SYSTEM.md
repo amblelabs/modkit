@@ -9,6 +9,7 @@ AmbleKit provides a declarative JSON-based GUI system that lets you create Minec
 - [Properties Reference](#properties-reference)
 - [Background Types](#background-types)
 - [Text Elements](#text-elements)
+- [Text Input Elements](#text-input-elements)
 - [Entity Display Elements](#entity-display-elements)
 - [Buttons & Interactivity](#buttons--interactivity)
 - [Lua Script Integration](#lua-script-integration)
@@ -194,6 +195,139 @@ Control text positioning within the element:
 
 ---
 
+## Text Input Elements
+
+Create interactive text input fields using the `text_input` property. Text inputs support full keyboard navigation, text selection, copy/paste, and horizontal scrolling for long text.
+
+### Basic Text Input
+
+```json
+{
+  "id": "mymod:username_field",
+  "text_input": true,
+  "placeholder": "Enter username...",
+  "layout": [150, 20],
+  "background": [30, 30, 40]
+}
+```
+
+### Text Input Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `text_input` | boolean | required | Must be `true` to create a text input |
+| `placeholder` | string | `""` | Placeholder text shown when empty |
+| `max_length` | integer | unlimited | Maximum number of characters allowed |
+| `editable` | boolean | `true` | Whether the user can edit the text |
+| `text` | string | `""` | Initial text content |
+| `text_alignment` | [h, v] | `["start", "centre"]` | Text alignment within the field |
+
+### Color Customization
+
+Text inputs support extensive color customization:
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `text_color` | [r,g,b] or [r,g,b,a] | white | Color of the input text |
+| `placeholder_color` | [r,g,b] or [r,g,b,a] | gray | Color of placeholder text |
+| `selection_color` | [r,g,b,a] | blue | Highlight color for selected text |
+| `border_color` | [r,g,b] or [r,g,b,a] | gray | Border color when unfocused |
+| `focused_border_color` | [r,g,b] or [r,g,b,a] | light blue | Border color when focused |
+| `cursor_color` | [r,g,b] or [r,g,b,a] | white | Color of the text cursor |
+
+### Styled Text Input Example
+
+```json
+{
+  "id": "mymod:styled_input",
+  "text_input": true,
+  "placeholder": "Search...",
+  "max_length": 50,
+  "layout": [200, 24],
+  "background": [20, 20, 30],
+  "border_color": [80, 80, 100],
+  "focused_border_color": [100, 140, 220],
+  "selection_color": [80, 120, 200, 128],
+  "placeholder_color": [100, 100, 120],
+  "text_color": [255, 255, 255]
+}
+```
+
+### Keyboard Shortcuts
+
+Text inputs support standard keyboard shortcuts:
+
+| Shortcut | Action |
+|----------|--------|
+| `←` / `→` | Move cursor left/right |
+| `Ctrl+←` / `Ctrl+→` | Move cursor by word |
+| `Shift+←` / `Shift+→` | Select characters |
+| `Ctrl+Shift+←` / `Ctrl+Shift+→` | Select words |
+| `Home` / `End` | Move to start/end of text |
+| `Shift+Home` / `Shift+End` | Select to start/end |
+| `Ctrl+A` | Select all text |
+| `Ctrl+C` | Copy selected text |
+| `Ctrl+X` | Cut selected text |
+| `Ctrl+V` | Paste from clipboard |
+| `Backspace` | Delete character before cursor |
+| `Delete` | Delete character after cursor |
+| `Ctrl+Backspace` | Delete word before cursor |
+| `Ctrl+Delete` | Delete word after cursor |
+| `Tab` | Move focus to next input |
+| `Shift+Tab` | Move focus to previous input |
+
+### Mouse Interactions
+
+| Action | Result |
+|--------|--------|
+| Click | Position cursor at click location |
+| Click + Drag | Select text range |
+| Double-click | Select entire word |
+| Shift + Click | Extend selection to click position |
+
+### Reading Text Input Values in Lua
+
+```lua
+function onClick(self, mouseX, mouseY, button)
+    local root = getRoot(self)
+    local usernameInput = findById(root, "mymod:username_field")
+    
+    if usernameInput then
+        local text = usernameInput:getText()
+        if text and text ~= "" then
+            -- Use the input value
+            self:minecraft():sendMessage("You entered: " .. text, false)
+        end
+    end
+end
+```
+
+### LuaElement Text Input API
+
+| Method | Description |
+|--------|-------------|
+| `self:getText()` | Get the current text content |
+| `self:setText(text)` | Set the text content |
+| `self:getPlaceholder()` | Get the placeholder text |
+| `self:setPlaceholder(text)` | Set the placeholder text |
+| `self:getMaxLength()` | Get the maximum length |
+| `self:setMaxLength(int)` | Set the maximum length |
+| `self:isEditable()` | Check if input is editable |
+| `self:setEditable(bool)` | Enable/disable editing |
+| `self:isInputFocused()` | Check if input has focus |
+| `self:setInputFocused(bool)` | Set focus state |
+| `self:getSelectionStart()` | Get selection start index |
+| `self:getSelectionEnd()` | Get selection end index |
+| `self:setSelection(start, end)` | Set selection range |
+| `self:selectAll()` | Select all text |
+| `self:setSelectionColor(r,g,b,a)` | Set selection highlight color |
+| `self:setBorderColor(r,g,b,a)` | Set border color |
+| `self:setFocusedBorderColor(r,g,b,a)` | Set focused border color |
+| `self:setTextColor(r,g,b,a)` | Set text color |
+| `self:setPlaceholderColor(r,g,b,a)` | Set placeholder color |
+
+---
+
 ## Entity Display Elements
 
 Display living entities within a GUI element using the `entity_uuid` property. This renders the entity in an inventory-screen style, perfect for character viewers, mob displays, or player previews.
@@ -263,7 +397,7 @@ Set the entity UUID dynamically via Lua scripts:
 ```
 
 ```lua
-function onInit(self)
+function onDisplay(self)
     local mc = self:minecraft()
     local nearest = mc:nearestEntity(20)
     
@@ -357,10 +491,13 @@ GUI scripts use different callbacks than standalone scripts. They receive a `sel
 
 | Callback | When Called | Parameters |
 |----------|-------------|------------|
-| `onInit(self)` | When script is attached to element | `self` |
+| `onAttached(self)` | When script is attached during JSON parsing (GUI tree not yet built) | `self` |
+| `onDisplay(self)` | On first render when GUI tree is fully built | `self` |
 | `onClick(self, mouseX, mouseY, button)` | Mouse button pressed | `self`, coordinates, button (0=left, 1=right) |
 | `onRelease(self, mouseX, mouseY, button)` | Mouse button released | `self`, coordinates, button |
 | `onHover(self, mouseX, mouseY)` | Mouse hovering over element | `self`, coordinates |
+
+**Note:** Use `onDisplay` for operations that require traversing the GUI tree (finding elements by ID, accessing parent/children). Use `onAttached` only for early setup that doesn't depend on other elements.
 
 ### LuaElement API
 
@@ -377,10 +514,34 @@ The `self` parameter provides access to the GUI element:
 | `self:parent()` | Parent LuaElement (or nil) |
 | `self:child(index)` | Get child at index (0-based) |
 | `self:childCount()` | Number of children |
-| `self:getText()` | Get text content (text elements only) |
-| `self:setText(text)` | Set text content (text elements only) |
+| `self:getText()` | Get text content (text/text input elements) |
+| `self:setText(text)` | Set text content (text/text input elements) |
 | `self:closeScreen()` | Close the current screen |
 | `self:minecraft()` | Get MinecraftData for world/player access |
+
+#### Text Input Methods
+
+These methods only work on `AmbleTextInput` elements:
+
+| Method | Description |
+|--------|-------------|
+| `self:getPlaceholder()` | Get placeholder text |
+| `self:setPlaceholder(text)` | Set placeholder text |
+| `self:getMaxLength()` | Get maximum character limit |
+| `self:setMaxLength(int)` | Set maximum character limit |
+| `self:isEditable()` | Check if input is editable |
+| `self:setEditable(bool)` | Enable/disable editing |
+| `self:isInputFocused()` | Check if input has focus |
+| `self:setInputFocused(bool)` | Set focus state |
+| `self:getSelectionStart()` | Get selection start index |
+| `self:getSelectionEnd()` | Get selection end index |
+| `self:setSelection(start, end)` | Set selection range |
+| `self:selectAll()` | Select all text |
+| `self:setSelectionColor(r,g,b,a)` | Set selection highlight color |
+| `self:setBorderColor(r,g,b,a)` | Set unfocused border color |
+| `self:setFocusedBorderColor(r,g,b,a)` | Set focused border color |
+| `self:setTextColor(r,g,b,a)` | Set text color |
+| `self:setPlaceholderColor(r,g,b,a)` | Set placeholder text color |
 
 #### Entity Display Methods
 
@@ -402,9 +563,9 @@ These methods only work on `AmbleEntityDisplay` elements:
 
 local clickCount = 0
 
-function onInit(self)
-    -- Called when the script is attached to the button
-    print("Button initialized: " .. self:id())
+function onDisplay(self)
+    -- Called when the GUI is first displayed (tree is built)
+    print("Button displayed: " .. self:id())
 end
 
 function onClick(self, mouseX, mouseY, button)
