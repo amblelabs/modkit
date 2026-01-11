@@ -1,5 +1,6 @@
 package dev.amble.lib.client.command;
 
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -248,6 +249,6 @@ public class ClientScriptCommand {
 					statusIcon.copy().append(Text.literal(id.getNamespace() + ":" + displayId).formatted(Formatting.WHITE))
 			);
 		}
-		return 1;
+		return Command.SINGLE_SUCCESS;
 	}
 }

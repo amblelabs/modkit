@@ -1,5 +1,6 @@
 package dev.amble.lib.command;
 
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -45,6 +46,6 @@ public class PlayAnimationCommand {
 
 		String name = target.getEntityName();
 		context.getSource().sendFeedback(() -> Text.literal("Playing animation "+ animationId +" on "+ name), true);
-		return 1;
+		return Command.SINGLE_SUCCESS;
 	}
 }

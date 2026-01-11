@@ -164,6 +164,6 @@ public class SetSkinCommand {
 		String username = entity.getEntityName();
 		context.getSource().sendFeedback(() -> Text.translatable(translationKey("set"), username, value), true);
 
-		return 1;
+		return Command.SINGLE_SUCCESS;
 	}
 }

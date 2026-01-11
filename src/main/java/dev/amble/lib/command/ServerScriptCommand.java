@@ -33,10 +33,6 @@ public class ServerScriptCommand {
 	private static final String SCRIPT_PREFIX = "script/";
 	private static final String SCRIPT_SUFFIX = ".lua";
 
-	private static String translationKey(String key) {
-		return "command." + AmbleKit.MOD_ID + ".script." + key;
-	}
-
 	/**
 	 * Converts a full script identifier to a display-friendly format.
 	 * Removes the "script/" prefix and ".lua" suffix.
@@ -116,9 +112,8 @@ public class ServerScriptCommand {
 		try {
 			LuaScript script = ServerScriptManager.getInstance().getCache().get(fullScriptId);
 
-			if (script == null) {
-				context.getSource().sendError(Text.translatable(translationKey("error.not_found"), scriptId));
-				return 0;
+			if (script == null) context.getSource().sendError(Text.translatable("command.amblekit.script.error.not_found", scriptId));
+				context.getSource().sendError(Text.literal("Server script '" + scriptId + "' not found"));
 			}
 
 			if (script.onExecute() == null || script.onExecute().isnil()) {
@@ -252,6 +247,6 @@ public class ServerScriptCommand {
 			context.getSource().sendFeedback(() ->
 					statusIcon.copy().append(Text.literal(id.getNamespace() + ":" + displayId).formatted(Formatting.WHITE)), false);
 		}
-		return 1;
+		return Command.SINGLE_SUCCESS;
 	}
 }
