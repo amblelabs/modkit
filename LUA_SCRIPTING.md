@@ -601,7 +601,7 @@ The `self` parameter provides access to the GUI element:
 
 | Method | Description |
 |--------|-------------|
-| `self:id()` | Element's identifier |
+| `self:id()` | Element's identifier (as string) |
 | `self:x()`, `self:y()` | Current position |
 | `self:width()`, `self:height()` | Current dimensions |
 | `self:setPosition(x, y)` | Update position |
@@ -610,6 +610,7 @@ The `self` parameter provides access to the GUI element:
 | `self:parent()` | Parent LuaElement (or nil) |
 | `self:child(index)` | Get child at index (0-based) |
 | `self:childCount()` | Number of children |
+| `self:findFirstText()` | Find first text element in tree (or nil) |
 | `self:getText()` | Get text content (text elements only) |
 | `self:setText(text)` | Set text content (text elements only) |
 | `self:closeScreen()` | Close the current screen |
@@ -657,13 +658,10 @@ function onClick(self, mouseX, mouseY, button)
     clickCount = clickCount + 1
     local mc = self:minecraft()
     
-    -- Update a child text element
-    for i = 0, self:childCount() - 1 do
-        local child = self:child(i)
-        if child:getText() then
-            child:setText("Clicked: " .. clickCount)
-            break
-        end
+    -- Update the first text element found in this element's tree
+    local textElement = self:findFirstText()
+    if textElement then
+        textElement:setText("Clicked: " .. clickCount)
     end
     
     -- Show player inventory info

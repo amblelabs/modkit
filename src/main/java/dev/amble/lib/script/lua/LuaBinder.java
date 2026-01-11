@@ -1,10 +1,13 @@
 package dev.amble.lib.script.lua;
 
+import dev.amble.lib.client.gui.AmbleElement;
+import dev.amble.lib.client.gui.lua.LuaElement;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
@@ -168,6 +171,23 @@ public final class LuaBinder {
     }
 
     /**
+     * Coerces an Identifier to a Lua string.
+     */
+    public static LuaValue coerceIdentifier(Identifier identifier) {
+        return LuaString.valueOf(identifier.toString());
+    }
+
+    /**
+     * Coerces an AmbleElement to a bound LuaElement.
+     */
+    public static LuaValue coerceAmbleElement(AmbleElement element) {
+        if (element instanceof LuaElement luaElement) {
+            return bind(luaElement);
+        }
+        return bind(new LuaElement(element));
+    }
+
+    /**
      * Coerces an NbtCompound to a Lua table.
      */
     public static LuaValue coerceNbtCompound(NbtCompound nbt) {
@@ -256,6 +276,8 @@ public final class LuaBinder {
         if (obj instanceof Entity entity) return coerceEntity(entity);
         if (obj instanceof NbtCompound nbt) return coerceNbtCompound(nbt);
         if (obj instanceof NbtElement nbt) return coerceNbtElement(nbt);
+        if (obj instanceof Identifier id) return coerceIdentifier(id);
+        if (obj instanceof AmbleElement element) return coerceAmbleElement(element);
 
         // Fall back to binding the object
         return bind(obj);

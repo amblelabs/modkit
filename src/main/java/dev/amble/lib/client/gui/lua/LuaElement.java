@@ -4,22 +4,28 @@ import dev.amble.lib.client.gui.*;
 import dev.amble.lib.script.lua.ClientMinecraftData;
 import dev.amble.lib.script.lua.LuaExpose;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec2f;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
+
+import java.awt.*;
+import java.util.List;
 
 /**
  * A Lua-friendly wrapper around {@link AmbleElement}.
  * <p>
- * This class uses the wrapper/facade pattern to expose a simplified API for Lua scripts.
- * It intentionally does NOT extend AmbleElement because:
+ * This class implements AmbleElement by delegating to a wrapped element,
+ * while also exposing a simplified API for Lua scripts.
  * <ul>
- *   <li>It provides only the methods that make sense for Lua scripting</li>
+ *   <li>It provides only the methods that make sense for Lua scripting via @LuaExpose</li>
  *   <li>It converts Java types to Lua-compatible return values</li>
- *   <li>It encapsulates the underlying element, preventing direct manipulation from Lua</li>
+ *   <li>It implements AmbleElement by delegating to the wrapped element</li>
  * </ul>
  */
-public final class LuaElement {
+public final class LuaElement implements AmbleElement {
 
 	private final AmbleElement element;
 	private final ClientMinecraftData minecraftData = new ClientMinecraftData();
@@ -28,10 +34,109 @@ public final class LuaElement {
 		this.element = element;
 	}
 
-	@LuaExpose
-	public String id() {
-		return element.id().toString();
+	// ===== AmbleElement implementation (delegating to wrapped element) =====
+
+	@Override
+	public Identifier id() {
+		return element.id();
 	}
+
+	@Override
+	public boolean isVisible() {
+		return element.isVisible();
+	}
+
+	@Override
+	public Rectangle getLayout() {
+		return element.getLayout();
+	}
+
+	@Override
+	public void setLayout(Rectangle layout) {
+		element.setLayout(layout);
+	}
+
+	@Override
+	public Rectangle getPreferredLayout() {
+		return element.getPreferredLayout();
+	}
+
+	@Override
+	public void setPreferredLayout(Rectangle preferredLayout) {
+		element.setPreferredLayout(preferredLayout);
+	}
+
+	@Override
+	public @Nullable AmbleElement getParent() {
+		return element.getParent();
+	}
+
+	@Override
+	public void setParent(@Nullable AmbleElement parent) {
+		element.setParent(parent);
+	}
+
+	@Override
+	public int getPadding() {
+		return element.getPadding();
+	}
+
+	@Override
+	public void setPadding(int padding) {
+		element.setPadding(padding);
+	}
+
+	@Override
+	public int getSpacing() {
+		return element.getSpacing();
+	}
+
+	@Override
+	public void setSpacing(int spacing) {
+		element.setSpacing(spacing);
+	}
+
+	@Override
+	public UIAlign getHorizontalAlign() {
+		return element.getHorizontalAlign();
+	}
+
+	@Override
+	public void setHorizontalAlign(UIAlign align) {
+		element.setHorizontalAlign(align);
+	}
+
+	@Override
+	public UIAlign getVerticalAlign() {
+		return element.getVerticalAlign();
+	}
+
+	@Override
+	public void setVerticalAlign(UIAlign align) {
+		element.setVerticalAlign(align);
+	}
+
+	@Override
+	public boolean requiresNewRow() {
+		return element.requiresNewRow();
+	}
+
+	@Override
+	public void setRequiresNewRow(boolean requiresNewRow) {
+		element.setRequiresNewRow(requiresNewRow);
+	}
+
+	@Override
+	public List<AmbleElement> getChildren() {
+		return element.getChildren();
+	}
+
+	@Override
+	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+		element.render(context, mouseX, mouseY, delta);
+	}
+
+	// ===== Lua-exposed methods =====
 
 	@LuaExpose
 	public int x() {
@@ -63,27 +168,44 @@ public final class LuaElement {
 		element.setDimensions(new Vec2f(width, height));
 	}
 
+	@Override
 	@LuaExpose
 	public void setVisible(boolean visible) {
 		element.setVisible(visible);
 	}
 
 	@LuaExpose
-	public LuaElement parent() {
-		return element.getParent() == null
-				? null
-				: new LuaElement(element.getParent());
+	public AmbleElement parent() {
+		return element.getParent();
 	}
 
 	@LuaExpose
-	public LuaElement child(int index) {
+	public AmbleElement child(int index) {
 		if (index < 0 || index >= element.getChildren().size()) return null;
-		return new LuaElement(element.getChildren().get(index));
+		return element.getChildren().get(index);
 	}
 
 	@LuaExpose
 	public int childCount() {
 		return element.getChildren().size();
+	}
+
+	@LuaExpose
+	public AmbleText findFirstText() {
+		return findFirstTextRecursive(element);
+	}
+
+	private static AmbleText findFirstTextRecursive(AmbleElement element) {
+		if (element instanceof AmbleText text) {
+			return text;
+		}
+		for (AmbleElement child : element.getChildren()) {
+			AmbleText found = findFirstTextRecursive(child);
+			if (found != null) {
+				return found;
+			}
+		}
+		return null;
 	}
 
 	@LuaExpose
