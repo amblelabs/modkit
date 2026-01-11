@@ -72,4 +72,20 @@ public record LuaScript(Globals globals) {
     public LuaValue onHover() {
         return getCallback("onHover");
     }
+
+    // ===== Value change callbacks =====
+
+    /**
+     * Called when a slider's value changes.
+     */
+    public LuaValue onValueChanged() {
+        return getCallback("onValueChanged");
+    }
+
+    /**
+     * Called when a color picker's color changes.
+     */
+    public LuaValue onColorChanged() {
+        return getCallback("onColorChanged");
+    }
 }

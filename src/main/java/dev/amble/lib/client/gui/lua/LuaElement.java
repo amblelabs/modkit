@@ -568,6 +568,229 @@ public final class LuaElement implements AmbleElement {
 		}
 	}
 
+	// ===== AmbleSlider methods =====
+
+	/**
+	 * Gets the current slider value.
+	 * Only works if the underlying element is an AmbleSlider.
+	 *
+	 * @return the current value, or 0 if not a slider
+	 */
+	@LuaExpose
+	public float getValue() {
+		if (element instanceof AmbleSlider slider) {
+			return slider.getValue();
+		}
+		return 0;
+	}
+
+	/**
+	 * Sets the slider value.
+	 * Only works if the underlying element is an AmbleSlider.
+	 *
+	 * @param value the value to set (will be clamped to min/max)
+	 */
+	@LuaExpose
+	public void setValue(float value) {
+		if (element instanceof AmbleSlider slider) {
+			slider.setValue(value);
+		}
+	}
+
+	/**
+	 * Gets the slider minimum value.
+	 * Only works if the underlying element is an AmbleSlider.
+	 *
+	 * @return the minimum value, or 0 if not a slider
+	 */
+	@LuaExpose
+	public float getMin() {
+		if (element instanceof AmbleSlider slider) {
+			return slider.getMin();
+		}
+		return 0;
+	}
+
+	/**
+	 * Sets the slider minimum value.
+	 * Only works if the underlying element is an AmbleSlider.
+	 *
+	 * @param min the minimum value
+	 */
+	@LuaExpose
+	public void setMin(float min) {
+		if (element instanceof AmbleSlider slider) {
+			slider.setMin(min);
+		}
+	}
+
+	/**
+	 * Gets the slider maximum value.
+	 * Only works if the underlying element is an AmbleSlider.
+	 *
+	 * @return the maximum value, or 0 if not a slider
+	 */
+	@LuaExpose
+	public float getMax() {
+		if (element instanceof AmbleSlider slider) {
+			return slider.getMax();
+		}
+		return 0;
+	}
+
+	/**
+	 * Sets the slider maximum value.
+	 * Only works if the underlying element is an AmbleSlider.
+	 *
+	 * @param max the maximum value
+	 */
+	@LuaExpose
+	public void setMax(float max) {
+		if (element instanceof AmbleSlider slider) {
+			slider.setMax(max);
+		}
+	}
+
+	/**
+	 * Gets the slider step value.
+	 * Only works if the underlying element is an AmbleSlider.
+	 *
+	 * @return the step value, or 0 if not a slider
+	 */
+	@LuaExpose
+	public float getStep() {
+		if (element instanceof AmbleSlider slider) {
+			return slider.getStep();
+		}
+		return 0;
+	}
+
+	/**
+	 * Sets the slider step value.
+	 * Only works if the underlying element is an AmbleSlider.
+	 *
+	 * @param step the step value (0 = continuous)
+	 */
+	@LuaExpose
+	public void setStep(float step) {
+		if (element instanceof AmbleSlider slider) {
+			slider.setStep(step);
+		}
+	}
+
+	// ===== AmbleColorPicker methods =====
+
+	/**
+	 * Gets the current color as RGB values.
+	 * Only works if the underlying element is an AmbleColorPicker.
+	 *
+	 * @return array of [r, g, b, a] values (0-255), or null if not a color picker
+	 */
+	@LuaExpose
+	public int[] getColorRGBA() {
+		if (element instanceof AmbleColorPicker picker) {
+			return new int[] { picker.getRed(), picker.getGreen(), picker.getBlue(), picker.getAlpha() };
+		}
+		return null;
+	}
+
+	/**
+	 * Sets the color from RGBA values.
+	 * Only works if the underlying element is an AmbleColorPicker.
+	 *
+	 * @param r red component (0-255)
+	 * @param g green component (0-255)
+	 * @param b blue component (0-255)
+	 * @param a alpha component (0-255)
+	 */
+	@LuaExpose
+	public void setColorRGBA(int r, int g, int b, int a) {
+		if (element instanceof AmbleColorPicker picker) {
+			picker.setColor(r, g, b, a);
+		}
+	}
+
+	/**
+	 * Gets the current color as a hex string.
+	 * Only works if the underlying element is an AmbleColorPicker.
+	 *
+	 * @return hex string (RRGGBB or RRGGBBAA), or null if not a color picker
+	 */
+	@LuaExpose
+	public String getColorHex() {
+		if (element instanceof AmbleColorPicker picker) {
+			return picker.getColorHex();
+		}
+		return null;
+	}
+
+	/**
+	 * Sets the color from a hex string.
+	 * Only works if the underlying element is an AmbleColorPicker.
+	 *
+	 * @param hex hex string (with or without #, 6 or 8 characters)
+	 */
+	@LuaExpose
+	public void setColorHex(String hex) {
+		if (element instanceof AmbleColorPicker picker) {
+			picker.setColorHex(hex);
+		}
+	}
+
+	/**
+	 * Checks if the color picker is expanded.
+	 * Only works if the underlying element is an AmbleColorPicker.
+	 *
+	 * @return true if expanded, false otherwise
+	 */
+	@LuaExpose
+	public boolean isPickerExpanded() {
+		if (element instanceof AmbleColorPicker picker) {
+			return picker.isExpanded();
+		}
+		return false;
+	}
+
+	/**
+	 * Sets the expanded state of the color picker.
+	 * Only works if the underlying element is an AmbleColorPicker.
+	 *
+	 * @param expanded true to expand, false to collapse
+	 */
+	@LuaExpose
+	public void setPickerExpanded(boolean expanded) {
+		if (element instanceof AmbleColorPicker picker) {
+			picker.setExpanded(expanded);
+		}
+	}
+
+	/**
+	 * Checks if the color picker includes alpha support.
+	 * Only works if the underlying element is an AmbleColorPicker.
+	 *
+	 * @return true if alpha is included, false otherwise
+	 */
+	@LuaExpose
+	public boolean isIncludeAlpha() {
+		if (element instanceof AmbleColorPicker picker) {
+			return picker.isIncludeAlpha();
+		}
+		return false;
+	}
+
+	/**
+	 * Sets whether the color picker includes alpha support.
+	 * Only works if the underlying element is an AmbleColorPicker.
+	 *
+	 * @param includeAlpha true to include alpha slider
+	 */
+	@LuaExpose
+	public void setIncludeAlpha(boolean includeAlpha) {
+		if (element instanceof AmbleColorPicker picker) {
+			picker.setIncludeAlpha(includeAlpha);
+		}
+	}
+
 	/**
 	 * Returns the underlying AmbleElement wrapped by this LuaElement.
 	 * This method is for internal use only and should not be called from Lua scripts.

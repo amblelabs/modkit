@@ -10,6 +10,8 @@ AmbleKit provides a declarative JSON-based GUI system that lets you create Minec
 - [Background Types](#background-types)
 - [Text Elements](#text-elements)
 - [Text Input Elements](#text-input-elements)
+- [Slider Elements](#slider-elements)
+- [Color Picker Elements](#color-picker-elements)
 - [Entity Display Elements](#entity-display-elements)
 - [Buttons & Interactivity](#buttons--interactivity)
 - [Lua Script Integration](#lua-script-integration)
@@ -325,6 +327,235 @@ end
 | `self:setFocusedBorderColor(r,g,b,a)` | Set focused border color |
 | `self:setTextColor(r,g,b,a)` | Set text color |
 | `self:setPlaceholderColor(r,g,b,a)` | Set placeholder color |
+
+---
+
+## Slider Elements
+
+Create interactive slider controls using the `slider` property. Sliders allow users to select a value within a configurable range by dragging a thumb along a track.
+
+### Basic Slider
+
+```json
+{
+  "id": "mymod:volume_slider",
+  "slider": true,
+  "min": 0,
+  "max": 100,
+  "value": 50,
+  "layout": [150, 20],
+  "background": [30, 30, 40]
+}
+```
+
+### Slider Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `slider` | boolean | required | Must be `true` to create a slider |
+| `min` | float | `0` | Minimum value |
+| `max` | float | `1` | Maximum value |
+| `value` | float | `0` | Initial value |
+| `step` | float | `0` | Step increment for snapping (0 = continuous) |
+
+### Visual Customization
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `track_color` | [r,g,b] or [r,g,b,a] | dark gray | Color of the unfilled track |
+| `track_filled_color` | [r,g,b] or [r,g,b,a] | blue | Color of the filled track portion |
+| `thumb_color` | [r,g,b] or [r,g,b,a] | light gray | Color of the thumb |
+| `thumb_hover_color` | [r,g,b] or [r,g,b,a] | white | Color of thumb when hovered |
+| `border_color` | [r,g,b] or [r,g,b,a] | gray | Border color when unfocused |
+| `focused_border_color` | [r,g,b] or [r,g,b,a] | light blue | Border color when focused |
+| `track_height` | integer | `4` | Height of the track in pixels |
+| `thumb_width` | integer | `8` | Width of the thumb in pixels |
+| `thumb_height` | integer | `16` | Height of the thumb in pixels |
+
+### Styled Slider Example
+
+```json
+{
+  "id": "mymod:brightness_slider",
+  "slider": true,
+  "min": 0,
+  "max": 100,
+  "value": 75,
+  "step": 5,
+  "layout": [200, 24],
+  "background": [20, 20, 30],
+  "track_color": [40, 40, 50],
+  "track_filled_color": [80, 140, 200],
+  "thumb_color": [180, 180, 200],
+  "thumb_hover_color": [220, 220, 255],
+  "border_color": [60, 60, 80],
+  "focused_border_color": [100, 140, 220],
+  "script": "mymod:brightness_handler"
+}
+```
+
+### Keyboard Controls
+
+| Key | Action |
+|-----|--------|
+| `←` / `↓` | Decrease value by step (or 1%) |
+| `→` / `↑` | Increase value by step (or 1%) |
+| `Ctrl+←` / `Ctrl+↓` | Decrease by 10× step |
+| `Ctrl+→` / `Ctrl+↑` | Increase by 10× step |
+| `Home` | Set to minimum value |
+| `End` | Set to maximum value |
+| `Tab` | Move focus to next element |
+
+### Reading Slider Values in Lua
+
+```lua
+function onValueChanged(self, value)
+    -- Called whenever the slider value changes
+    local mc = self:minecraft()
+    mc:sendMessage("Value changed to: " .. value, false)
+end
+
+function onClick(self, mouseX, mouseY, button)
+    local root = getRoot(self)
+    local slider = findById(root, "mymod:volume_slider")
+    
+    if slider then
+        local value = slider:getValue()
+        local min = slider:getMin()
+        local max = slider:getMax()
+    end
+end
+```
+
+### LuaElement Slider API
+
+| Method | Description |
+|--------|-------------|
+| `self:getValue()` | Get the current value |
+| `self:setValue(value)` | Set the value (clamped to min/max) |
+| `self:getMin()` | Get the minimum value |
+| `self:setMin(min)` | Set the minimum value |
+| `self:getMax()` | Get the maximum value |
+| `self:setMax(max)` | Set the maximum value |
+| `self:getStep()` | Get the step increment |
+| `self:setStep(step)` | Set the step increment |
+
+---
+
+## Color Picker Elements
+
+Create interactive color pickers using the `color_picker` property. Color pickers display a small color swatch that expands into a full color selection popup with a hue bar, saturation/value square, and input fields.
+
+### Basic Color Picker
+
+```json
+{
+  "id": "mymod:text_color",
+  "color_picker": true,
+  "initial_color": [255, 128, 0],
+  "layout": [24, 24],
+  "background": [30, 30, 40]
+}
+```
+
+### Color Picker Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `color_picker` | boolean | required | Must be `true` to create a color picker |
+| `initial_color` | [r,g,b] or [r,g,b,a] | white | Initial color value |
+| `include_alpha` | boolean | `false` | Whether to show an alpha slider |
+
+### Visual Customization
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `border_collapsed` | [r,g,b] or [r,g,b,a] | gray | Border color when collapsed |
+| `border_collapsed_hover` | [r,g,b] or [r,g,b,a] | light gray | Border color when hovered |
+| `border_expanded` | [r,g,b] or [r,g,b,a] | dark gray | Border color of expanded popup |
+| `background_expanded` | [r,g,b,a] | dark semi-transparent | Background of expanded popup |
+| `popup_width` | integer | `180` | Width of expanded popup in pixels |
+| `popup_height` | integer | `150` | Height of expanded popup in pixels |
+
+### Color Picker with Alpha
+
+```json
+{
+  "id": "mymod:highlight_color",
+  "color_picker": true,
+  "initial_color": [255, 255, 0, 128],
+  "include_alpha": true,
+  "layout": [30, 30],
+  "background": [25, 25, 35],
+  "border_collapsed": [70, 70, 90],
+  "border_collapsed_hover": [100, 100, 140],
+  "background_expanded": [35, 35, 50, 245],
+  "popup_width": 200,
+  "popup_height": 160
+}
+```
+
+### Expanded Popup Features
+
+When expanded, the color picker displays:
+
+1. **Saturation/Value Square** - Click and drag to select saturation (horizontal) and brightness (vertical)
+2. **Hue Bar** - Vertical rainbow bar for selecting the base hue
+3. **Alpha Bar** (optional) - Horizontal bar for selecting transparency
+4. **Hex Input** - Text field accepting `RRGGBB` or `RRGGBBAA` format
+5. **RGB/A Inputs** - Individual numeric fields for each color component (auto-clamps 0-255)
+
+### Keyboard Controls
+
+| Key | Action |
+|-----|--------|
+| `Escape` | Close the expanded popup |
+| `Enter` | Apply changes and close popup |
+| `Tab` | Cycle through input fields |
+| `Shift+Tab` | Cycle backwards through input fields |
+
+### Reading Color Values in Lua
+
+```lua
+function onColorChanged(self, r, g, b, a)
+    -- Called whenever the color changes
+    local hex = self:getColorHex()
+    local mc = self:minecraft()
+    mc:sendMessage("Color changed to #" .. hex, false)
+end
+
+function onClick(self, mouseX, mouseY, button)
+    local root = getRoot(self)
+    local picker = findById(root, "mymod:text_color")
+    
+    if picker then
+        -- Get color as hex string
+        local hex = picker:getColorHex()
+        
+        -- Get color as RGBA array
+        local rgba = picker:getColorRGBA()
+        local r, g, b, a = rgba[1], rgba[2], rgba[3], rgba[4]
+        
+        -- Set color programmatically
+        picker:setColorRGBA(255, 0, 128, 255)
+        -- Or by hex
+        picker:setColorHex("FF0080")
+    end
+end
+```
+
+### LuaElement Color Picker API
+
+| Method | Description |
+|--------|-------------|
+| `self:getColorRGBA()` | Get color as `{r, g, b, a}` array (0-255) |
+| `self:setColorRGBA(r,g,b,a)` | Set color from RGBA values |
+| `self:getColorHex()` | Get color as hex string (`RRGGBB` or `RRGGBBAA`) |
+| `self:setColorHex(hex)` | Set color from hex string |
+| `self:isPickerExpanded()` | Check if popup is open |
+| `self:setPickerExpanded(bool)` | Open or close the popup |
+| `self:isIncludeAlpha()` | Check if alpha slider is shown |
+| `self:setIncludeAlpha(bool)` | Show/hide alpha slider |
 
 ---
 
