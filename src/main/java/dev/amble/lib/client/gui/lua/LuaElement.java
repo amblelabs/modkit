@@ -36,11 +36,13 @@ public final class LuaElement implements AmbleElement {
 
 	// ===== AmbleElement implementation (delegating to wrapped element) =====
 
+	@LuaExpose
 	@Override
 	public Identifier id() {
 		return element.id();
 	}
 
+	@LuaExpose
 	@Override
 	public boolean isVisible() {
 		return element.isVisible();
@@ -231,6 +233,91 @@ public final class LuaElement implements AmbleElement {
 	@LuaExpose
 	public ClientMinecraftData minecraft() {
 		return minecraftData;
+	}
+
+	// ===== AmbleEntityDisplay methods =====
+
+	/**
+	 * Gets the entity UUID as a string.
+	 * Only works if the underlying element is an AmbleEntityDisplay.
+	 *
+	 * @return the UUID string, or null if not an entity display or no UUID set
+	 */
+	@LuaExpose
+	public String getEntityUuid() {
+		if (element instanceof AmbleEntityDisplay display) {
+			return display.getEntityUuidAsString();
+		}
+		return null;
+	}
+
+	/**
+	 * Sets the entity UUID from a string.
+	 * Only works if the underlying element is an AmbleEntityDisplay.
+	 * Accepts a UUID string or "player" for the local player.
+	 *
+	 * @param uuid the UUID string, or "player" for local player
+	 */
+	@LuaExpose
+	public void setEntityUuid(String uuid) {
+		if (element instanceof AmbleEntityDisplay display) {
+			display.setEntityUuidFromString(uuid);
+		}
+	}
+
+	/**
+	 * Checks if the entity display follows the cursor.
+	 * Only works if the underlying element is an AmbleEntityDisplay.
+	 *
+	 * @return true if following cursor, false otherwise (or if not an entity display)
+	 */
+	@LuaExpose
+	public boolean isFollowCursor() {
+		if (element instanceof AmbleEntityDisplay display) {
+			return display.isFollowCursor();
+		}
+		return false;
+	}
+
+	/**
+	 * Sets whether the entity display should follow the cursor.
+	 * Only works if the underlying element is an AmbleEntityDisplay.
+	 *
+	 * @param followCursor true to follow cursor, false to use fixed look-at position
+	 */
+	@LuaExpose
+	public void setFollowCursor(boolean followCursor) {
+		if (element instanceof AmbleEntityDisplay display) {
+			display.setFollowCursor(followCursor);
+		}
+	}
+
+	/**
+	 * Sets the fixed look-at position for the entity display.
+	 * Only works if the underlying element is an AmbleEntityDisplay.
+	 * Coordinates are relative to the element's position.
+	 *
+	 * @param x the x coordinate
+	 * @param y the y coordinate
+	 */
+	@LuaExpose
+	public void setLookAt(int x, int y) {
+		if (element instanceof AmbleEntityDisplay display) {
+			display.setFixedLookAt(new Vec2f(x, y));
+		}
+	}
+
+	/**
+	 * Sets the entity scale for the entity display.
+	 * Only works if the underlying element is an AmbleEntityDisplay.
+	 *
+	 * @param scale the scale multiplier (1.0 = normal size)
+	 */
+	@LuaExpose
+	public void setEntityScale(float scale) {
+		if (element instanceof AmbleEntityDisplay display) {
+			display.setEntityScale(scale);
+		}
 	}
 
 	/**

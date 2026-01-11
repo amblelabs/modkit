@@ -9,6 +9,7 @@ AmbleKit provides a declarative JSON-based GUI system that lets you create Minec
 - [Properties Reference](#properties-reference)
 - [Background Types](#background-types)
 - [Text Elements](#text-elements)
+- [Entity Display Elements](#entity-display-elements)
 - [Buttons & Interactivity](#buttons--interactivity)
 - [Lua Script Integration](#lua-script-integration)
 - [Displaying Screens](#displaying-screens)
@@ -193,6 +194,95 @@ Control text positioning within the element:
 
 ---
 
+## Entity Display Elements
+
+Display living entities within a GUI element using the `entity_uuid` property. This renders the entity in an inventory-screen style, perfect for character viewers, mob displays, or player previews.
+
+### Basic Entity Display
+
+```json
+{
+  "layout": [60, 80],
+  "background": [40, 40, 60, 200],
+  "entity_uuid": "player"
+}
+```
+
+The special value `"player"` automatically uses the local player's UUID.
+
+### Entity Display Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `entity_uuid` | string | required | Entity UUID or `"player"` for local player |
+| `follow_cursor` | boolean | `false` | Entity rotates to follow the mouse cursor |
+| `look_at` | [x, y] | center | Fixed position the entity looks at (relative to element) |
+| `entity_scale` | float | `1.0` | Scale multiplier for entity rendering |
+
+### Follow Cursor Mode
+
+Make the entity rotate to track the mouse cursor:
+
+```json
+{
+  "layout": [60, 80],
+  "background": [40, 40, 60],
+  "entity_uuid": "player",
+  "follow_cursor": true,
+  "entity_scale": 0.9
+}
+```
+
+### Fixed Look-At Position
+
+Set a specific point the entity should look at:
+
+```json
+{
+  "layout": [60, 80],
+  "background": [60, 40, 40],
+  "entity_uuid": "",
+  "follow_cursor": false,
+  "look_at": [30, 20]
+}
+```
+
+Coordinates are relative to the element's top-left corner.
+
+### Dynamic Entity Display
+
+Set the entity UUID dynamically via Lua scripts:
+
+```json
+{
+  "id": "mymod:mob_display",
+  "layout": [60, 80],
+  "background": [50, 50, 50],
+  "entity_uuid": ""
+}
+```
+
+```lua
+function onInit(self)
+    local mc = self:minecraft()
+    local nearest = mc:nearestEntity(20)
+    
+    -- Find the entity display by ID
+    local display = findChildById(root, "mymod:mob_display")
+    if display and nearest then
+        display:setEntityUuid(nearest:uuid())
+    end
+end
+```
+
+### Notes
+
+- Only `LivingEntity` types (players, mobs, animals) can be rendered
+- Non-living entities or invalid UUIDs display "N/A"
+- The entity is looked up each render frame using a cached approach for efficiency
+
+---
+
 ## Buttons & Interactivity
 
 Adding any of these properties converts an element into a button:
@@ -278,7 +368,7 @@ The `self` parameter provides access to the GUI element:
 
 | Method | Description |
 |--------|-------------|
-| `self:id()` | Element's identifier |
+| `self:id()` | Element's identifier (as string) |
 | `self:x()`, `self:y()` | Current position |
 | `self:width()`, `self:height()` | Current dimensions |
 | `self:setPosition(x, y)` | Update position |
@@ -291,6 +381,19 @@ The `self` parameter provides access to the GUI element:
 | `self:setText(text)` | Set text content (text elements only) |
 | `self:closeScreen()` | Close the current screen |
 | `self:minecraft()` | Get MinecraftData for world/player access |
+
+#### Entity Display Methods
+
+These methods only work on `AmbleEntityDisplay` elements:
+
+| Method | Description |
+|--------|-------------|
+| `self:getEntityUuid()` | Get entity UUID as string (or nil) |
+| `self:setEntityUuid(uuid)` | Set entity UUID (string or "player") |
+| `self:isFollowCursor()` | Check if entity follows cursor |
+| `self:setFollowCursor(bool)` | Enable/disable cursor following |
+| `self:setLookAt(x, y)` | Set fixed look-at position |
+| `self:setEntityScale(scale)` | Set entity scale multiplier |
 
 ### Example GUI Script
 

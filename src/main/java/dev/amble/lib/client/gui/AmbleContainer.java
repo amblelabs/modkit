@@ -136,6 +136,9 @@ public class AmbleContainer implements AmbleElement {
 		this.verticalAlign = other.verticalAlign;
 		this.requiresNewRow = other.requiresNewRow;
 		this.background = other.background;
+		this.identifier = other.identifier;
+		this.title = other.title;
+		this.shouldPause = other.shouldPause;
 		this.children.forEach(e -> e.setParent(null));
 		this.children.clear();
 		other.children.forEach(this::addChild);

@@ -35,6 +35,7 @@ public class AmbleGuiRegistry extends DatapackRegistry<AmbleContainer> implement
 		// Register default parsers
 		registerParser(new AmbleButton.Parser());
 		registerParser(new AmbleText.Parser());
+		registerParser(new AmbleEntityDisplay.Parser());
 	}
 
 	/**

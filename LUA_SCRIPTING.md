@@ -616,6 +616,19 @@ The `self` parameter provides access to the GUI element:
 | `self:closeScreen()` | Close the current screen |
 | `self:minecraft()` | Get MinecraftData for full API access |
 
+#### Entity Display Methods
+
+These methods only work on `AmbleEntityDisplay` elements (elements with `entity_uuid` property):
+
+| Method | Description |
+|--------|-------------|
+| `self:getEntityUuid()` | Get entity UUID as string (or nil) |
+| `self:setEntityUuid(uuid)` | Set entity UUID (string or "player") |
+| `self:isFollowCursor()` | Check if entity follows cursor |
+| `self:setFollowCursor(bool)` | Enable/disable cursor following |
+| `self:setLookAt(x, y)` | Set fixed look-at position (relative to element) |
+| `self:setEntityScale(scale)` | Set entity scale multiplier |
+
 ### Accessing Minecraft Data from GUI Scripts
 
 Use `self:minecraft()` to get a MinecraftData object with full API access:
