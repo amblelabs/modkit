@@ -50,18 +50,32 @@ public class ClientScriptCommand {
 		return scriptId.withPrefixedPath(SCRIPT_PREFIX).withSuffixedPath(SCRIPT_SUFFIX);
 	}
 
-	private static final SuggestionProvider<FabricClientCommandSource> SCRIPT_SUGGESTIONS = (context, builder) -> {
+	private static final SuggestionProvider<FabricClientCommandSource> TICKABLE_SCRIPT_SUGGESTIONS = (context, builder) -> {
 		return CommandSource.suggestIdentifiers(
-				ScriptManager.getInstance().getCache().keySet().stream()
+				ScriptManager.getInstance().getCache().entrySet().stream()
+						.filter(entry -> entry.getValue().onTick() != null && !entry.getValue().onTick().isnil())
+						.map(entry -> Identifier.of(entry.getKey().getNamespace(), getDisplayId(entry.getKey()))),
+				builder
+		);
+	};
+
+	private static final SuggestionProvider<FabricClientCommandSource> ENABLED_TICKABLE_SCRIPT_SUGGESTIONS = (context, builder) -> {
+		return CommandSource.suggestIdentifiers(
+				ScriptManager.getInstance().getEnabledScripts().stream()
+						.filter(id -> {
+							LuaScript script = ScriptManager.getInstance().getCache().get(id);
+							return script != null && script.onTick() != null && !script.onTick().isnil();
+						})
 						.map(id -> Identifier.of(id.getNamespace(), getDisplayId(id))),
 				builder
 		);
 	};
 
-	private static final SuggestionProvider<FabricClientCommandSource> ENABLED_SCRIPT_SUGGESTIONS = (context, builder) -> {
+	private static final SuggestionProvider<FabricClientCommandSource> EXECUTABLE_SCRIPT_SUGGESTIONS = (context, builder) -> {
 		return CommandSource.suggestIdentifiers(
-				ScriptManager.getInstance().getEnabledScripts().stream()
-						.map(id -> Identifier.of(id.getNamespace(), getDisplayId(id))),
+				ScriptManager.getInstance().getCache().entrySet().stream()
+						.filter(entry -> entry.getValue().onExecute() != null && !entry.getValue().onExecute().isnil())
+						.map(entry -> Identifier.of(entry.getKey().getNamespace(), getDisplayId(entry.getKey()))),
 				builder
 		);
 	};
@@ -70,21 +84,21 @@ public class ClientScriptCommand {
 		dispatcher.register(literal("amblescript")
 				.then(literal("execute")
 						.then(argument("id", IdentifierArgumentType.identifier())
-								.suggests(SCRIPT_SUGGESTIONS)
+								.suggests(EXECUTABLE_SCRIPT_SUGGESTIONS)
 								.executes(context -> execute(context, ""))
 								.then(argument("args", StringArgumentType.greedyString())
 										.executes(context -> execute(context, StringArgumentType.getString(context, "args"))))))
 				.then(literal("enable")
 						.then(argument("id", IdentifierArgumentType.identifier())
-								.suggests(SCRIPT_SUGGESTIONS)
+								.suggests(TICKABLE_SCRIPT_SUGGESTIONS)
 								.executes(ClientScriptCommand::enable)))
 				.then(literal("disable")
 						.then(argument("id", IdentifierArgumentType.identifier())
-								.suggests(ENABLED_SCRIPT_SUGGESTIONS)
+								.suggests(ENABLED_TICKABLE_SCRIPT_SUGGESTIONS)
 								.executes(ClientScriptCommand::disable)))
 				.then(literal("toggle")
 						.then(argument("id", IdentifierArgumentType.identifier())
-								.suggests(SCRIPT_SUGGESTIONS)
+								.suggests(TICKABLE_SCRIPT_SUGGESTIONS)
 								.executes(ClientScriptCommand::toggle)))
 				.then(literal("list")
 						.executes(ClientScriptCommand::listEnabled))
