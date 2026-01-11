@@ -1,5 +1,6 @@
 package dev.amble.lib.command;
 
+import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -32,6 +33,10 @@ public class ServerScriptCommand {
 
 	private static final String SCRIPT_PREFIX = "script/";
 	private static final String SCRIPT_SUFFIX = ".lua";
+
+	private static String translationKey(String key) {
+		return "command." + AmbleKit.MOD_ID + ".script." + key;
+	}
 
 	/**
 	 * Converts a full script identifier to a display-friendly format.
@@ -144,7 +149,7 @@ public class ServerScriptCommand {
 
 			script.onExecute().call(boundData, argsTable);
 			context.getSource().sendFeedback(() -> Text.translatable(translationKey("executed"), scriptId), true);
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		} catch (Exception e) {
 			context.getSource().sendError(Text.translatable(translationKey("error.execute_failed"), scriptId, e.getMessage()));
 			AmbleKit.LOGGER.error("Failed to execute server script {}", scriptId, e);
@@ -168,7 +173,7 @@ public class ServerScriptCommand {
 
 		if (ServerScriptManager.getInstance().enable(fullScriptId)) {
 			context.getSource().sendFeedback(() -> Text.translatable(translationKey("enabled"), scriptId).formatted(Formatting.GREEN), true);
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		} else {
 			context.getSource().sendError(Text.translatable(translationKey("error.enable_failed"), scriptId));
 			return 0;
@@ -186,7 +191,7 @@ public class ServerScriptCommand {
 
 		if (ServerScriptManager.getInstance().disable(fullScriptId)) {
 			context.getSource().sendFeedback(() -> Text.translatable(translationKey("disabled"), scriptId).formatted(Formatting.RED), true);
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		} else {
 			context.getSource().sendError(Text.translatable(translationKey("error.disable_failed"), scriptId));
 			return 0;
@@ -210,7 +215,7 @@ public class ServerScriptCommand {
 		} else {
 			context.getSource().sendFeedback(() -> Text.translatable(translationKey("enabled"), scriptId).formatted(Formatting.GREEN), true);
 		}
-		return 1;
+		return Command.SINGLE_SUCCESS;
 	}
 
 	private static int listEnabled(CommandContext<ServerCommandSource> context) {
@@ -218,7 +223,7 @@ public class ServerScriptCommand {
 
 		if (enabled.isEmpty()) {
 			context.getSource().sendFeedback(() -> Text.translatable(translationKey("list.none_enabled")).formatted(Formatting.GRAY), false);
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		}
 
 		context.getSource().sendFeedback(() -> Text.translatable(translationKey("list.enabled_header"), enabled.size()).formatted(Formatting.GOLD, Formatting.BOLD), false);
@@ -228,7 +233,7 @@ public class ServerScriptCommand {
 					Text.literal("✓ ").formatted(Formatting.GREEN)
 							.append(Text.literal(id.getNamespace() + ":" + displayId).formatted(Formatting.WHITE)), false);
 		}
-		return 1;
+		return Command.SINGLE_SUCCESS;
 	}
 
 	private static int listAvailable(CommandContext<ServerCommandSource> context) {
@@ -237,7 +242,7 @@ public class ServerScriptCommand {
 
 		if (available.isEmpty()) {
 			context.getSource().sendFeedback(() -> Text.translatable(translationKey("list.none_available")).formatted(Formatting.GRAY), false);
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		}
 
 		context.getSource().sendFeedback(() -> Text.translatable(translationKey("list.available_header"), available.size()).formatted(Formatting.GOLD, Formatting.BOLD), false);

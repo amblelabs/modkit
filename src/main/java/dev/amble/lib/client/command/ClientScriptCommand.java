@@ -136,7 +136,7 @@ public class ClientScriptCommand {
 
 			script.onExecute().call(data, argsTable);
 			context.getSource().sendFeedback(Text.translatable(translationKey("executed"), scriptId));
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		} catch (Exception e) {
 			context.getSource().sendError(Text.translatable(translationKey("error.execute_failed"), scriptId, e.getMessage()));
 			AmbleKit.LOGGER.error("Failed to execute script {}", scriptId, e);
@@ -163,7 +163,7 @@ public class ClientScriptCommand {
 
 		if (ScriptManager.getInstance().enable(fullScriptId)) {
 			context.getSource().sendFeedback(Text.translatable(translationKey("enabled"), scriptId).formatted(Formatting.GREEN));
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		} else {
 			context.getSource().sendError(Text.translatable(translationKey("error.enable_failed"), scriptId));
 			return 0;
@@ -181,7 +181,7 @@ public class ClientScriptCommand {
 
 		if (ScriptManager.getInstance().disable(fullScriptId)) {
 			context.getSource().sendFeedback(Text.translatable(translationKey("disabled"), scriptId).formatted(Formatting.RED));
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		} else {
 			context.getSource().sendError(Text.translatable(translationKey("error.disable_failed"), scriptId));
 			return 0;
@@ -208,7 +208,7 @@ public class ClientScriptCommand {
 		} else {
 			context.getSource().sendFeedback(Text.translatable(translationKey("enabled"), scriptId).formatted(Formatting.GREEN));
 		}
-		return 1;
+		return Command.SINGLE_SUCCESS;
 	}
 
 	private static int listEnabled(CommandContext<FabricClientCommandSource> context) {
@@ -216,7 +216,7 @@ public class ClientScriptCommand {
 
 		if (enabled.isEmpty()) {
 			context.getSource().sendFeedback(Text.translatable(translationKey("list.none_enabled")).formatted(Formatting.GRAY));
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		}
 
 		context.getSource().sendFeedback(Text.translatable(translationKey("list.enabled_header"), enabled.size()).formatted(Formatting.GOLD, Formatting.BOLD));
@@ -227,7 +227,7 @@ public class ClientScriptCommand {
 							.append(Text.literal(id.getNamespace() + ":" + displayId).formatted(Formatting.WHITE))
 			);
 		}
-		return 1;
+		return Command.SINGLE_SUCCESS;
 	}
 
 	private static int listAvailable(CommandContext<FabricClientCommandSource> context) {
@@ -236,7 +236,7 @@ public class ClientScriptCommand {
 
 		if (available.isEmpty()) {
 			context.getSource().sendFeedback(Text.translatable(translationKey("list.none_available")).formatted(Formatting.GRAY));
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		}
 
 		context.getSource().sendFeedback(Text.translatable(translationKey("list.available_header"), available.size()).formatted(Formatting.GOLD, Formatting.BOLD));

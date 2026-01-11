@@ -50,6 +50,14 @@ loom {
 		    name = "Testmod Client"
 		    source sourceSets.test
 	    }
+	    testmodClient2 {
+		    client()
+		    ideConfigGenerated project.rootProject == project
+		    name = "Testmod Client 2"
+		    source sourceSets.test
+		    programArgs "--username", "Dev2"
+		    runDir "run2"
+	    }
 	    testmodServer {
 		    server()
 		    ideConfigGenerated project.rootProject == project
