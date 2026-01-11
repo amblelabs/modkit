@@ -112,8 +112,10 @@ public class ServerScriptCommand {
 		try {
 			LuaScript script = ServerScriptManager.getInstance().getCache().get(fullScriptId);
 
-			if (script == null) context.getSource().sendError(Text.translatable("command.amblekit.script.error.not_found", scriptId));
+			if (script == null) {
+				context.getSource().sendError(Text.translatable("command.amblekit.script.error.not_found", scriptId));
 				context.getSource().sendError(Text.literal("Server script '" + scriptId + "' not found"));
+				return 0;
 			}
 
 			if (script.onExecute() == null || script.onExecute().isnil()) {
