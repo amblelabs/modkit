@@ -49,6 +49,7 @@ loom {
 		    ideConfigGenerated project.rootProject == project
 		    name = "Testmod Client"
 		    source sourceSets.test
+		    programArgs "--username", "Dev"
 	    }
 	    testmodClient2 {
 		    client()
