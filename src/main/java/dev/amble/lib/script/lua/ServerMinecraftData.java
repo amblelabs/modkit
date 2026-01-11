@@ -1,6 +1,8 @@
 package dev.amble.lib.script.lua;
 
 import dev.amble.lib.AmbleKit;
+import dev.amble.lib.script.AbstractScriptManager;
+import dev.amble.lib.script.ServerScriptManager;
 import dev.amble.lib.skin.SkinData;
 import dev.amble.lib.skin.SkinTracker;
 import dev.amble.lib.util.ServerLifecycleHooks;
@@ -410,5 +412,12 @@ public class ServerMinecraftData extends MinecraftData {
 		UUID uuid = parseUuid(uuidString);
 		if (uuid == null) return false;
 		return SkinTracker.getInstance().containsKey(uuid);
+	}
+
+	// ===== Cross-script function calling =====
+
+	@Override
+	protected AbstractScriptManager getScriptManager() {
+		return ServerScriptManager.getInstance();
 	}
 }

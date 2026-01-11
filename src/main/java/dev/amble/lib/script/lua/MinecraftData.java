@@ -1,6 +1,8 @@
 package dev.amble.lib.script.lua;
 
 import dev.amble.lib.AmbleKit;
+import dev.amble.lib.script.AbstractScriptManager;
+import dev.amble.lib.script.LuaScript;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.world.ServerWorld;
@@ -9,6 +11,8 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.Varargs;
 
 import java.util.Comparator;
 import java.util.List;
@@ -198,5 +202,131 @@ public abstract class MinecraftData {
 	@LuaExpose
 	public void logError(String message) {
 		AmbleKit.LOGGER.error("{} {}", getLogPrefix(), message);
+	}
+
+	// ===== Cross-script function calling =====
+
+	/**
+	 * Gets the script manager for this side.
+	 */
+	protected abstract AbstractScriptManager getScriptManager();
+
+	/**
+	 * Converts a user-friendly script ID to the internal identifier format.
+	 * Handles both "modid:scriptname" and full "modid:script/scriptname.lua" formats.
+	 */
+	private Identifier toFullScriptId(String scriptId) {
+		Identifier id = new Identifier(scriptId);
+		String path = id.getPath();
+		if (!path.startsWith("script/")) {
+			path = "script/" + path;
+		}
+		if (!path.endsWith(".lua")) {
+			path = path + ".lua";
+		}
+		return new Identifier(id.getNamespace(), path);
+	}
+
+	/**
+	 * Converts a full internal script identifier to display format.
+	 * Removes the "script/" prefix and ".lua" suffix.
+	 */
+	private String toDisplayId(Identifier id) {
+		String path = id.getPath();
+		if (path.startsWith("script/")) {
+			path = path.substring(7);
+		}
+		if (path.endsWith(".lua")) {
+			path = path.substring(0, path.length() - 4);
+		}
+		return id.getNamespace() + ":" + path;
+	}
+
+	/**
+	 * Gets the identifiers of all available scripts.
+	 *
+	 * @return list of script identifiers in "modid:scriptname" format
+	 */
+	@LuaExpose
+	public List<String> availableScripts() {
+		return getScriptManager().getCache().keySet().stream()
+				.map(this::toDisplayId)
+				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Calls a function from another script.
+	 *
+	 * @param scriptId the script identifier (e.g., "modid:scriptname")
+	 * @param functionName the name of the function to call
+	 * @param args the arguments to pass to the function
+	 * @return the result of the function call, or nil if the function doesn't exist
+	 */
+	@LuaExpose
+	public Object callScript(String scriptId, String functionName, Object... args) {
+		Identifier fullId = toFullScriptId(scriptId);
+		LuaScript script = getScriptManager().getCache().get(fullId);
+		if (script == null) {
+			logWarn("Cannot call function '" + functionName + "': script '" + scriptId + "' not found");
+			return null;
+		}
+
+		LuaValue function = script.globals().get(functionName);
+		if (function.isnil()) {
+			logWarn("Function '" + functionName + "' not found in script '" + scriptId + "'");
+			return null;
+		}
+
+		try {
+			// Convert Java args to Lua values
+			LuaValue[] luaArgs = new LuaValue[args.length];
+			for (int i = 0; i < args.length; i++) {
+				luaArgs[i] = LuaBinder.coerceResult(args[i]);
+			}
+
+			Varargs result = function.invoke(LuaValue.varargsOf(luaArgs));
+			return result.arg1();
+		} catch (Exception e) {
+			logError("Error calling function '" + functionName + "' in script '" + scriptId + "': " + e.getMessage());
+			return null;
+		}
+	}
+
+	/**
+	 * Gets a global variable from another script.
+	 *
+	 * @param scriptId the script identifier (e.g., "modid:scriptname")
+	 * @param variableName the name of the global variable to get
+	 * @return the value of the variable, or nil if it doesn't exist
+	 */
+	@LuaExpose
+	public Object getScriptGlobal(String scriptId, String variableName) {
+		Identifier fullId = toFullScriptId(scriptId);
+		LuaScript script = getScriptManager().getCache().get(fullId);
+		if (script == null) {
+			logWarn("Cannot get global '" + variableName + "': script '" + scriptId + "' not found");
+			return null;
+		}
+
+		return script.globals().get(variableName);
+	}
+
+	/**
+	 * Sets a global variable in another script.
+	 *
+	 * @param scriptId the script identifier (e.g., "modid:scriptname")
+	 * @param variableName the name of the global variable to set
+	 * @param value the value to set
+	 */
+	@LuaExpose
+	public void setScriptGlobal(String scriptId, String variableName, Object value) {
+		Identifier fullId = toFullScriptId(scriptId);
+		LuaScript script = getScriptManager().getCache().get(fullId);
+		if (script == null) {
+			logWarn("Cannot set global '" + variableName + "': script '" + scriptId + "' not found");
+			return;
+		}
+
+		script.globals().set(variableName, LuaBinder.coerceResult(value));
 	}
 }

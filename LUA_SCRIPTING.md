@@ -102,6 +102,10 @@ The `mc` parameter provides access to Minecraft data. Methods vary by side:
 | `mc:runCommand(command)` | Execute a command |
 | `mc:sendMessage(text, overlay)` | Send message to player (overlay = action bar) |
 | `mc:log(message)` | Log to console |
+| `mc:callScript(scriptId, funcName, ...)` | Call a function from another script |
+| `mc:getScriptGlobal(scriptId, varName)` | Get a global variable from another script |
+| `mc:setScriptGlobal(scriptId, varName, value)` | Set a global variable in another script |
+| `mc:availableScripts()` | Get list of all available script identifiers |
 
 ### Client-Only Methods
 | Method | Description |
@@ -428,6 +432,118 @@ function applyNpcSkin(mc)
     else
         mc:logWarn("Failed to update NPC skin")
     end
+end
+```
+
+### Cross-Script Function Calling
+
+Scripts can call functions defined in other scripts on the same side. Client scripts can call other client scripts, and server scripts can call other server scripts.
+
+**Utility Library Script:**
+```lua
+-- assets/mymod/script/utils.lua (or data/mymod/script/utils.lua for server)
+-- A reusable utility library
+
+-- Format a number with commas (e.g., 1234567 -> "1,234,567")
+function formatNumber(num)
+    local formatted = tostring(num)
+    local k
+    while true do
+        formatted, k = formatted:gsub("^(-?%d+)(%d%d%d)", '%1,%2')
+        if k == 0 then break end
+    end
+    return formatted
+end
+
+-- Calculate distance between two positions
+function distance(pos1, pos2)
+    local dx = pos2.x - pos1.x
+    local dy = pos2.y - pos1.y
+    local dz = pos2.z - pos1.z
+    return math.sqrt(dx*dx + dy*dy + dz*dz)
+end
+
+-- Shared state for other scripts
+sharedData = {
+    lastUpdate = 0,
+    counter = 0
+}
+```
+
+**Script Using the Utility Library:**
+```lua
+-- assets/mymod/script/stats_display.lua
+-- Uses utility functions from the utils script
+
+function onExecute(mc)
+    local player = mc:player()
+    local pos = player:position()
+    
+    -- Call formatNumber from the utils script
+    local healthFormatted = mc:callScript("mymod:utils", "formatNumber", math.floor(player:health()))
+    mc:sendMessage("§aHealth: §f" .. healthFormatted, false)
+    
+    -- Read shared state from another script
+    local sharedData = mc:getScriptGlobal("mymod:utils", "sharedData")
+    if sharedData then
+        mc:sendMessage("§7Counter: " .. tostring(sharedData.counter), false)
+    end
+    
+    -- Update shared state in another script
+    mc:setScriptGlobal("mymod:utils", "sharedData", {
+        lastUpdate = mc:worldTime(),
+        counter = (sharedData and sharedData.counter or 0) + 1
+    })
+end
+```
+
+**Server Script Calling Other Server Scripts:**
+```lua
+-- data/mymod/script/admin_tools.lua
+-- Reusable admin utilities
+
+function warnPlayer(playerName, reason)
+    return "§c[WARNING] §f" .. reason
+end
+
+function kickMessage(playerName)
+    return "You have been kicked by an administrator."
+end
+```
+
+```lua
+-- data/mymod/script/moderation.lua
+-- Uses admin_tools for moderation actions
+
+function onExecute(mc, args)
+    if args[1] == nil then
+        mc:sendMessage("§cUsage: /serverscript execute mymod:moderation <player> [reason]", false)
+        return
+    end
+    
+    local targetPlayer = args[1]
+    local reason = args[2] or "No reason provided"
+    
+    -- Call warnPlayer from admin_tools
+    local warning = mc:callScript("mymod:admin_tools", "warnPlayer", targetPlayer, reason)
+    mc:broadcastToPlayer(targetPlayer, warning, false)
+    mc:sendMessage("§aWarned " .. targetPlayer, false)
+end
+```
+
+**Listing Available Scripts:**
+```lua
+-- assets/mymod/script/script_browser.lua
+-- List all available scripts
+
+function onExecute(mc)
+    local scripts = mc:availableScripts()
+    
+    mc:sendMessage("§6=== Available Scripts ===", false)
+    for i, scriptId in ipairs(scripts) do
+        mc:sendMessage("§7" .. i .. ". §f" .. scriptId, false)
+    end
+    mc:sendMessage("§7Total: §e" .. #scripts .. " scripts", false)
 end
 ```
 

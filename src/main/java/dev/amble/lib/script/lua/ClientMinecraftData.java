@@ -3,6 +3,8 @@ package dev.amble.lib.script.lua;
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.client.gui.AmbleContainer;
 import dev.amble.lib.client.gui.registry.AmbleGuiRegistry;
+import dev.amble.lib.script.AbstractScriptManager;
+import dev.amble.lib.script.ScriptManager;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.InputUtil;
@@ -19,7 +21,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -325,5 +326,12 @@ public class ClientMinecraftData extends MinecraftData {
 	@LuaExpose
 	public int windowHeight() {
 		return mc.getWindow() != null ? mc.getWindow().getScaledHeight() : 0;
+	}
+
+	// ===== Cross-script function calling =====
+
+	@Override
+	protected AbstractScriptManager getScriptManager() {
+		return ScriptManager.getInstance();
 	}
 }
