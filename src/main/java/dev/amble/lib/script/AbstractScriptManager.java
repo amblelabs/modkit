@@ -3,13 +3,13 @@ package dev.amble.lib.script;
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.script.lua.LuaBinder;
 import dev.amble.lib.script.lua.MinecraftData;
+import dev.amble.lib.script.lua.SandboxedGlobals;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import org.luaj.vm2.Globals;
 import org.luaj.vm2.LuaValue;
-import org.luaj.vm2.lib.jse.JsePlatform;
 
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -72,7 +72,8 @@ public abstract class AbstractScriptManager implements SimpleSynchronousResource
         return cache.computeIfAbsent(id, key -> {
             try {
                 Resource res = manager.getResource(key).orElseThrow();
-                Globals globals = JsePlatform.standardGlobals();
+                // Use sandboxed globals to prevent access to dangerous APIs like luajava
+                Globals globals = SandboxedGlobals.create();
 
                 // Create and cache the minecraft data for this script
                 MinecraftData data = createMinecraftData();
@@ -89,7 +90,7 @@ public abstract class AbstractScriptManager implements SimpleSynchronousResource
                 );
                 chunk.call();
 
-                LuaScript script = new LuaScript(globals);
+	                LuaScript script = new LuaScript(globals);
 
                 // Call onRegister when script is first loaded into the manager
                 if (script.onRegister() != null && !script.onRegister().isnil()) {
