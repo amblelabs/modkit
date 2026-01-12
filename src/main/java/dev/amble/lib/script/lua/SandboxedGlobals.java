@@ -4,8 +4,10 @@ import org.luaj.vm2.Globals;
 import org.luaj.vm2.LoadState;
 import org.luaj.vm2.LuaValue;
 import org.luaj.vm2.compiler.LuaC;
-import org.luaj.vm2.lib.*;
-import org.luaj.vm2.lib.jse.JseBaseLib;
+import org.luaj.vm2.lib.BaseLib;
+import org.luaj.vm2.lib.Bit32Lib;
+import org.luaj.vm2.lib.StringLib;
+import org.luaj.vm2.lib.TableLib;
 import org.luaj.vm2.lib.jse.JseMathLib;
 
 /**
@@ -17,7 +19,8 @@ import org.luaj.vm2.lib.jse.JseMathLib;
  *   <li>os library - Prevents system command execution and file operations</li>
  *   <li>io library - Prevents file system access</li>
  *   <li>debug library - Prevents environment manipulation and introspection attacks</li>
- *   <li>load/loadfile/loadstring with bytecode - Prevents bytecode injection</li>
+ *   <li>package library - Prevents loading modules from disk</li>
+ *   <li>load/loadfile/dofile - Prevents loading code from files</li>
  * </ul>
  */
 public final class SandboxedGlobals {
@@ -35,15 +38,22 @@ public final class SandboxedGlobals {
     public static Globals create() {
         Globals globals = new Globals();
 
-        // Install safe base libraries
-        globals.load(new JseBaseLib());      // Basic functions (print, type, etc.) - but we'll remove dangerous ones
-        globals.load(new PackageLib());       // Package/module system
+        // Install safe base libraries only
+        // Using BaseLib instead of JseBaseLib to avoid any file system access
+        globals.load(new BaseLib());          // Basic functions (print, type, tostring, etc.)
         globals.load(new Bit32Lib());         // Bit operations
         globals.load(new TableLib());         // Table manipulation
         globals.load(new StringLib());        // String manipulation
         globals.load(new JseMathLib());       // Math functions
 
-        // Install the compiler so scripts can be loaded
+        // NOTE: We intentionally do NOT load:
+        // - PackageLib (can search/load files from disk)
+        // - IoLib / JseIoLib (file system access)
+        // - OsLib / JseOsLib (system commands, file operations)
+        // - DebugLib (can manipulate environments)
+        // - LuajavaLib (arbitrary Java class access)
+
+        // Install the compiler so scripts can be loaded from strings
         LoadState.install(globals);
         LuaC.install(globals);
 
@@ -57,21 +67,13 @@ public final class SandboxedGlobals {
      * Removes dangerous functions that could be used to escape the sandbox.
      */
     private static void removeDangerousFunctions(Globals globals) {
-        // Remove functions that can load arbitrary code
-        globals.set("dofile", LuaValue.NIL);      // Can load files from disk
-        globals.set("loadfile", LuaValue.NIL);    // Can load files from disk
+        // Remove functions that can load code from files
+        globals.set("dofile", LuaValue.NIL);      // Loads and executes files from disk
+        globals.set("loadfile", LuaValue.NIL);    // Loads files from disk
 
-        // Note: We keep 'load' and 'loadstring' since they can only load Lua source code
-        // (not bytecode) when LuaC is the only compiler installed, making them relatively safe.
-        // However, if you want maximum security, uncomment these:
-        // globals.set("load", LuaValue.NIL);
-        // globals.set("loadstring", LuaValue.NIL);
-
-        // Remove the package.loadlib function which can load native libraries
-        LuaValue pkg = globals.get("package");
-        if (pkg.istable()) {
-            pkg.set("loadlib", LuaValue.NIL);
-        }
+        // Remove load/loadstring to prevent any dynamic code execution
+        // This is the safest option as it prevents all forms of dynamic code loading
+        globals.set("load", LuaValue.NIL);
+        globals.set("loadstring", LuaValue.NIL);
     }
 }
-
