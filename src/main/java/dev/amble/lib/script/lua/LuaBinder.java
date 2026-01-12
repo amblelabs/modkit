@@ -343,6 +343,7 @@ public final class LuaBinder {
         }
 
         meta.set("__index", index);
+
         return meta;
     }
 }
