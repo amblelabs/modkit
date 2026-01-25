@@ -58,6 +58,8 @@ public class BedrockAnimation {
 	public static final Collection<String> IGNORED_BONES = Set.of("camera");
 	public static final Collection<String> ROOT_BONES = Set.of("root", "player");
 
+	// Bone lookup cache: WeakHashMap allows GC of ModelPart roots when no longer referenced
+	private static final WeakHashMap<ModelPart, Map<String, ModelPart>> BONE_CACHE = new WeakHashMap<>();
 
 	public final boolean shouldLoop;
 	public final double animationLength;
@@ -80,16 +82,99 @@ public class BedrockAnimation {
 		return anim;
 	}
 
+	/**
+	 * Gets or builds a cached map of bone names to ModelParts for O(1) lookups.
+	 * Uses WeakHashMap so entries are automatically cleaned up when the root ModelPart is GC'd.
+	 */
+	private static Map<String, ModelPart> getBoneMap(ModelPart root) {
+		return BONE_CACHE.computeIfAbsent(root, r -> {
+			Map<String, ModelPart> map = new HashMap<>();
+			buildBoneMap(r, map);
+			return map;
+		});
+	}
+
+	// Cached reflection field for ModelPart.children
+	private static java.lang.reflect.Field CHILDREN_FIELD = null;
+	private static boolean CHILDREN_FIELD_ATTEMPTED = false;
+
+	// Possible field names for ModelPart.children across different mappings
+	private static final String[] CHILDREN_FIELD_NAMES = {"children", "field_3683"};
+
+	/**
+	 * Recursively builds a map of bone names to their ModelPart objects.
+	 * Uses reflection to access the children map, which is more reliable than
+	 * traversing and checking hasChild for every possible name.
+	 */
+	private static void buildBoneMap(ModelPart part, Map<String, ModelPart> map) {
+		// Try to get the children field via reflection (cached)
+		if (!CHILDREN_FIELD_ATTEMPTED) {
+			CHILDREN_FIELD_ATTEMPTED = true;
+			for (String fieldName : CHILDREN_FIELD_NAMES) {
+				try {
+					CHILDREN_FIELD = ModelPart.class.getDeclaredField(fieldName);
+					CHILDREN_FIELD.setAccessible(true);
+					break;
+				} catch (Exception ignored) {
+					// Try next field name
+				}
+			}
+		}
+
+		if (CHILDREN_FIELD == null) return;
+
+		part.traverse().forEach(p -> {
+			try {
+				@SuppressWarnings("unchecked")
+				Map<String, ModelPart> children = (Map<String, ModelPart>) CHILDREN_FIELD.get(p);
+				map.putAll(children);
+			} catch (Exception ignored) {
+				// Skip this part
+			}
+		});
+	}
+
+	/**
+	 * Clears the bone cache. Call this if models are reloaded.
+	 */
+	public static void clearBoneCache() {
+		BONE_CACHE.clear();
+	}
+
+	/**
+	 * Gets a bone by name from the cache, falling back to slow traversal if needed.
+	 */
+	private static ModelPart getBone(ModelPart root, String boneName, Map<String, ModelPart> boneMap) {
+		ModelPart bone = boneMap.get(boneName);
+		if (bone != null) return bone;
+
+		// Cache miss - bone name wasn't in the cache, fall back to slow path and cache it
+		bone = root.traverse()
+				.filter(part -> part.hasChild(boneName))
+				.findFirst()
+				.map(part -> part.getChild(boneName))
+				.orElse(null);
+
+		if (bone != null) {
+			boneMap.put(boneName, bone);
+		}
+
+		return bone;
+	}
+
 
 	@Environment(EnvType.CLIENT)
 	public void apply(ModelPart root, double runningSeconds) {
 		this.resetBones(root, this.overrideBones);
 
+		// Get cached bone map for O(1) lookups instead of traversing every frame
+		Map<String, ModelPart> boneMap = getBoneMap(root);
+
 		this.boneTimelines.forEach((boneName, timeline) -> {
 			try {
 				if (IGNORED_BONES.contains(boneName.toLowerCase())) return;
 
-				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
+				ModelPart bone = getBone(root, boneName, boneMap);
 				if (bone == null) {
 					if (ROOT_BONES.contains(boneName.toLowerCase())) {
 						bone = root;
@@ -222,11 +307,14 @@ public class BedrockAnimation {
 			return;
 		}
 
+		// Get cached bone map for O(1) lookups instead of traversing every frame
+		Map<String, ModelPart> boneMap = getBoneMap(root);
+
 		this.boneTimelines.forEach((boneName, timeline) -> {
 			try {
 				if (IGNORED_BONES.contains(boneName.toLowerCase())) return;
 
-				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
+				ModelPart bone = getBone(root, boneName, boneMap);
 				if (bone == null) {
 					if (ROOT_BONES.contains(boneName.toLowerCase())) {
 						bone = root;
