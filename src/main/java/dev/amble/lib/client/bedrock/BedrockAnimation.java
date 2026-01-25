@@ -142,6 +142,14 @@ public class BedrockAnimation {
 	}
 
 	/**
+	 * Checks if a Vec3d contains valid (non-NaN, non-Infinite) values.
+	 * Invalid values can corrupt the render state and cause black screens.
+	 */
+	private static boolean isValidVec3d(Vec3d vec) {
+		return Double.isFinite(vec.x) && Double.isFinite(vec.y) && Double.isFinite(vec.z);
+	}
+
+	/**
 	 * Gets a bone by name from the cache, falling back to slow traversal if needed.
 	 */
 	private static ModelPart getBone(ModelPart root, String boneName, Map<String, ModelPart> boneMap) {
@@ -186,6 +194,9 @@ public class BedrockAnimation {
 				if (!timeline.position.isEmpty()) {
 					Vec3d position = timeline.position.resolve(runningSeconds);
 
+					// Guard against NaN/Infinity corrupting render state
+					if (!isValidVec3d(position)) return;
+
 					// traverse includes self
 					bone.traverse().forEach(child -> {
 						child.pivotX += (float) position.x;
@@ -197,6 +208,9 @@ public class BedrockAnimation {
 				if (!timeline.rotation.isEmpty()) {
 					Vec3d rotation = timeline.rotation.resolve(runningSeconds);
 
+					// Guard against NaN/Infinity corrupting render state
+					if (!isValidVec3d(rotation)) return;
+
 					bone.pitch += (float) Math.toRadians((float) rotation.x);
 					bone.yaw += (float) Math.toRadians((float) rotation.y);
 					bone.roll += (float) Math.toRadians((float) rotation.z);
@@ -204,6 +218,9 @@ public class BedrockAnimation {
 
 				if (!timeline.scale.isEmpty()) {
 					Vec3d scale = timeline.scale.resolve(runningSeconds);
+
+					// Guard against NaN/Infinity corrupting render state
+					if (!isValidVec3d(scale)) return;
 
 					bone.traverse().forEach(child -> {
 						child.xScale = (float) scale.x;
@@ -277,11 +294,13 @@ public class BedrockAnimation {
 
 	@Environment(EnvType.CLIENT)
 	public void apply(ModelPart root, TargetedAnimationState state, @Nullable EffectProvider provider) {
+		// IMPORTANT: Set animation length BEFORE calculating time values
+		state.setAnimationLength(this);
+
 		float previous = state.getAnimationTimeSecs() - 0.01F;
 		state.tick();
-		float current = state.getAnimationTimeSecs() - 0.01F;
+		float current = state.getAnimationTimeSecs();
 
-		state.setAnimationLength(this);
 		this.apply(root, current);
 		this.applyEffects(provider, current, previous, root);
 	}
@@ -458,6 +477,12 @@ public class BedrockAnimation {
 
 				if (smoothBefore || smoothAfter) {
 					if (before != null && after != null) {
+						// Guard against division by zero when keyframes have the same time
+						double timeDiff = after.time - before.time;
+						if (timeDiff == 0) {
+							return beforeData;
+						}
+
 						Integer beforePlusIndex = beforeIndex == 0 ? null : beforeIndex - 1;
 						KeyFrame beforePlus = getAtIndex(this, beforePlusIndex);
 
@@ -467,7 +492,7 @@ public class BedrockAnimation {
 						Vec3d beforePlusData = (beforePlus != null && beforePlus.getPost() != null) ? beforePlus.getPost().resolve(time) : beforeData;
 						Vec3d afterPlusData = (afterPlus != null && afterPlus.getPre() != null) ? afterPlus.getPre().resolve(time) : afterData;
 
-						double t = (time - before.time) / (after.time - before.time);
+						double t = (time - before.time) / timeDiff;
 
 						return new Vec3d(
 								catmullRom((float) t, (float) beforePlusData.x, (float) beforeData.x, (float) afterData.x, (float) afterPlusData.x),
@@ -481,9 +506,13 @@ public class BedrockAnimation {
 					}
 				} else {
 					if (before != null && after != null) {
-						double alpha = time;
+						// Guard against division by zero when keyframes have the same time
+						double timeDiff = after.time - before.time;
+						if (timeDiff == 0) {
+							return beforeData;
+						}
 
-						alpha = (alpha - before.time) / (after.time - before.time);
+						double alpha = (time - before.time) / timeDiff;
 
 						return new Vec3d(
 								beforeData.getX() + (afterData.getX() - beforeData.getX()) * alpha,
