@@ -275,6 +275,17 @@ public class BedrockAnimation {
 		});
 	}
 
+	@Environment(EnvType.CLIENT)
+	public void apply(ModelPart root, TargetedAnimationState state, @Nullable EffectProvider provider) {
+		float previous = state.getAnimationTimeSecs() - 0.01F;
+		state.tick();
+		float current = state.getAnimationTimeSecs() - 0.01F;
+
+		state.setAnimationLength(this);
+		this.apply(root, current);
+		this.applyEffects(provider, current, previous, root);
+	}
+
 	public void apply(ModelPart root, int totalTicks, float rawDelta) {
 		float ticks = (float) ((totalTicks / 20F) % (this.animationLength)) * 20;
 		float delta = rawDelta / 10F;
