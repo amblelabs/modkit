@@ -209,12 +209,18 @@ public class BedrockAnimation {
 					// Guard against NaN/Infinity corrupting render state
 					if (!isValidVec3d(position)) return;
 
-					// traverse includes self
-					bone.traverse().forEach(child -> {
-						child.pivotX += (float) position.x;
-						child.pivotY += (float) position.y;
-						child.pivotZ += (float) position.z;
-					});
+					if (metadata.cumulative()) {
+						// traverse includes self
+						bone.traverse().forEach(child -> {
+							child.pivotX += (float) position.x;
+							child.pivotY += (float) position.y;
+							child.pivotZ += (float) position.z;
+						});
+					} else {
+						bone.pivotX += (float) position.x;
+						bone.pivotY += (float) position.y;
+						bone.pivotZ += (float) position.z;
+					}
 				}
 
 				if (!timeline.rotation.isEmpty()) {
@@ -223,9 +229,18 @@ public class BedrockAnimation {
 					// Guard against NaN/Infinity corrupting render state
 					if (!isValidVec3d(rotation)) return;
 
-					bone.pitch += (float) Math.toRadians((float) rotation.x);
-					bone.yaw += (float) Math.toRadians((float) rotation.y);
-					bone.roll += (float) Math.toRadians((float) rotation.z);
+					if (metadata.cumulative()) {
+						// traverse includes self
+						bone.traverse().forEach(child -> {
+							child.pitch += (float) Math.toRadians((float) rotation.x);
+							child.yaw += (float) Math.toRadians((float) rotation.y);
+							child.roll += (float) Math.toRadians((float) rotation.z);
+						});
+					} else {
+						bone.pitch += (float) Math.toRadians((float) rotation.x);
+						bone.yaw += (float) Math.toRadians((float) rotation.y);
+						bone.roll += (float) Math.toRadians((float) rotation.z);
+					}
 				}
 
 				if (!timeline.scale.isEmpty()) {
@@ -234,11 +249,18 @@ public class BedrockAnimation {
 					// Guard against NaN/Infinity corrupting render state
 					if (!isValidVec3d(scale)) return;
 
-					bone.traverse().forEach(child -> {
-						child.xScale = (float) scale.x;
-						child.yScale = (float) scale.y;
-						child.zScale = (float) scale.z;
-					});
+					if (metadata.cumulative()) {
+						// traverse includes self
+						bone.traverse().forEach(child -> {
+							child.xScale = (float) scale.x;
+							child.yScale = (float) scale.y;
+							child.zScale = (float) scale.z;
+						});
+					} else {
+						bone.xScale = (float) scale.x;
+						bone.yScale = (float) scale.y;
+						bone.zScale = (float) scale.z;
+					}
 				}
 			} catch (Exception e) {
 				///AmbleKit.LOGGER.error("Failed apply animation to {} in model. Skipping animation application for this bone.", boneName, e);
