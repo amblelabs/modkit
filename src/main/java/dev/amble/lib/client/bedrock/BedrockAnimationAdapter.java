@@ -39,7 +39,29 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 
 		JsonObject jsonObj = json.getAsJsonObject();
 		double animationLength = jsonObj.has("animation_length") ? jsonObj.get("animation_length").getAsDouble() : -1.0;
-		boolean shouldLoop = animationLength > 0 && jsonObj.has("loop") && jsonObj.get("loop").getAsBoolean();
+		
+		// Parse loop mode: true, "hold_on_last_frame", or none/false
+		BedrockAnimation.LoopMode loopMode = BedrockAnimation.LoopMode.NONE;
+		if (animationLength > 0 && jsonObj.has("loop")) {
+			JsonElement loopElement = jsonObj.get("loop");
+			if (loopElement.isJsonPrimitive()) {
+				JsonPrimitive loopPrimitive = loopElement.getAsJsonPrimitive();
+				if (loopPrimitive.isBoolean()) {
+					// "loop": true or "loop": false
+					loopMode = loopPrimitive.getAsBoolean() ? BedrockAnimation.LoopMode.LOOP : BedrockAnimation.LoopMode.NONE;
+				} else if (loopPrimitive.isString()) {
+					// "loop": "hold_on_last_frame"
+					String loopString = loopPrimitive.getAsString();
+					if ("hold_on_last_frame".equals(loopString)) {
+						loopMode = BedrockAnimation.LoopMode.HOLD_ON_LAST_FRAME;
+					} else if ("true".equalsIgnoreCase(loopString)) {
+						loopMode = BedrockAnimation.LoopMode.LOOP;
+					}
+					// Any other string value defaults to NONE
+				}
+			}
+		}
+		
 		boolean overrideBones = jsonObj.has("override_previous_animation") && jsonObj.get("override_previous_animation").getAsBoolean();
 
 		Map<String, BedrockAnimation.BoneTimeline> boneTimelines = new HashMap<>();
@@ -126,7 +148,7 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 			metadata = metadata.withExcess(jsonMetadata);
 		}
 
-		return new BedrockAnimation(shouldLoop, animationLength, boneTimelines, overrideBones, metadata, sounds);
+		return new BedrockAnimation(loopMode, animationLength, boneTimelines, overrideBones, metadata, sounds);
 	}
 
 	private BedrockAnimation.BoneTimeline deserializeBoneTimeline(JsonObject bone) {
