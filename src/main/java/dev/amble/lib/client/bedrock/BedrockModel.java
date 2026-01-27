@@ -109,17 +109,6 @@ public class BedrockModel implements Identifiable {
 							int uvX = cube.uv.get(0);
 							int uvY = cube.uv.get(1);
 
-							// Validate and clamp UV coordinates to texture bounds
-							int textureWidth = geometry.description.textureWidth;
-							int textureHeight = geometry.description.textureHeight;
-
-							if (uvX < 0 || uvX >= textureWidth || uvY < 0 || uvY >= textureHeight) {
-								LOGGER.warn("Model '{}' bone '{}' has out-of-bounds UV coordinates [{}, {}] for texture size {}x{}. Clamping to valid range.",
-										geometry.description.identifier, bone.name, uvX, uvY, textureWidth, textureHeight);
-								uvX = Math.max(0, Math.min(uvX, textureWidth - 1));
-								uvY = Math.max(0, Math.min(uvY, textureHeight - 1));
-							}
-
 							subPart.uv(uvX, uvY);
 						}
 						if (cube.mirror) {
