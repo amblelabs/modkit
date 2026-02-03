@@ -20,6 +20,7 @@ import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.animation.EffectProvider;
 import dev.amble.lib.animation.client.AnimationMetadata;
 import dev.amble.lib.animation.client.WorldPosition;
+import dev.amble.lib.duck.ModelPartDuck;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import net.fabricmc.api.EnvType;
@@ -106,39 +107,15 @@ public class BedrockAnimation {
 		});
 	}
 
-	// Cached reflection field for ModelPart.children
-	private static java.lang.reflect.Field CHILDREN_FIELD = null;
-	private static boolean CHILDREN_FIELD_ATTEMPTED = false;
-
-	// Possible field names for ModelPart.children across different mappings
-	private static final String[] CHILDREN_FIELD_NAMES = {"children", "field_3683"};
-
 	/**
 	 * Recursively builds a map of bone names to their ModelPart objects.
 	 * Uses reflection to access the children map, which is more reliable than
 	 * traversing and checking hasChild for every possible name.
 	 */
 	private static void buildBoneMap(ModelPart part, Map<String, ModelPart> map) {
-		// Try to get the children field via reflection (cached)
-		if (!CHILDREN_FIELD_ATTEMPTED) {
-			CHILDREN_FIELD_ATTEMPTED = true;
-			for (String fieldName : CHILDREN_FIELD_NAMES) {
-				try {
-					CHILDREN_FIELD = ModelPart.class.getDeclaredField(fieldName);
-					CHILDREN_FIELD.setAccessible(true);
-					break;
-				} catch (Exception ignored) {
-					// Try next field name
-				}
-			}
-		}
-
-		if (CHILDREN_FIELD == null) return;
-
 		part.traverse().forEach(p -> {
 			try {
-				@SuppressWarnings("unchecked")
-				Map<String, ModelPart> children = (Map<String, ModelPart>) CHILDREN_FIELD.get(p);
+				Map<String, ModelPart> children = ((ModelPartDuck) (Object) p).amblekit$getChildren();
 				map.putAll(children);
 			} catch (Exception ignored) {
 				// Skip this part
