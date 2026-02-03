@@ -13,6 +13,7 @@ package dev.amble.lib.client.bedrock;
 
 import com.google.gson.*;
 import dev.amble.lib.animation.client.AnimationMetadata;
+import dev.amble.lib.util.JsonUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.util.Identifier;
@@ -43,23 +44,13 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 		// Parse loop mode: true, "hold_on_last_frame", or none/false
 		BedrockAnimation.LoopMode loopMode = BedrockAnimation.LoopMode.NONE;
 		if (animationLength > 0 && jsonObj.has("loop")) {
-			JsonElement loopElement = jsonObj.get("loop");
-			if (loopElement.isJsonPrimitive()) {
-				JsonPrimitive loopPrimitive = loopElement.getAsJsonPrimitive();
-				if (loopPrimitive.isBoolean()) {
-					// "loop": true or "loop": false
-					loopMode = loopPrimitive.getAsBoolean() ? BedrockAnimation.LoopMode.LOOP : BedrockAnimation.LoopMode.NONE;
-				} else if (loopPrimitive.isString()) {
-					// "loop": "hold_on_last_frame"
-					String loopString = loopPrimitive.getAsString();
-					if ("hold_on_last_frame".equals(loopString)) {
-						loopMode = BedrockAnimation.LoopMode.HOLD_ON_LAST_FRAME;
-					} else if ("true".equalsIgnoreCase(loopString)) {
-						loopMode = BedrockAnimation.LoopMode.LOOP;
-					}
-					// Any other string value defaults to NONE
-				}
-			}
+			loopMode = JsonUtil.parseEnumOrBoolean(
+					jsonObj.get("loop"),
+					BedrockAnimation.LoopMode.class,
+					BedrockAnimation.LoopMode.LOOP,
+					BedrockAnimation.LoopMode.NONE,
+					BedrockAnimation.LoopMode.NONE
+			);
 		}
 		
 		boolean overrideBones = jsonObj.has("override_previous_animation") && jsonObj.get("override_previous_animation").getAsBoolean();
