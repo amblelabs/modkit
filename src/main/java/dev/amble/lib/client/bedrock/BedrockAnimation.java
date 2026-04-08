@@ -67,10 +67,6 @@ public class BedrockAnimation {
 	public final Map<Double, Identifier> sounds;
 	public String name;
 
-	public static boolean isRenderingHead() {
-		return IS_RENDERING_HEAD != null && IS_RENDERING_HEAD;
-	}
-
 	@Nullable
 	public static BedrockAnimation getFor(AnimatedEntity animated) {
 		BedrockAnimationReference ref = animated.getCurrentAnimation();
