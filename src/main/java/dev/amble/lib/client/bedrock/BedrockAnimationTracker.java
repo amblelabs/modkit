@@ -69,9 +69,15 @@ public class BedrockAnimationTracker {
 	}
 
 	public boolean isDone() {
-		if (animation.shouldLoop) {
+		// Looping animations never finish
+		if (animation.loopMode == BedrockAnimation.LoopMode.LOOP) {
 			return false;
 		}
+		// Hold on last frame animations are still considered "playing" - they don't finish
+		if (animation.loopMode == BedrockAnimation.LoopMode.HOLD_ON_LAST_FRAME) {
+			return false;
+		}
+		// NONE mode: animation finishes when it reaches the end
 		return ticks >= animation.animationLength * 20; // Convert seconds to ticks
 	}
 
