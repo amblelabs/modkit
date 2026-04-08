@@ -52,7 +52,7 @@ public class BedrockAnimation {
 			.create();
 
 	public static boolean IS_RENDERING_PLAYER = false; // whether the fps camera is currently rendering the player
-	public static boolean IS_RENDERING_HEAD = false; // whether the fps camera is currently rendering the player's head
+	public static Boolean IS_RENDERING_HEAD = false; // whether the fps camera is currently rendering the player's head. null = no render, false = turn off render, true = render
 	public static float HEAD_HIDE_DISTANCE = 0.5F; // If the camera is this close to the head it gets hidden
 	public static Optional<Boolean> WAS_HUD_HIDDEN = Optional.empty(); // the state of the hud before starting an animation on the local player
 	public static final Collection<String> IGNORED_BONES = Set.of("camera");
@@ -67,6 +67,10 @@ public class BedrockAnimation {
 	public final Map<Double, Identifier> sounds;
 	public String name;
 
+	public static boolean isRenderingHead() {
+		return IS_RENDERING_HEAD != null && IS_RENDERING_HEAD;
+	}
+
 	@Nullable
 	public static BedrockAnimation getFor(AnimatedEntity animated) {
 		BedrockAnimationReference ref = animated.getCurrentAnimation();
@@ -79,7 +83,6 @@ public class BedrockAnimation {
 
 		return anim;
 	}
-
 
 	@Environment(EnvType.CLIENT)
 	public void apply(ModelPart root, double runningSeconds) {
