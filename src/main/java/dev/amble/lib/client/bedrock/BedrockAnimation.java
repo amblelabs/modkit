@@ -20,6 +20,7 @@ import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.animation.EffectProvider;
 import dev.amble.lib.animation.client.AnimationMetadata;
 import dev.amble.lib.animation.client.WorldPosition;
+import dev.amble.lib.duck.ModelPartDuck;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import net.fabricmc.api.EnvType;
@@ -58,8 +59,22 @@ public class BedrockAnimation {
 	public static final Collection<String> IGNORED_BONES = Set.of("camera");
 	public static final Collection<String> ROOT_BONES = Set.of("root", "player");
 
+	// Bone lookup cache: WeakHashMap allows GC of ModelPart roots when no longer referenced
+	private static final WeakHashMap<ModelPart, Map<String, ModelPart>> BONE_CACHE = new WeakHashMap<>();
 
-	public final boolean shouldLoop;
+	/**
+	 * Loop mode for Bedrock animations:
+	 * - LOOP: Animation repeats from the beginning when finished
+	 * - HOLD_ON_LAST_FRAME: Animation holds on the last frame (still counted as playing)
+	 * - NONE: Animation resets to starting position when finished
+	 */
+	public enum LoopMode {
+		LOOP,
+		HOLD_ON_LAST_FRAME,
+		NONE
+	}
+
+	public final LoopMode loopMode;
 	public final double animationLength;
 	public final Map<String, BoneTimeline> boneTimelines;
 	public final boolean overrideBones;
@@ -80,16 +95,83 @@ public class BedrockAnimation {
 		return anim;
 	}
 
+	/**
+	 * Gets or builds a cached map of bone names to ModelParts for O(1) lookups.
+	 * Uses WeakHashMap so entries are automatically cleaned up when the root ModelPart is GC'd.
+	 */
+	private static Map<String, ModelPart> getBoneMap(ModelPart root) {
+		return BONE_CACHE.computeIfAbsent(root, r -> {
+			Map<String, ModelPart> map = new HashMap<>();
+			buildBoneMap(r, map);
+			return map;
+		});
+	}
+
+	/**
+	 * Recursively builds a map of bone names to their ModelPart objects.
+	 * Uses reflection to access the children map, which is more reliable than
+	 * traversing and checking hasChild for every possible name.
+	 */
+	private static void buildBoneMap(ModelPart part, Map<String, ModelPart> map) {
+		part.traverse().forEach(p -> {
+			try {
+				Map<String, ModelPart> children = ((ModelPartDuck) (Object) p).amblekit$getChildren();
+				map.putAll(children);
+			} catch (Exception ignored) {
+				// Skip this part
+			}
+		});
+	}
+
+	/**
+	 * Clears the bone cache. Call this if models are reloaded.
+	 */
+	public static void clearBoneCache() {
+		BONE_CACHE.clear();
+	}
+
+	/**
+	 * Checks if a Vec3d contains valid (non-NaN, non-Infinite) values.
+	 * Invalid values can corrupt the render state and cause black screens.
+	 */
+	private static boolean isValidVec3d(Vec3d vec) {
+		return Double.isFinite(vec.x) && Double.isFinite(vec.y) && Double.isFinite(vec.z);
+	}
+
+	/**
+	 * Gets a bone by name from the cache, falling back to slow traversal if needed.
+	 */
+	private static ModelPart getBone(ModelPart root, String boneName, Map<String, ModelPart> boneMap) {
+		ModelPart bone = boneMap.get(boneName);
+		if (bone != null) return bone;
+
+		// Cache miss - bone name wasn't in the cache, fall back to slow path and cache it
+		bone = root.traverse()
+				.filter(part -> part.hasChild(boneName))
+				.findFirst()
+				.map(part -> part.getChild(boneName))
+				.orElse(null);
+
+		if (bone != null) {
+			boneMap.put(boneName, bone);
+		}
+
+		return bone;
+	}
+
 
 	@Environment(EnvType.CLIENT)
 	public void apply(ModelPart root, double runningSeconds) {
 		this.resetBones(root, this.overrideBones);
 
+		// Get cached bone map for O(1) lookups instead of traversing every frame
+		Map<String, ModelPart> boneMap = getBoneMap(root);
+
 		this.boneTimelines.forEach((boneName, timeline) -> {
 			try {
 				if (IGNORED_BONES.contains(boneName.toLowerCase())) return;
 
-				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
+				ModelPart bone = getBone(root, boneName, boneMap);
 				if (bone == null) {
 					if (ROOT_BONES.contains(boneName.toLowerCase())) {
 						bone = root;
@@ -101,37 +183,72 @@ public class BedrockAnimation {
 				if (!timeline.position.isEmpty()) {
 					Vec3d position = timeline.position.resolve(runningSeconds);
 
-					// traverse includes self
-					bone.traverse().forEach(child -> {
-						child.pivotX += (float) position.x;
-						child.pivotY += (float) position.y;
-						child.pivotZ += (float) position.z;
-					});
+					// Guard against NaN/Infinity corrupting render state
+					if (!isValidVec3d(position)) return;
+
+					if (metadata.cumulative()) {
+						// traverse includes self
+						bone.traverse().forEach(child -> {
+							child.pivotX += (float) position.x;
+							child.pivotY += (float) position.y;
+							child.pivotZ += (float) position.z;
+						});
+					} else {
+						bone.pivotX += (float) position.x;
+						bone.pivotY += (float) position.y;
+						bone.pivotZ += (float) position.z;
+					}
 				}
 
 				if (!timeline.rotation.isEmpty()) {
 					Vec3d rotation = timeline.rotation.resolve(runningSeconds);
 
-					bone.pitch += (float) Math.toRadians((float) rotation.x);
-					bone.yaw += (float) Math.toRadians((float) rotation.y);
-					bone.roll += (float) Math.toRadians((float) rotation.z);
+					// Guard against NaN/Infinity corrupting render state
+					if (!isValidVec3d(rotation)) return;
+
+					if (metadata.cumulative()) {
+						// traverse includes self
+						bone.traverse().forEach(child -> {
+							child.pitch += (float) Math.toRadians((float) rotation.x);
+							child.yaw += (float) Math.toRadians((float) rotation.y);
+							child.roll += (float) Math.toRadians((float) rotation.z);
+						});
+					} else {
+						bone.pitch += (float) Math.toRadians((float) rotation.x);
+						bone.yaw += (float) Math.toRadians((float) rotation.y);
+						bone.roll += (float) Math.toRadians((float) rotation.z);
+					}
 				}
 
 				if (!timeline.scale.isEmpty()) {
 					Vec3d scale = timeline.scale.resolve(runningSeconds);
 
-					bone.traverse().forEach(child -> {
-						child.xScale = (float) scale.x;
-						child.yScale = (float) scale.y;
-						child.zScale = (float) scale.z;
-					});
+					// Guard against NaN/Infinity corrupting render state
+					if (!isValidVec3d(scale)) return;
+
+					if (metadata.cumulative()) {
+						// traverse includes self
+						bone.traverse().forEach(child -> {
+							child.xScale = (float) scale.x;
+							child.yScale = (float) scale.y;
+							child.zScale = (float) scale.z;
+						});
+					} else {
+						bone.xScale = (float) scale.x;
+						bone.yScale = (float) scale.y;
+						bone.zScale = (float) scale.z;
+					}
 				}
 			} catch (Exception e) {
 				///AmbleKit.LOGGER.error("Failed apply animation to {} in model. Skipping animation application for this bone.", boneName, e);
 			}
 		});
 
-		boolean isComplete = !this.shouldLoop && runningSeconds >= this.animationLength;
+		// Only reset bones when the animation is complete AND has no loop mode (NONE)
+		// LOOP: will wrap around via getRunningSeconds
+		// HOLD_ON_LAST_FRAME: should stay on last frame, not reset
+		// NONE: should reset to starting position when finished
+		boolean isComplete = this.loopMode == LoopMode.NONE && runningSeconds >= this.animationLength;
 		if (isComplete) {
 			this.resetBones(root, true);
 		}
@@ -190,6 +307,19 @@ public class BedrockAnimation {
 		});
 	}
 
+	@Environment(EnvType.CLIENT)
+	public void apply(ModelPart root, TargetedAnimationState state, @Nullable EffectProvider provider) {
+		// IMPORTANT: Set animation length BEFORE calculating time values
+		state.setAnimationLength(this);
+
+		float previous = state.getAnimationTimeSecs() - 0.01F;
+		state.tick();
+		float current = state.getAnimationTimeSecs();
+
+		this.apply(root, current);
+		this.applyEffects(provider, current, previous, root);
+	}
+
 	public void apply(ModelPart root, int totalTicks, float rawDelta) {
 		float ticks = (float) ((totalTicks / 20F) % (this.animationLength)) * 20;
 		float delta = rawDelta / 10F;
@@ -205,14 +335,33 @@ public class BedrockAnimation {
 
 	public double getRunningSeconds(AnimationState state) {
 		float f = (float)state.getTimeRunning() / 1000.0F;
-		double seconds = this.shouldLoop ? f % this.animationLength : f;
+		double seconds;
+		
+		switch (this.loopMode) {
+			case LOOP:
+				seconds = f % this.animationLength;
+				break;
+			case HOLD_ON_LAST_FRAME:
+				// Clamp to animation length so it stays on last frame
+				seconds = Math.min(f, this.animationLength);
+				break;
+			case NONE:
+			default:
+				seconds = f;
+				break;
+		}
 
 		return seconds;
 	}
 
 	public boolean isFinished(AnimationState state) {
-		if (this.shouldLoop) return false;
+		// Looping animations never finish
+		if (this.loopMode == LoopMode.LOOP) return false;
+		
+		// Hold on last frame animations are still considered "playing" - they don't finish
+		if (this.loopMode == LoopMode.HOLD_ON_LAST_FRAME) return false;
 
+		// NONE mode: animation finishes when it reaches the end
 		return getRunningSeconds(state) >= this.animationLength;
 	}
 
@@ -222,11 +371,14 @@ public class BedrockAnimation {
 			return;
 		}
 
+		// Get cached bone map for O(1) lookups instead of traversing every frame
+		Map<String, ModelPart> boneMap = getBoneMap(root);
+
 		this.boneTimelines.forEach((boneName, timeline) -> {
 			try {
 				if (IGNORED_BONES.contains(boneName.toLowerCase())) return;
 
-				ModelPart bone = root.traverse().filter(part -> part.hasChild(boneName)).findFirst().map(part -> part.getChild(boneName)).orElse(null);
+				ModelPart bone = getBone(root, boneName, boneMap);
 				if (bone == null) {
 					if (ROOT_BONES.contains(boneName.toLowerCase())) {
 						bone = root;
@@ -359,6 +511,12 @@ public class BedrockAnimation {
 
 				if (smoothBefore || smoothAfter) {
 					if (before != null && after != null) {
+						// Guard against division by zero when keyframes have the same time
+						double timeDiff = after.time - before.time;
+						if (timeDiff == 0) {
+							return beforeData;
+						}
+
 						Integer beforePlusIndex = beforeIndex == 0 ? null : beforeIndex - 1;
 						KeyFrame beforePlus = getAtIndex(this, beforePlusIndex);
 
@@ -368,7 +526,7 @@ public class BedrockAnimation {
 						Vec3d beforePlusData = (beforePlus != null && beforePlus.getPost() != null) ? beforePlus.getPost().resolve(time) : beforeData;
 						Vec3d afterPlusData = (afterPlus != null && afterPlus.getPre() != null) ? afterPlus.getPre().resolve(time) : afterData;
 
-						double t = (time - before.time) / (after.time - before.time);
+						double t = (time - before.time) / timeDiff;
 
 						return new Vec3d(
 								catmullRom((float) t, (float) beforePlusData.x, (float) beforeData.x, (float) afterData.x, (float) afterPlusData.x),
@@ -382,9 +540,13 @@ public class BedrockAnimation {
 					}
 				} else {
 					if (before != null && after != null) {
-						double alpha = time;
+						// Guard against division by zero when keyframes have the same time
+						double timeDiff = after.time - before.time;
+						if (timeDiff == 0) {
+							return beforeData;
+						}
 
-						alpha = (alpha - before.time) / (after.time - before.time);
+						double alpha = (time - before.time) / timeDiff;
 
 						return new Vec3d(
 								beforeData.getX() + (afterData.getX() - beforeData.getX()) * alpha,

@@ -25,6 +25,7 @@
     "client.ClientPlayerEntityMixin",
     "client.ClientPlayerInteractionManagerMixin",
     "client.GameRendererMixin",
+    "client.ModelPartAccessor",
     "client.PerspectiveMixin",
     "client.PlayerEntityModelMixin",
     "client.PlayerEntityRendererMixin",

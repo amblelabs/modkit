@@ -18,11 +18,16 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.model.*;
 import net.minecraft.util.Identifier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Type;
 import java.util.*;
 
 @Environment(EnvType.CLIENT)
 public class BedrockModel implements Identifiable {
+	private static final Logger LOGGER = LoggerFactory.getLogger(BedrockModel.class);
+
 	@SerializedName("format_version")
 	public String version;
 	@SerializedName("minecraft:geometry")
@@ -101,10 +106,10 @@ public class BedrockModel implements Identifiable {
 						List<Float> pivot = (cube.pivot != null) ? cube.pivot : bone.pivot;
 
 						if (cube.uv != null) {
-							subPart.uv(
-									cube.uv.get(0),
-									cube.uv.get(1)
-							);
+							int uvX = cube.uv.get(0);
+							int uvY = cube.uv.get(1);
+
+							subPart.uv(uvX, uvY);
 						}
 						if (cube.mirror) {
 							subPart.mirrored();

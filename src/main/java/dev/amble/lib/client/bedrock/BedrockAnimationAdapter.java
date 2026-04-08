@@ -13,6 +13,7 @@ package dev.amble.lib.client.bedrock;
 
 import com.google.gson.*;
 import dev.amble.lib.animation.client.AnimationMetadata;
+import dev.amble.lib.util.JsonUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.util.Identifier;
@@ -39,7 +40,19 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 
 		JsonObject jsonObj = json.getAsJsonObject();
 		double animationLength = jsonObj.has("animation_length") ? jsonObj.get("animation_length").getAsDouble() : -1.0;
-		boolean shouldLoop = animationLength > 0 && jsonObj.has("loop") && jsonObj.get("loop").getAsBoolean();
+		
+		// Parse loop mode: true, "hold_on_last_frame", or none/false
+		BedrockAnimation.LoopMode loopMode = BedrockAnimation.LoopMode.NONE;
+		if (animationLength > 0 && jsonObj.has("loop")) {
+			loopMode = JsonUtil.parseEnumOrBoolean(
+					jsonObj.get("loop"),
+					BedrockAnimation.LoopMode.class,
+					BedrockAnimation.LoopMode.LOOP,
+					BedrockAnimation.LoopMode.NONE,
+					BedrockAnimation.LoopMode.NONE
+			);
+		}
+		
 		boolean overrideBones = jsonObj.has("override_previous_animation") && jsonObj.get("override_previous_animation").getAsBoolean();
 
 		Map<String, BedrockAnimation.BoneTimeline> boneTimelines = new HashMap<>();
@@ -119,10 +132,14 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 				jsonMetadata.remove("camera_uses_head");
 			}
 
+			// Whether translations are cumulative (apply to children) - default false
+			boolean cumulative = jsonObj.has("cumulative") && jsonObj.get("cumulative").getAsBoolean();
+			metadata = metadata.withCumulative(cumulative);
+
 			metadata = metadata.withExcess(jsonMetadata);
 		}
 
-		return new BedrockAnimation(shouldLoop, animationLength, boneTimelines, overrideBones, metadata, sounds);
+		return new BedrockAnimation(loopMode, animationLength, boneTimelines, overrideBones, metadata, sounds);
 	}
 
 	private BedrockAnimation.BoneTimeline deserializeBoneTimeline(JsonObject bone) {
