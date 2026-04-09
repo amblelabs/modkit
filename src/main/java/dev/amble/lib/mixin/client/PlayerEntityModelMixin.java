@@ -42,9 +42,9 @@ public abstract class PlayerEntityModelMixin<T extends LivingEntity>
 	    model.rightSleeve.copyTransform(model.rightArm);
 	    model.jacket.copyTransform(model.body);
 
-	    if (!BedrockAnimation.IS_RENDERING_PLAYER || BedrockAnimation.IS_RENDERING_HEAD || livingEntity != MinecraftClient.getInstance().cameraEntity) return;
+	    if (!BedrockAnimation.IS_RENDERING_PLAYER || BedrockAnimation.IS_RENDERING_HEAD == null || livingEntity != MinecraftClient.getInstance().cameraEntity) return;
 
-	    hat.visible = false;
+	    hat.visible = BedrockAnimation.IS_RENDERING_HEAD;
     }
 
     @Override

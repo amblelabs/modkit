@@ -26,11 +26,11 @@ public abstract class ArmorFeatureRendererMixin<T extends LivingEntity, M extend
 
 	@Inject(method = "renderArmor", at = @At("HEAD"), cancellable = true)
     private void renderArmor(MatrixStack matrices, VertexConsumerProvider vertexConsumers, T entity, EquipmentSlot armorSlot, int light, A model, CallbackInfo ci) {
-        if(entity != MinecraftClient.getInstance().cameraEntity) {
+        if (entity != MinecraftClient.getInstance().cameraEntity) {
             return;
         }
 
-        if(armorSlot == EquipmentSlot.HEAD && BedrockAnimation.IS_RENDERING_PLAYER && !BedrockAnimation.IS_RENDERING_HEAD) {
+        if (armorSlot == EquipmentSlot.HEAD && BedrockAnimation.IS_RENDERING_PLAYER && BedrockAnimation.IS_RENDERING_HEAD == false) {
             ci.cancel();
         }
     }

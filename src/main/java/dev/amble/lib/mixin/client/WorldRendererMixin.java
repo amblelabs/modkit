@@ -28,10 +28,18 @@ public class WorldRendererMixin {
 		if (!(camera.getFocusedEntity() instanceof AnimatedEntity animated)) return;
 
 		BedrockAnimation anim = BedrockAnimation.getFor(animated);
-		if (anim == null) return;
+		
+		if (anim == null) {
+			BedrockAnimation.IS_RENDERING_HEAD = null;
+			return;
+		}
+		
 		AnimationMetadata metadata = anim.metadata;
-		if (metadata == null || !metadata.fpsCamera()) return;
-
+		
+		if (metadata == null || !metadata.fpsCamera()) {
+			BedrockAnimation.IS_RENDERING_HEAD = null;
+			return;
+		}
 
 		boolean thirdPerson = camera.isThirdPerson();
 		boolean hasCamera = anim.boneTimelines.containsKey("camera");
