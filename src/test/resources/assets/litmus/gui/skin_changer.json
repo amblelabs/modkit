@@ -1,0 +1,209 @@
+{
+  "layout": [
+    280,
+    200
+  ],
+  "background": {
+    "texture": "litmus:textures/gui/test_screen.png",
+    "u": 0,
+    "v": 0,
+    "regionWidth": 216,
+    "regionHeight": 138,
+    "textureWidth": 256,
+    "textureHeight": 256
+  },
+  "padding": 12,
+  "spacing": 10,
+  "alignment": [
+    "centre",
+    "centre"
+  ],
+  "should_pause": true,
+  "children": [
+    {
+      "id": "litmus:player_display",
+      "entity_uuid": "player",
+      "follow_cursor": true,
+      "entity_scale": 0.9,
+      "layout": [
+        70,
+        160
+      ],
+      "background": [
+        40,
+        40,
+        60,
+        200
+      ]
+    },
+    {
+      "id": "litmus:right_panel",
+      "layout": [
+        170,
+        160
+      ],
+      "background": [
+        30,
+        30,
+        50,
+        180
+      ],
+      "padding": 8,
+      "spacing": 8,
+      "alignment": [
+        "centre",
+        "start"
+      ],
+      "children": [
+        {
+          "id": "litmus:title_text",
+          "layout": [
+            154,
+            14
+          ],
+          "background": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "text": "§lSkin Changer",
+          "text_alignment": [
+            "centre",
+            "centre"
+          ]
+        },
+        {
+          "id": "litmus:player_name_text",
+          "layout": [
+            154,
+            12
+          ],
+          "background": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "text": "Current: Loading...",
+          "text_alignment": [
+            "centre",
+            "centre"
+          ]
+        },
+        {
+          "id": "litmus:username_input",
+          "text_input": true,
+          "placeholder": "Enter username...",
+          "max_length": 16,
+          "layout": [
+            154,
+            20
+          ],
+          "background": [
+            20,
+            20,
+            30,
+            255
+          ],
+          "border_color": [
+            80,
+            80,
+            100
+          ],
+          "focused_border_color": [
+            100,
+            140,
+            220
+          ],
+          "selection_color": [
+            80,
+            120,
+            200,
+            128
+          ],
+          "placeholder_color": [
+            100,
+            100,
+            120
+          ]
+        },
+        {
+          "id": "litmus:set_skin_btn",
+          "script": "litmus:skin_changer",
+          "hover_background": [
+            70,
+            100,
+            70
+          ],
+          "press_background": [
+            40,
+            70,
+            40
+          ],
+          "layout": [
+            154,
+            20
+          ],
+          "background": [
+            50,
+            80,
+            50
+          ],
+          "text": "§fSet Skin",
+          "text_alignment": [
+            "centre",
+            "centre"
+          ]
+        },
+        {
+          "id": "litmus:slim_toggle_btn",
+          "script": "litmus:skin_changer_slim",
+          "hover_background": [
+            80,
+            80,
+            120
+          ],
+          "press_background": [
+            50,
+            50,
+            80
+          ],
+          "layout": [
+            154,
+            20
+          ],
+          "background": [
+            60,
+            60,
+            90
+          ],
+          "text": "§fModel: Classic",
+          "text_alignment": [
+            "centre",
+            "centre"
+          ]
+        },
+        {
+          "id": "litmus:status_text",
+          "layout": [
+            154,
+            12
+          ],
+          "background": [
+            0,
+            0,
+            0,
+            0
+          ],
+          "text": "",
+          "text_alignment": [
+            "centre",
+            "centre"
+          ]
+        }
+      ]
+    }
+  ]
+}
+

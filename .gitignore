@@ -33,10 +33,18 @@ bin/
 # fabric
 
 run/
+run2/
 
 # java
 
 src/main/generated/.cache
 src/main/generated
+src/test/generated
+src/test/generated/.cache
+
 
 .direnv
+
+# cursor
+
+.cursorrules

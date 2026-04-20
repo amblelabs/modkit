@@ -21,7 +21,10 @@
 		],
 		"client": [
 			"dev.amble.litmus.client.LitmusClient"
-		]
+		],
+        "fabric-datagen": [
+            "dev.amble.litmus.datagen.LitmusDatagen"
+        ]
 	},
 	"depends": {
 		"fabricloader": ">=0.16.10",

@@ -49,11 +49,30 @@ loom {
 		    ideConfigGenerated project.rootProject == project
 		    name = "Testmod Client"
 		    source sourceSets.test
+		    programArgs "--username", "Dev"
+	    }
+	    testmodClient2 {
+		    client()
+		    ideConfigGenerated project.rootProject == project
+		    name = "Testmod Client 2"
+		    source sourceSets.test
+		    programArgs "--username", "Dev2"
+		    runDir "run2"
 	    }
 	    testmodServer {
 		    server()
 		    ideConfigGenerated project.rootProject == project
 		    name = "Testmod Server"
+		    source sourceSets.test
+	    }
+	    testmodDatagen {
+		    inherit server
+		    ideConfigGenerated project.rootProject == project
+		    name = "Testmod Data Generation"
+		    vmArg "-Dfabric-api.datagen"
+		    vmArg "-Dfabric-api.datagen.output-dir=${file("src/test/generated")}"
+		    vmArg "-Dfabric-api.datagen.modid=litmus"
+		    runDir "build/datagen"
 		    source sourceSets.test
 	    }
     }
@@ -72,6 +91,11 @@ sourceSets {
 	test {
 		runtimeClasspath += main.runtimeClasspath
 		compileClasspath += main.compileClasspath
+		resources {
+			srcDirs += [
+				"src/test/generated"
+			]
+		}
 	}
 }
 
@@ -89,6 +113,9 @@ dependencies {
     include(modApi("dev.drtheo:multidim:${project.multidim_version}"))
     include(modApi("dev.drtheo:scheduler:${project.scheduler_version}"))
     include(modApi("dev.drtheo:queue:${project.queue_version}"))
+
+    // LuaJ for GUI scripting
+    include(implementation("org.luaj:luaj-jse:3.0.1"))
 
 	// getter setter
 	compileOnly 'org.projectlombok:lombok:1.18.34'
