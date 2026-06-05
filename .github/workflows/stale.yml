@@ -1,0 +1,37 @@
+name: "Triage: Stale"
+
+# Marks quiet issues/PRs as "S: Stale" and eventually closes them.
+# High-priority, frozen, and intentional items are exempt.
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9
+        with:
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-label: "S: Stale"
+          stale-pr-label: "S: Stale"
+          remove-stale-when-updated: true
+          stale-issue-message: >
+            this ones gone quiet - marking it `S: Stale`. give it a poke if its
+            still relevant, otherwise itll close in a week.
+          stale-pr-message: >
+            no activity on this for a while - marking it `S: Stale`. push something
+            or comment if its still alive, otherwise itll close in a week.
+          close-issue-message: "closing as stale - comment to reopen if needed."
+          close-pr-message: "closing as stale - reopen if you come back to it."
+          exempt-issue-labels: "P0: Critical,P1: High,S: Frozen,Issue: Intended Feature,S: Help Wanted"
+          exempt-pr-labels: "S: DO NOT MERGE,S: Frozen,P0: Critical,P1: High"
+          exempt-all-milestones: true
+          operations-per-run: 60

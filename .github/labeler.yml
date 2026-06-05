@@ -1,0 +1,74 @@
+# Path-based PR labels. Used by .github/workflows/pr-labeler.yml (actions/labeler).
+# Mirrors the AmbleKit label taxonomy (see .github for the full set).
+
+"A: Registry":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/amble/lib/register/**/*.java'
+          - 'src/main/java/dev/amble/lib/container/**/*.java'
+
+"A: Datapacks":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/amble/lib/register/datapack/**/*.java'
+          - 'src/main/resources/data/**'
+
+"A: Models":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/amble/lib/animation/**/*.java'
+          - 'src/main/java/dev/amble/lib/client/bedrock/**/*.java'
+          - 'src/main/java/dev/amble/lib/client/model/**/*.java'
+
+"A: Datagen":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/amble/lib/datagen/**/*.java'
+
+"A: Core Tech":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/amble/lib/api/**/*.java'
+          - 'src/main/java/dev/amble/lib/mixin/**/*.java'
+          - 'src/main/java/dev/amble/lib/util/**/*.java'
+
+"A: Build":
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.gradle'
+          - 'gradle/**'
+          - 'gradle.properties'
+          - 'jitpack.yml'
+          - 'flake.nix'
+          - 'flake.lock'
+          - '.github/**'
+
+"A: Docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+
+"C: Render":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/amble/lib/**/client/**/*.java'
+          - 'src/main/java/dev/amble/lib/mixin/client/**/*.java'
+
+"C: Textures":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/resources/assets/*/textures/**/*.png'
+
+"C: Translations":
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/main/resources/assets/*/lang/**/*.json'
+
+"C: No Java":
+  - changed-files:
+      # applies when every changed file is non-java: '**' matches all files,
+      # then the negative glob requires none of them to be java. a negative-only
+      # rule never matches in actions/labeler, hence the '**' catch-all.
+      - all-globs-to-all-files:
+          - '**'
+          - '!src/main/java/**/*.java'
