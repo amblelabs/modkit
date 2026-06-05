@@ -21,7 +21,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: triage-${{ github.event.issue.number || github.event.inputs.issue }}
+  # key off trusted contexts only - issue number for issue events, run_id for
+  # manual runs (the dispatch input is user-controlled, don't put it in the key)
+  group: triage-${{ github.event.issue.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
