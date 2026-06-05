@@ -97,13 +97,24 @@ jobs:
           REPO: ${{ github.repository }}
           NUM: ${{ steps.ctx.outputs.num }}
           RESP: ${{ steps.ai.outputs.response }}
+          # optional overrides - set as repo/org Actions variables instead of editing
+          # this file. find the ids via: gh api orgs/<org>/issue-fields
+          PRIORITY_FIELD_ID: ${{ vars.PRIORITY_FIELD_ID }}
+          EFFORT_FIELD_ID: ${{ vars.EFFORT_FIELD_ID }}
         run: |
           set -uo pipefail
 
-          JSON=$(printf '%s' "$RESP" | tr -d '\n' | grep -o '{.*}' | head -1 || true)
+          # prefer the whole response if it already parses as json (expected case:
+          # the model is asked for one line of minified json). otherwise strip any
+          # code fences and fall back to the first {...} block.
+          if printf '%s' "$RESP" | jq -e . >/dev/null 2>&1; then
+            JSON="$RESP"
+          else
+            JSON=$(printf '%s' "$RESP" | tr -d '\r\n' | sed 's/```json//g; s/```//g' | grep -o '{.*}' | head -1 || true)
+          fi
           echo "model json: $JSON"
 
-          if [ -z "$JSON" ] || ! echo "$JSON" | jq -e . >/dev/null 2>&1; then
+          if [ -z "$JSON" ] || ! printf '%s' "$JSON" | jq -e . >/dev/null 2>&1; then
             echo "no valid json -> S: Untriaged"
             gh issue edit "$NUM" --repo "$REPO" --add-label "S: Untriaged" || true
             exit 0
@@ -139,8 +150,8 @@ jobs:
           done < <(echo "$JSON" | jq -r '((.areas // []) + (.changes // []))[]')
           [ "$NEEDS" = "true" ] && LABELS+=("Issue: Awaiting Response")
 
-          # only apply labels that actually exist in the repo
-          mapfile -t EXISTING < <(gh label list --repo "$REPO" --limit 200 --json name --jq '.[].name')
+          # only apply labels that actually exist in the repo (page through all of them)
+          mapfile -t EXISTING < <(gh api "repos/$REPO/labels" --paginate --jq '.[].name')
           ADD=()
           for l in "${LABELS[@]:-}"; do
             for e in "${EXISTING[@]}"; do
@@ -165,8 +176,10 @@ jobs:
               | gh api --method POST "repositories/$RID/issues/$NUM/issue-field-values" --input - >/dev/null 2>&1 \
               || echo "field $1 not set"
           }
-          set_field 30052706 "$PRIORITY"   # Priority
-          set_field 30052709 "$EFFORT"     # Effort
+          # ids default to this org's Priority/Effort fields; override via the
+          # PRIORITY_FIELD_ID / EFFORT_FIELD_ID Actions variables if they differ.
+          set_field "${PRIORITY_FIELD_ID:-30052706}" "$PRIORITY"
+          set_field "${EFFORT_FIELD_ID:-30052709}" "$EFFORT"
 
           # triage comment
           {

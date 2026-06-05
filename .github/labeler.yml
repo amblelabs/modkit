@@ -22,7 +22,8 @@
 
 "A: Datagen":
   - changed-files:
-      - any-glob-to-any-file: 'src/main/java/dev/amble/lib/datagen/**/*.java'
+      - any-glob-to-any-file:
+          - 'src/main/java/dev/amble/lib/datagen/**/*.java'
 
 "A: Core Tech":
   - changed-files:
@@ -44,7 +45,8 @@
 
 "A: Docs":
   - changed-files:
-      - any-glob-to-any-file: '**/*.md'
+      - any-glob-to-any-file:
+          - '**/*.md'
 
 "C: Render":
   - changed-files:
@@ -54,13 +56,16 @@
 
 "C: Textures":
   - changed-files:
-      - any-glob-to-any-file: 'src/main/resources/assets/*/textures/**/*.png'
+      - any-glob-to-any-file:
+          - 'src/main/resources/assets/*/textures/**/*.png'
 
 "C: Translations":
   - changed-files:
-      - any-glob-to-any-file: 'src/main/resources/assets/*/lang/**/*.json'
+      - any-glob-to-any-file:
+          - 'src/main/resources/assets/*/lang/**/*.json'
 
 "C: No Java":
   - changed-files:
       # if NONE of the changed files are java, it's a no-java change
-      - all-globs-to-all-files: '!src/main/java/**/*.java'
+      - all-globs-to-all-files:
+          - '!src/main/java/**/*.java'
