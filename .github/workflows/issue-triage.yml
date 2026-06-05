@@ -157,8 +157,15 @@ jobs:
             D1) LABELS+=("D1: High");;
             D0) LABELS+=("D0: Very High");;
           esac
+          # allowlist the model's area/change labels to the documented taxonomy so a
+          # stray (but repo-existing) label can't sneak in if the model goes off-schema.
+          declare -A ALLOWED_AC=(
+            ["A: Registry"]=1 ["A: Datapacks"]=1 ["A: Models"]=1 ["A: Datagen"]=1
+            ["A: Core Tech"]=1 ["A: Build"]=1 ["A: Docs"]=1
+            ["C: Render"]=1 ["C: Textures"]=1 ["C: Translations"]=1 ["C: No Java"]=1
+          )
           while IFS= read -r l; do
-            [ -n "$l" ] && LABELS+=("$l")
+            [ -n "$l" ] && [ -n "${ALLOWED_AC[$l]:-}" ] && LABELS+=("$l")
           done < <(echo "$JSON" | jq -r '((.areas // []) + (.changes // []))[]')
           [ "$NEEDS" = "true" ] && LABELS+=("Issue: Awaiting Response")
 
