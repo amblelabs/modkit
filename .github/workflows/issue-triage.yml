@@ -67,6 +67,9 @@ jobs:
 
       - name: AI classify
         id: ai
+        # don't fail the run if GitHub Models is unavailable (not enabled / rate-limited
+        # / 403) - the Apply step falls back to S: Untriaged when the response is empty.
+        continue-on-error: true
         uses: actions/ai-inference@b81b2afb8390ee6839b494a404766bef6493c7d9 # v1
         with:
           model: openai/gpt-4o-mini
