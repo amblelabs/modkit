@@ -199,8 +199,8 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 					keyframes.put(time, new BedrockAnimation.JumpKeyFrame(time, transformation, type, deserializeSimpleBoneValue(kfObj.has("pre") ? kfObj.getAsJsonArray("pre") : post.getAsJsonArray(), transformation),
 							deserializeSimpleBoneValue(post.getAsJsonArray(), transformation)));
 				} else if (kfObj.has("pre")) {
-					JsonElement pre = kfObj.get("pre");
-					keyframes.put(time, new BedrockAnimation.JumpKeyFrame(time, transformation, type, deserializeSimpleBoneValue(pre.getAsJsonArray(), transformation), deserializeSimpleBoneValue(pre.getAsJsonArray(), transformation)));
+					BedrockAnimation.SimpleBoneValue pre = deserializeSimpleBoneValue(kfObj.getAsJsonArray("pre"), transformation);
+					keyframes.put(time, new BedrockAnimation.JumpKeyFrame(time, transformation, type, pre, pre));
 				}
 			} else {
 				keyframes.put(time, new BedrockAnimation.SimpleKeyFrame(
