@@ -68,7 +68,7 @@ jobs:
         uses: actions/ai-inference@b81b2afb8390ee6839b494a404766bef6493c7d9 # v1
         with:
           model: openai/gpt-4o-mini
-          max-completion-tokens: 500
+          max-tokens: 500
           prompt-file: ${{ runner.temp }}/triage-prompt.txt
           system-prompt: |
             You triage GitHub issues for AmbleKit (a.k.a. modkit) - a Fabric 1.20.1
@@ -134,7 +134,7 @@ jobs:
           PRIORITY=$(echo "$JSON" | jq -r '.priority // empty')
           EFFORT=$(echo "$JSON" | jq -r '.effort // empty')
           DIFF=$(echo "$JSON" | jq -r '.difficulty // empty')
-          SUMMARY=$(echo "$JSON" | jq -r '.summary // empty')
+          SUMMARY=$(echo "$JSON" | jq -r '.summary // empty' | tr '\r\n' ' ' | cut -c1-200)
           NEEDS=$(echo "$JSON" | jq -r '.needs_info // false')
 
           LABELS=()
