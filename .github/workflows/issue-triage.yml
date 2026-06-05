@@ -1,0 +1,185 @@
+name: "Triage: AI"
+
+# AI-assisted issue triage using GitHub Models (actions/ai-inference).
+# On a new issue it asks a model to classify the issue against the AmbleKit
+# label taxonomy, then applies labels, sets the issue type, sets the org
+# Priority/Effort fields (best effort), and leaves a short triage comment.
+# If the model output can't be parsed it falls back to "S: Untriaged".
+
+on:
+  issues:
+    types: [opened, reopened]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "Issue number to (re)triage"
+        required: true
+
+permissions:
+  issues: write
+  models: read
+  contents: read
+
+concurrency:
+  group: triage-${{ github.event.issue.number || github.event.inputs.issue }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve issue number
+        id: ctx
+        env:
+          NUM: ${{ github.event.issue.number || github.event.inputs.issue }}
+        run: echo "num=$NUM" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch issue (for manual runs) + build prompt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUM: ${{ steps.ctx.outputs.num }}
+          EVENT_TITLE: ${{ github.event.issue.title }}
+          EVENT_BODY: ${{ github.event.issue.body }}
+        run: |
+          set -euo pipefail
+          if [ -n "${EVENT_TITLE:-}" ]; then
+            TITLE="$EVENT_TITLE"; BODY="$EVENT_BODY"
+          else
+            TITLE=$(gh issue view "$NUM" --repo "$REPO" --json title --jq '.title')
+            BODY=$(gh issue view "$NUM" --repo "$REPO" --json body --jq '.body')
+          fi
+          {
+            echo "Issue #$NUM"
+            echo "Title: $TITLE"
+            echo
+            echo "Body:"
+            echo "${BODY:-(no body)}"
+          } > "$RUNNER_TEMP/triage-prompt.txt"
+
+      - name: AI classify
+        id: ai
+        uses: actions/ai-inference@v1
+        with:
+          model: openai/gpt-4o-mini
+          max-completion-tokens: 500
+          prompt-file: ${{ runner.temp }}/triage-prompt.txt
+          system-prompt: |
+            You triage GitHub issues for AmbleKit (a.k.a. modkit) - a Fabric 1.20.1
+            Minecraft *library* mod (Java). It provides: a reflection-based registry
+            container API, a GSON datapack registry (SimpleDatapackRegistry), datagen
+            (auto models/lang/tags from annotations), and a "bedrock" block-entity
+            model + animation system.
+
+            Classify the issue and reply with ONE LINE of minified JSON, no code
+            fences, no prose. Schema (use EXACTLY these allowed values):
+
+            {
+              "type": "Bug" | "Feature" | "Task",
+              "priority": "Urgent" | "High" | "Medium" | "Low",
+              "effort": "High" | "Medium" | "Low",
+              "difficulty": "DB" | "D3" | "D2" | "D1" | "D0",
+              "areas": [ subset of: "A: Registry","A: Datapacks","A: Models","A: Datagen","A: Core Tech","A: Build","A: Docs" ],
+              "changes": [ subset of: "C: Render","C: Textures","C: Translations","C: No Java" ],
+              "summary": "one short lowercase sentence",
+              "needs_info": true | false
+            }
+
+            Guidance: crashes / data loss -> priority High or Urgent. A vague report
+            with no repro/logs -> needs_info=true. "Task" = docs/chores/proposals,
+            "Feature" = new API/content, "Bug" = something broken. difficulty is how
+            much codebase knowledge a fix needs (DB beginner .. D0 extreme). Pick the
+            1-2 most relevant areas; do not invent labels outside the lists.
+
+      - name: Apply triage
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUM: ${{ steps.ctx.outputs.num }}
+          RESP: ${{ steps.ai.outputs.response }}
+        run: |
+          set -uo pipefail
+
+          JSON=$(printf '%s' "$RESP" | tr -d '\n' | grep -o '{.*}' | head -1 || true)
+          echo "model json: $JSON"
+
+          if [ -z "$JSON" ] || ! echo "$JSON" | jq -e . >/dev/null 2>&1; then
+            echo "no valid json -> S: Untriaged"
+            gh issue edit "$NUM" --repo "$REPO" --add-label "S: Untriaged" || true
+            exit 0
+          fi
+
+          TYPE=$(echo "$JSON" | jq -r '.type // empty')
+          PRIORITY=$(echo "$JSON" | jq -r '.priority // empty')
+          EFFORT=$(echo "$JSON" | jq -r '.effort // empty')
+          DIFF=$(echo "$JSON" | jq -r '.difficulty // empty')
+          SUMMARY=$(echo "$JSON" | jq -r '.summary // empty')
+          NEEDS=$(echo "$JSON" | jq -r '.needs_info // false')
+
+          LABELS=()
+          case "$TYPE" in
+            Bug) LABELS+=("T: Bugfix");;
+            Feature) LABELS+=("T: New Feature");;
+          esac
+          case "$PRIORITY" in
+            Urgent) LABELS+=("P0: Critical");;
+            High) LABELS+=("P1: High");;
+            Medium) LABELS+=("P2: Raised");;
+            Low) LABELS+=("P3: Standard");;
+          esac
+          case "$DIFF" in
+            DB) LABELS+=("DB: Beginner Friendly");;
+            D3) LABELS+=("D3: Low");;
+            D2) LABELS+=("D2: Medium");;
+            D1) LABELS+=("D1: High");;
+            D0) LABELS+=("D0: Very High");;
+          esac
+          while IFS= read -r l; do
+            [ -n "$l" ] && LABELS+=("$l")
+          done < <(echo "$JSON" | jq -r '((.areas // []) + (.changes // []))[]')
+          [ "$NEEDS" = "true" ] && LABELS+=("Issue: Awaiting Response")
+
+          # only apply labels that actually exist in the repo
+          mapfile -t EXISTING < <(gh label list --repo "$REPO" --limit 200 --json name --jq '.[].name')
+          ADD=()
+          for l in "${LABELS[@]:-}"; do
+            for e in "${EXISTING[@]}"; do
+              if [ "$l" = "$e" ]; then ADD+=("--add-label" "$l"); break; fi
+            done
+          done
+          if [ "${#ADD[@]}" -gt 0 ]; then
+            gh issue edit "$NUM" --repo "$REPO" "${ADD[@]}" || true
+          fi
+
+          # GitHub issue type (best effort - org-level)
+          if [ -n "$TYPE" ]; then
+            gh api --method PATCH "repos/$REPO/issues/$NUM" -f type="$TYPE" >/dev/null 2>&1 \
+              || echo "issue type not set (token may lack org perms)"
+          fi
+
+          # org Priority/Effort issue fields (best effort)
+          RID=$(gh api "repos/$REPO" --jq '.id')
+          set_field() {
+            [ -z "$2" ] && return 0
+            printf '{"issue_field_values":[{"field_id":%s,"value":"%s"}]}' "$1" "$2" \
+              | gh api --method POST "repositories/$RID/issues/$NUM/issue-field-values" --input - >/dev/null 2>&1 \
+              || echo "field $1 not set"
+          }
+          set_field 30052706 "$PRIORITY"   # Priority
+          set_field 30052709 "$EFFORT"     # Effort
+
+          # triage comment
+          {
+            echo "🤖 **auto-triage** (github models)"
+            echo
+            echo "| type | priority | effort | difficulty |"
+            echo "|---|---|---|---|"
+            echo "| ${TYPE:-?} | ${PRIORITY:-?} | ${EFFORT:-?} | ${DIFF:-?} |"
+            echo
+            [ -n "$SUMMARY" ] && echo "> $SUMMARY"
+            echo
+            [ "$NEEDS" = "true" ] && echo "looks like its missing repro steps / logs - added \`Issue: Awaiting Response\`."
+            echo
+            echo "_labels are a best guess, a maintainer will confirm._"
+          } > "$RUNNER_TEMP/comment.md"
+          gh issue comment "$NUM" --repo "$REPO" --body-file "$RUNNER_TEMP/comment.md" || true
