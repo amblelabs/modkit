@@ -184,14 +184,10 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 		for (Map.Entry<String, JsonElement> entry : frames.entrySet()) {
 			double time = Double.parseDouble(entry.getKey());
 			JsonElement keyframeJson = entry.getValue();
+			BedrockAnimation.InterpolationType type = parseInterpolationType(keyframeJson);
 
 			if (keyframeJson.isJsonObject()) {
 				JsonObject kfObj = keyframeJson.getAsJsonObject();
-				BedrockAnimation.InterpolationType type = "catmullrom".equals(
-						kfObj.has("lerp_mode") ? kfObj.get("lerp_mode").getAsString() : "linear")
-						? BedrockAnimation.InterpolationType.SMOOTH
-						: BedrockAnimation.InterpolationType.LINEAR;
-
 
 				if (kfObj.has("post")) {
 					JsonElement post = kfObj.get("post");
@@ -199,19 +195,34 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 							deserializeSimpleBoneValue(post.getAsJsonArray(), transformation)));
 				} else if (kfObj.has("pre")) {
 					JsonElement pre = kfObj.get("pre");
-					keyframes.put(time, new BedrockAnimation.JumpKeyFrame(time, transformation, type, deserializeSimpleBoneValue(pre.getAsJsonArray(), transformation), deserializeSimpleBoneValue(kfObj.has("post") ? kfObj.getAsJsonArray("post") : pre.getAsJsonArray(), transformation)));
+					keyframes.put(time, new BedrockAnimation.JumpKeyFrame(time, transformation, type, deserializeSimpleBoneValue(pre.getAsJsonArray(), transformation), deserializeSimpleBoneValue(pre.getAsJsonArray(), transformation)));
 				}
 			} else {
 				keyframes.put(time, new BedrockAnimation.SimpleKeyFrame(
 						time,
 						transformation,
-						BedrockAnimation.InterpolationType.LINEAR,
+						type,
 						deserializeSimpleBoneValue(keyframeJson.getAsJsonArray(), transformation)
 				));
 			}
 		}
 
 		return keyframes;
+	}
+
+	private BedrockAnimation.InterpolationType parseInterpolationType(JsonElement keyframeJson) {
+		String lerpMode = "linear";
+
+		if (keyframeJson.isJsonObject()) {
+			JsonObject kfObj = keyframeJson.getAsJsonObject();
+			if (kfObj.has("lerp_mode")) {
+				lerpMode = kfObj.get("lerp_mode").getAsString();
+			}
+		}
+
+		return "catmullrom".equals(lerpMode)
+				? BedrockAnimation.InterpolationType.SMOOTH
+				: BedrockAnimation.InterpolationType.LINEAR;
 	}
 
 	private BedrockAnimation.SimpleBoneValue deserializeSimpleBoneValue(JsonArray array, BedrockAnimation.Transformation transformation) {
