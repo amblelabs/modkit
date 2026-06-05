@@ -32,7 +32,13 @@ jobs:
         id: ctx
         env:
           NUM: ${{ github.event.issue.number || github.event.inputs.issue }}
-        run: echo "num=$NUM" >> "$GITHUB_OUTPUT"
+        run: |
+          # NUM can come from a user-controlled workflow_dispatch input - require
+          # digits only so it can't inject newlines into $GITHUB_OUTPUT.
+          if ! printf '%s' "$NUM" | grep -qE '^[0-9]+$'; then
+            echo "invalid issue number: $NUM" >&2; exit 1
+          fi
+          echo "num=$NUM" >> "$GITHUB_OUTPUT"
 
       - name: Fetch issue (for manual runs) + build prompt
         env:
@@ -120,6 +126,10 @@ jobs:
             exit 0
           fi
 
+          # a previous run may have left S: Untriaged - clear it now that we have a
+          # valid classification so the issue isn't both triaged and untriaged.
+          gh issue edit "$NUM" --repo "$REPO" --remove-label "S: Untriaged" >/dev/null 2>&1 || true
+
           TYPE=$(echo "$JSON" | jq -r '.type // empty')
           PRIORITY=$(echo "$JSON" | jq -r '.priority // empty')
           EFFORT=$(echo "$JSON" | jq -r '.effort // empty')
@@ -152,13 +162,14 @@ jobs:
           done < <(echo "$JSON" | jq -r '((.areas // []) + (.changes // []))[]')
           [ "$NEEDS" = "true" ] && LABELS+=("Issue: Awaiting Response")
 
-          # only apply labels that actually exist in the repo (page through all of them)
-          mapfile -t EXISTING < <(gh api "repos/$REPO/labels" --paginate --jq '.[].name')
+          # only apply labels that actually exist in the repo - page through all of
+          # them into a set for O(1) membership instead of a nested scan.
+          declare -A HAVE
+          while IFS= read -r e; do [ -n "$e" ] && HAVE["$e"]=1; done \
+            < <(gh api "repos/$REPO/labels" --paginate --jq '.[].name')
           ADD=()
           for l in "${LABELS[@]:-}"; do
-            for e in "${EXISTING[@]}"; do
-              if [ "$l" = "$e" ]; then ADD+=("--add-label" "$l"); break; fi
-            done
+            [ -n "${HAVE[$l]:-}" ] && ADD+=("--add-label" "$l")
           done
           if [ "${#ADD[@]}" -gt 0 ]; then
             gh issue edit "$NUM" --repo "$REPO" "${ADD[@]}" || true
@@ -174,7 +185,9 @@ jobs:
           RID=$(gh api "repos/$REPO" --jq '.id')
           set_field() {
             [ -z "$2" ] && return 0
-            printf '{"issue_field_values":[{"field_id":%s,"value":"%s"}]}' "$1" "$2" \
+            # build the payload with jq so the value is properly json-escaped
+            jq -n --argjson fid "$1" --arg val "$2" \
+              '{issue_field_values:[{field_id:$fid,value:$val}]}' \
               | gh api --method POST "repositories/$RID/issues/$NUM/issue-field-values" --input - >/dev/null 2>&1 \
               || echo "field $1 not set"
           }
