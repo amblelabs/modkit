@@ -3,8 +3,10 @@ package dev.amble.lib.container;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Locale;
+import java.util.Optional;
 
 import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Identifier;
 
 import dev.amble.lib.AmbleKit;
@@ -55,7 +57,20 @@ public interface RegistryContainer<T> {
 
                 Identifier id = new Identifier(namespace, name);
 
-                Registry.register(container.getRegistry(), id, v);
+                // Only register the value when it isn't already present in the target
+                // registry. Some external APIs (e.g. TerraformersMC's boat API) register
+                // the value themselves, so re-registering the same instance would throw
+                // "Attempted to register object ... twice". See issue #56. When that
+                // happens we still run postProcessField (block items, renderers, ...)
+                // using the registry's existing identifier.
+                Optional<RegistryKey<T>> existing = container.getRegistry().getKey(v);
+
+                if (existing.isPresent()) {
+                    id = existing.get().getValue();
+                } else {
+                    Registry.register(container.getRegistry(), id, v);
+                }
+
                 container.postProcessField(id, v, field);
             }
 
