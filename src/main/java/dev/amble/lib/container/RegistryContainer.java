@@ -55,6 +55,13 @@ public interface RegistryContainer<T> {
 
                 Identifier id = new Identifier(namespace, name);
 
+                // Skip values that are already present in the target registry.
+                // Some external APIs (e.g. TerraformersMC's boat API) register the
+                // value themselves, so re-registering the same instance here would
+                // throw "Attempted to register object ... twice". See issue #56.
+                if (container.getRegistry().getKey(v).isPresent())
+                    continue;
+
                 Registry.register(container.getRegistry(), id, v);
                 container.postProcessField(id, v, field);
             }
