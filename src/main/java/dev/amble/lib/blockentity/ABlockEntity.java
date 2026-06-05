@@ -1,5 +1,7 @@
 package dev.amble.lib.blockentity;
 
+import dev.amble.lib.animation.AnimatedInstance;
+import dev.amble.lib.animation.AnimationTracker;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
@@ -30,7 +32,13 @@ public abstract class ABlockEntity extends BlockEntity {
         return ActionResult.PASS;
     }
 
-    public void onBreak(BlockState state, World world, BlockPos pos, BlockState newState) { }
+    public void onBreak(BlockState state, World world, BlockPos pos, BlockState newState) {
+        // Clear any tracked animation so a new block placed at the same position
+        // does not inherit stale animation state (see issues #68 and #45).
+        // Only the server holds the authoritative tracker and performs the sync.
+        if (!world.isClient && this instanceof AnimatedInstance animated)
+            AnimationTracker.getInstance().remove(animated);
+    }
 
     protected void sync() {
         if (this.world != null && this.world.getChunkManager() instanceof ServerChunkManager chunkManager)
