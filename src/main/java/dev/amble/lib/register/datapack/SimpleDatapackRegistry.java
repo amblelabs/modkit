@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.function.Function;
 
 import com.mojang.serialization.Codec;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
@@ -62,8 +63,25 @@ public abstract class SimpleDatapackRegistry<T extends Identifiable> extends Dat
         if (!this.sync)
             return;
 
-        ClientPlayNetworking.registerGlobalReceiver(this.packet,
-                (client, handler, buf, responseSender) -> this.readFromServer(buf));
+        ClientPlayNetworking.registerGlobalReceiver(this.packet, (client, handler, buf, responseSender) -> {
+            PacketByteBuf copy = new PacketByteBuf(buf.copy());
+            client.execute(() -> {
+                try {
+                    // skip if we've since disconnected/reconnected so stale server data
+                    // can't repopulate the registry after the fact
+                    if (client.getNetworkHandler() != handler)
+                        return;
+                    this.readFromServer(copy);
+                } finally {
+                    copy.release();
+                }
+            });
+        });
+
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            this.clearCache();
+            this.defaults();
+        });
     }
 
     /**
@@ -109,7 +127,7 @@ public abstract class SimpleDatapackRegistry<T extends Identifiable> extends Dat
         if (!this.sync)
             return;
 
-        // this.clearCache();
+        this.clearCache();
         this.defaults();
         int size = buf.readInt();
 
