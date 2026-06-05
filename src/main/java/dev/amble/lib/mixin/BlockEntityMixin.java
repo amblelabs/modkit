@@ -32,7 +32,13 @@ public abstract class BlockEntityMixin {
 
         // Only the server holds the authoritative tracker and drives the client sync.
         World world = ((BlockEntity) (Object) this).getWorld();
-        if (world != null && !world.isClient)
-            AnimationTracker.getInstance().remove(animated);
+        if (world == null || world.isClient)
+            return;
+
+        // markRemoved fires constantly on chunk unload, so only sync a removal when
+        // this instance actually has a tracked animation - avoids pointless packets.
+        AnimationTracker tracker = AnimationTracker.getInstance();
+        if (tracker.get(animated) != null)
+            tracker.remove(animated);
     }
 }
