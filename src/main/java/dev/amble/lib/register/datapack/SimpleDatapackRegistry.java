@@ -63,8 +63,10 @@ public abstract class SimpleDatapackRegistry<T extends Identifiable> extends Dat
         if (!this.sync)
             return;
 
-        ClientPlayNetworking.registerGlobalReceiver(this.packet,
-                (client, handler, buf, responseSender) -> this.readFromServer(buf));
+        ClientPlayNetworking.registerGlobalReceiver(this.packet, (client, handler, buf, responseSender) -> {
+            PacketByteBuf copy = new PacketByteBuf(buf.copy());
+            client.execute(() -> this.readFromServer(copy));
+        });
 
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             this.clearCache();
