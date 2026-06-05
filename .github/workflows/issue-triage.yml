@@ -59,7 +59,7 @@ jobs:
 
       - name: AI classify
         id: ai
-        uses: actions/ai-inference@v1
+        uses: actions/ai-inference@b81b2afb8390ee6839b494a404766bef6493c7d9 # v1
         with:
           model: openai/gpt-4o-mini
           max-completion-tokens: 500
@@ -131,6 +131,8 @@ jobs:
           case "$TYPE" in
             Bug) LABELS+=("T: Bugfix");;
             Feature) LABELS+=("T: New Feature");;
+            # Task has no T: label in the taxonomy - it's conveyed by the GitHub
+            # issue type set further down, so no label is added here on purpose.
           esac
           case "$PRIORITY" in
             Urgent) LABELS+=("P0: Critical");;

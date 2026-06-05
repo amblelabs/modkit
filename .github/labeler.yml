@@ -66,6 +66,9 @@
 
 "C: No Java":
   - changed-files:
-      # if NONE of the changed files are java, it's a no-java change
+      # applies when every changed file is non-java: '**' matches all files,
+      # then the negative glob requires none of them to be java. a negative-only
+      # rule never matches in actions/labeler, hence the '**' catch-all.
       - all-globs-to-all-files:
+          - '**'
           - '!src/main/java/**/*.java'
