@@ -49,6 +49,7 @@ import static net.minecraft.util.math.MathHelper.catmullRom;
 public class BedrockAnimation {
 	public static final Gson GSON = new GsonBuilder()
 			.registerTypeAdapter(BedrockModel.LocatorBone.class, new BedrockModel.LocatorBone.Adapter())
+			.registerTypeAdapter(BedrockModel.UV.class, new BedrockModel.UVAdapter())
 			.registerTypeAdapter(BedrockAnimation.class, new BedrockAnimationAdapter())
 			.create();
 

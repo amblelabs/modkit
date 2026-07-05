@@ -8,7 +8,11 @@ import dev.amble.lib.client.bedrock.BedrockAnimationAdapter;
 import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.command.PlayAnimationCommand;
 import dev.amble.lib.command.SetSkinCommand;
+import dev.amble.lib.container.RegistryContainer;
 import dev.amble.lib.skin.SkinTracker;
+import dev.amble.plushies.PlushieBlockEntities;
+import dev.amble.plushies.PlushieBlocks;
+import dev.amble.plushies.PlushieItemGroups;
 import dev.drtheo.multidim.MultiDimMod;
 import dev.drtheo.scheduler.SchedulerMod;
 import net.fabricmc.api.ModInitializer;
@@ -35,6 +39,9 @@ public class AmbleKit implements ModInitializer {
         ServerLifecycleHooks.init();
 		SkinTracker.init();
 		AnimationTracker.init();
+        RegistryContainer.register(PlushieBlocks.class, MOD_ID);
+        RegistryContainer.register(PlushieBlockEntities.class, MOD_ID);
+        RegistryContainer.register(PlushieItemGroups.class, MOD_ID);
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> {
 			SetSkinCommand.register(dispatcher);

@@ -5,17 +5,37 @@ import dev.amble.lib.animation.AnimatedInstance;
 import dev.amble.lib.animation.client.AnimatedEntityModel;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.RotationAxis;
 
-public class BedrockEntityModel<T extends Entity & AnimatedEntity> extends EntityModel<T> implements AnimatedEntityModel {
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class BedrockEntityModel<T extends Entity & AnimatedEntity> extends net.minecraft.client.render.entity.model.EntityModel<T> implements AnimatedEntityModel {
 	private final BedrockModel model;
 	private final ModelPart root;
+	private final Map<String, ModelPart> partsByName = new HashMap<>();
+	private final int textureWidth;
+	private final int textureHeight;
 
 	public BedrockEntityModel(BedrockModel model) {
 		this.model = model;
 		this.root = model.create().createModel();
+		this.textureWidth = model.geometry.get(0).description.textureWidth;
+		this.textureHeight = model.geometry.get(0).description.textureHeight;
+		indexParts();
+	}
+
+	private void indexParts() {
+		for (BedrockModel.Bone bone : model.geometry.get(0).bones) {
+			if (bone.name == null) continue;
+			try {
+				ModelPart part = root.getChild(bone.name);
+				if (part != null) partsByName.put(bone.name, part);
+			} catch (Exception ignored) {}
+		}
 	}
 
 	@Override
@@ -31,7 +51,23 @@ public class BedrockEntityModel<T extends Entity & AnimatedEntity> extends Entit
 
 	@Override
 	public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, float red, float green, float blue, float alpha) {
-		this.getPart().render(matrices, vertices, light, overlay, red, green, blue, alpha);
+		this.root.render(matrices, vertices, light, overlay, red, green, blue, alpha);
+
+		List<BedrockModel.PerFaceCube> deferred = model.deferredPerFaceCubes();
+		if (deferred.isEmpty()) return;
+
+		BedrockPerFaceRenderer.render(
+				this.root,
+				this.model,
+				this.partsByName,
+				matrices,
+				vertices,
+				light,
+				overlay,
+				red, green, blue, alpha,
+				this.textureWidth,
+				this.textureHeight
+		);
 	}
 
 	@Override

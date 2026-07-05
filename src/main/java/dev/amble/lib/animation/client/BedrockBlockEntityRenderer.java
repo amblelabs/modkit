@@ -1,7 +1,6 @@
 package dev.amble.lib.animation.client;
 
 import dev.amble.lib.animation.AnimatedBlockEntity;
-import dev.amble.lib.animation.AnimatedEntity;
 import dev.amble.lib.client.bedrock.BedrockEntityModel;
 import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.client.bedrock.BedrockModelReference;
@@ -13,13 +12,9 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.LightType;
 
 @Environment(EnvType.CLIENT)
