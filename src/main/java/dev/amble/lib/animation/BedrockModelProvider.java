@@ -10,6 +10,13 @@ public interface BedrockModelProvider {
 		return null;
 	}
 
+	/*
+	* This lets you define custom rotation for the renderer.
+	* */
+	default float getRenderYaw() {
+		return 0;
+	}
+
 	@Nullable
 	default Identifier getTexture() {
 		if (getModel() == null) return null;

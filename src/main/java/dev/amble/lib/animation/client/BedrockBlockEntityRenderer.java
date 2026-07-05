@@ -40,6 +40,7 @@ public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEnt
 		matrices.push();
 		matrices.translate(0.5D, 0.0D, 0.5D);
 		matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180F));
+		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(entity.getRenderYaw()));
 
 		light = entity.getWorld().getLightLevel(LightType.SKY, entity.getPos().up().up());
 		light = LightmapTextureManager.pack(0, light);
