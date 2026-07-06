@@ -16,6 +16,7 @@ public class PlushieBlocks extends BlockContainer {
     public static final Block AVERY_MARKETABLE_PLUSHIE = new MarketablePlushieBlock(new ABlockSettings(), "avery");
     public static final Block WANZZ_MARKETABLE_PLUSHIE = new MarketablePlushieBlock(new ABlockSettings(), "wanzz");
     public static final Block EMBER_MARKETABLE_PLUSHIE = new MarketablePlushieBlock(new ABlockSettings(), "ember");
+    public static final Block MAX_MARKETABLE_PLUSHIE = new MarketablePlushieBlock(new ABlockSettings(), "max");
     public static final Block LAKE_MARKETABLE_PLUSHIE = new MarketablePlushieBlock(new ABlockSettings(), "lake");
     public static final Block CLASSIC_MARKETABLE_PLUSHIE = new MarketablePlushieBlock(new ABlockSettings(), "classic");
     public static final Block BEN_MARKETABLE_PLUSHIE = new MarketablePlushieBlock(new ABlockSettings(), "ben");

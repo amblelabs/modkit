@@ -1,9 +1,12 @@
 package dev.amble.lib.animation.client;
 
 import dev.amble.lib.animation.AnimatedBlockEntity;
+import dev.amble.lib.animation.AnimatedInstance;
 import dev.amble.lib.client.bedrock.BedrockEntityModel;
 import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.client.bedrock.BedrockModelReference;
+import dev.amble.plushies.MarketablePlushieBlock;
+import dev.amble.plushies.MarketablePlushieBlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.entity.BlockEntity;
@@ -17,12 +20,14 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.world.LightType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Environment(EnvType.CLIENT)
 public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEntity> implements BlockEntityRenderer<T> {
-	protected BedrockEntityModel model;
+	private final Map<Identifier, BedrockEntityModel<?>> modelCache = new HashMap<>();
 
-	public BedrockBlockEntityRenderer() {
-	}
+	public BedrockBlockEntityRenderer() {}
 
 	public BedrockBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
 		this();
@@ -30,22 +35,45 @@ public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEnt
 
 	@Override
 	public void render(T entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-		if (this.model == null) this.refreshModel(entity);
+		BedrockEntityModel<?> model = getOrCreateModel(entity);
 
 		matrices.push();
 		matrices.translate(0.5D, 0.0D, 0.5D);
 		matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180F));
 		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(entity.getRenderYaw()));
 
-		light = entity.getWorld().getLightLevel(LightType.SKY, entity.getPos().up().up());
-		light = LightmapTextureManager.pack(0, light);
+		// hardcoded but i lowkey dgaf :al_clueless: - Loqor
+		if (entity instanceof MarketablePlushieBlockEntity marketablePlushieBlockEntity) {
+			boolean stacked = marketablePlushieBlockEntity.getCachedState().get(MarketablePlushieBlock.STACKED);
+			float scale = stacked ? 3 : 1.0f;
+			matrices.scale(scale, scale, scale);
+		}
 
-		this.model.setAngles(entity, entity.getAge() + tickDelta);
-		this.model.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(this.getTexture(entity))), light, overlay, 1.0f, 1.0f, 1.0f, 1.0f);
+		if (entity.getWorld() != null) {
+			int sky = entity.getWorld().getLightLevel(LightType.SKY, entity.getPos().up().up());
+			light = LightmapTextureManager.pack(0, sky);
+		}
+
+		AnimatedInstance instance = entity;
+		model.setAngles(instance, entity.getAge() + tickDelta);
+
+		model.render(
+				matrices,
+				vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(getTexture(entity))),
+				light,
+				overlay,
+				1.0f, 1.0f, 1.0f, 1.0f
+		);
 
 		Identifier emission = entity.getEmissionTexture();
 		if (emission != null) {
-			this.model.render(matrices, vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCullZOffset(emission)), LightmapTextureManager.MAX_LIGHT_COORDINATE, overlay, 1.0f, 1.0f, 1.0f, 1.0f);
+			model.render(
+					matrices,
+					vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCullZOffset(emission)),
+					LightmapTextureManager.MAX_LIGHT_COORDINATE,
+					overlay,
+					1.0f, 1.0f, 1.0f, 1.0f
+			);
 		}
 
 		matrices.pop();
@@ -55,12 +83,22 @@ public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEnt
 		return entity.getTexture();
 	}
 
-	protected BedrockEntityModel refreshModel(T entity) {
+	protected BedrockEntityModel<?> getOrCreateModel(T entity) {
 		BedrockModelReference ref = entity.getModel();
-		if (ref == null) throw new IllegalStateException("BlockEntity " + entity + " does not have a BedrockModelReference");
-		BedrockModel bedrock = ref.get().orElseThrow(() -> new IllegalStateException("BedrockModel " + ref.id() + " not found for block entity " + entity));
+		if (ref == null) {
+			throw new IllegalStateException("BlockEntity " + entity + " does not have a BedrockModelReference");
+		}
 
-		this.model = new BedrockEntityModel<>(bedrock);
-		return this.model;
+		Identifier modelId = ref.id();
+		BedrockEntityModel<?> cached = modelCache.get(modelId);
+		if (cached != null) return cached;
+
+		BedrockModel bedrock = ref.get().orElseThrow(
+				() -> new IllegalStateException("BedrockModel " + modelId + " not found for block entity " + entity)
+		);
+
+		BedrockEntityModel<?> created = new BedrockEntityModel<>(bedrock);
+		modelCache.put(modelId, created);
+		return created;
 	}
 }

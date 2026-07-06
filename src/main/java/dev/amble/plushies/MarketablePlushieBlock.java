@@ -4,6 +4,7 @@ import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.BlockMirror;
@@ -13,6 +14,7 @@ import net.minecraft.util.math.RotationPropertyHelper;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 public class MarketablePlushieBlock extends Block implements BlockEntityProvider {
@@ -20,15 +22,19 @@ public class MarketablePlushieBlock extends Block implements BlockEntityProvider
     public static final int MAX_ROTATION_INDEX = RotationPropertyHelper.getMax();
     private static final int MAX_ROTATIONS;
     public static final IntProperty ROTATION;
+    public static final BooleanProperty STACKED = BooleanProperty.of("stacked");
     protected static final VoxelShape SHAPE;
     private final String modelId;
 
     public MarketablePlushieBlock(Settings settings, String modelId) {
         super(settings);
         this.modelId = modelId;
-        this.setDefaultState(this.stateManager.getDefaultState().with(ROTATION, 0));
+        this.setDefaultState(this.stateManager.getDefaultState()
+                .with(ROTATION, 0)
+                .with(STACKED, false));
     }
 
+    @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
         return SHAPE;
     }
@@ -43,28 +49,81 @@ public class MarketablePlushieBlock extends Block implements BlockEntityProvider
         return new MarketablePlushieBlockEntity(PlushieBlockEntities.MARKETABLE_PLUSHIE_BLOCK_ENTITY_TYPE, pos, state);
     }
 
+    @Override
     public VoxelShape getCullingShape(BlockState state, BlockView world, BlockPos pos) {
         return VoxelShapes.empty();
     }
 
+    @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
-        return this.getDefaultState().with(ROTATION, RotationPropertyHelper.fromYaw(ctx.getPlayerYaw()));
+        BlockPos pos = ctx.getBlockPos();
+        World world = ctx.getWorld();
+
+        boolean sameAbove = world.getBlockState(pos.up()).isOf(this);
+
+        return this.getDefaultState()
+                .with(ROTATION, RotationPropertyHelper.fromYaw(ctx.getPlayerYaw()))
+                .with(STACKED, sameAbove);
     }
 
+    @Override
     public BlockState rotate(BlockState state, BlockRotation rotation) {
-        return state.with(ROTATION, rotation.rotate((Integer)state.get(ROTATION), MAX_ROTATIONS));
+        return state.with(ROTATION, rotation.rotate(state.get(ROTATION), MAX_ROTATIONS));
     }
 
+    @Override
     public BlockState mirror(BlockState state, BlockMirror mirror) {
-        return state.with(ROTATION, mirror.mirror((Integer)state.get(ROTATION), MAX_ROTATIONS));
+        return state.with(ROTATION, mirror.mirror(state.get(ROTATION), MAX_ROTATIONS));
     }
 
+    @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(ROTATION);
+        builder.add(ROTATION, STACKED);
     }
 
     public String getModelId() {
         return this.modelId;
+    }
+
+    @Override
+    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
+        if (world.isClient) return;
+
+        boolean sameAbove = world.getBlockState(pos.up()).isOf(this);
+        if (state.get(STACKED) != sameAbove) {
+            world.setBlockState(pos, state.with(STACKED, sameAbove), Block.NOTIFY_LISTENERS);
+        }
+    }
+
+    @Override
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable net.minecraft.entity.LivingEntity placer, net.minecraft.item.ItemStack itemStack) {
+        if (world.isClient) return;
+        boolean sameAbove = world.getBlockState(pos.up()).isOf(this);
+        if (state.get(STACKED) != sameAbove) {
+            world.setBlockState(pos, state.with(STACKED, sameAbove), Block.NOTIFY_LISTENERS);
+        }
+
+        BlockPos below = pos.down();
+        BlockState belowState = world.getBlockState(below);
+        if (belowState.isOf(this)) {
+            boolean belowSameAbove = world.getBlockState(below.up()).isOf(this);
+            world.setBlockState(below, belowState.with(STACKED, belowSameAbove), Block.NOTIFY_LISTENERS);
+        }
+    }
+
+    @Override
+    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+        if (state.isOf(newState.getBlock())) return;
+
+        if (!world.isClient) {
+            BlockPos below = pos.down();
+            BlockState belowState = world.getBlockState(below);
+            if (belowState.isOf(this)) {
+                boolean belowSameAbove = world.getBlockState(below.up()).isOf(this);
+                world.setBlockState(below, belowState.with(STACKED, belowSameAbove), Block.NOTIFY_LISTENERS);
+            }
+        }
+        super.onStateReplaced(state, world, pos, newState, moved);
     }
 
     static {

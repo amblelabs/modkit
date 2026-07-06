@@ -6,6 +6,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.RotationAxis;
 import org.joml.Vector3f;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,12 @@ import java.util.Map;
 public final class BedrockPerFaceRenderer {
     private BedrockPerFaceRenderer() {}
 
+    /**
+     * Renders deferred per-face cubes with:
+     * - recursive subgroup lookup fix
+     * - correct transform order
+     * - single unit conversion (/16) at root only
+     */
     public static void render(ModelPart root,
                               BedrockModel model,
                               Map<String, ModelPart> partsByName,
@@ -25,8 +32,12 @@ public final class BedrockPerFaceRenderer {
         List<BedrockModel.PerFaceCube> deferred = model.deferredPerFaceCubes();
         if (deferred.isEmpty()) return;
 
-        // Match vanilla model scale
+        // Group fix: ensure nested children are indexed too.
+        // (non-destructive; keeps existing entries)
+        indexChildrenRecursive(root, partsByName);
+
         matrices.push();
+        // One global conversion from model units -> MC model units
         matrices.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
 
         for (BedrockModel.PerFaceCube cube : deferred) {
@@ -35,15 +46,9 @@ public final class BedrockPerFaceRenderer {
 
             matrices.push();
 
-            // Apply animated bone transform
-            bonePart.rotate(matrices);
-
-            // Apply cube-local transform around its pivot
             float px = cube.cubePivot().get(0);
             float py = cube.cubePivot().get(1);
             float pz = cube.cubePivot().get(2);
-
-            matrices.translate(px / 16f, -py / 16f, pz / 16f);
 
             float rx = cube.cubeRotation().get(0);
             float ry = cube.cubeRotation().get(1);
@@ -61,8 +66,6 @@ public final class BedrockPerFaceRenderer {
             matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(ry));
             matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(rz));
 
-
-
             MatrixStack.Entry entry = matrices.peek();
             for (BedrockPerFaceQuad q : buildQuads(cube, textureWidth, textureHeight)) {
                 q.render(entry, vertices, light, overlay, red, green, blue, alpha);
@@ -72,6 +75,23 @@ public final class BedrockPerFaceRenderer {
         }
 
         matrices.pop();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void indexChildrenRecursive(ModelPart part, Map<String, ModelPart> out) {
+        try {
+            Field childrenField = ModelPart.class.getDeclaredField("children");
+            childrenField.setAccessible(true);
+            Map<String, ModelPart> children = (Map<String, ModelPart>) childrenField.get(part);
+            if (children == null || children.isEmpty()) return;
+
+            for (Map.Entry<String, ModelPart> e : children.entrySet()) {
+                out.putIfAbsent(e.getKey(), e.getValue());
+                indexChildrenRecursive(e.getValue(), out);
+            }
+        } catch (Throwable ignored) {
+            // If field name changes in mappings, we fail soft and keep existing map.
+        }
     }
 
     public static List<BedrockPerFaceQuad> buildQuads(BedrockModel.PerFaceCube cube, int texW, int texH) {
@@ -86,8 +106,8 @@ public final class BedrockPerFaceRenderer {
 
         emit(quads, cube.uv().north(), "north", cube.mirror(), x0, y0, z0, x1, y1, z1, texW, texH);
         emit(quads, cube.uv().south(), "south", cube.mirror(), x0, y0, z0, x1, y1, z1, texW, texH);
-        emit(quads, cube.uv().east(),  "east",  cube.mirror(), x0, y0, z0, x1, y1, z1, texW, texH);
-        emit(quads, cube.uv().west(),  "west",  cube.mirror(), x0, y0, z0, x1, y1, z1, texW, texH);
+        emit(quads, cube.uv().east(),  "west",  cube.mirror(), x0, y0, z0, x1, y1, z1, texW, texH);
+        emit(quads, cube.uv().west(),  "east",  cube.mirror(), x0, y0, z0, x1, y1, z1, texW, texH);
         emit(quads, cube.uv().up(),    "up",    cube.mirror(), x0, y0, z0, x1, y1, z1, texW, texH);
         emit(quads, cube.uv().down(),  "down",  cube.mirror(), x0, y0, z0, x1, y1, z1, texW, texH);
 
@@ -111,35 +131,41 @@ public final class BedrockPerFaceRenderer {
         float v1 = (v + h) / texH;
 
         if (mirror) {
-            float t = u0;
-            u0 = u1;
-            u1 = t;
+            float t = u0; u0 = u1; u1 = t;
         }
 
         switch (dir) {
             case "north" -> out.add(new BedrockPerFaceQuad(
                     new Vector3f(x1, y0, z0), new Vector3f(x0, y0, z0), new Vector3f(x0, y1, z0), new Vector3f(x1, y1, z0),
-                    u0, v0, u1, v1, new Vector3f(0, 0, -1)
+                    // rotate/flip for front plane alignment
+                    u1, v0, u0, v1,
+                    new Vector3f(0, 0, -1)
             ));
             case "south" -> out.add(new BedrockPerFaceQuad(
                     new Vector3f(x0, y0, z1), new Vector3f(x1, y0, z1), new Vector3f(x1, y1, z1), new Vector3f(x0, y1, z1),
-                    u0, v0, u1, v1, new Vector3f(0, 0, 1)
+                    // keep opposite side consistent
+                    u1, v0, u0, v1,
+                    new Vector3f(0, 0, 1)
             ));
             case "east" -> out.add(new BedrockPerFaceQuad(
                     new Vector3f(x1, y0, z1), new Vector3f(x1, y0, z0), new Vector3f(x1, y1, z0), new Vector3f(x1, y1, z1),
-                    u0, v0, u1, v1, new Vector3f(1, 0, 0)
+                    u1, v0, u0, v1, new Vector3f(1, 0, 0)
             ));
             case "west" -> out.add(new BedrockPerFaceQuad(
                     new Vector3f(x0, y0, z0), new Vector3f(x0, y0, z1), new Vector3f(x0, y1, z1), new Vector3f(x0, y1, z0),
-                    u0, v0, u1, v1, new Vector3f(-1, 0, 0)
+                    u1, v0, u0, v1, new Vector3f(-1, 0, 0)
             ));
             case "up" -> out.add(new BedrockPerFaceQuad(
-                    new Vector3f(x0, y0, z0), new Vector3f(x1, y0, z0), new Vector3f(x1, y0, z1), new Vector3f(x0, y0, z1),
-                    u0, v0, u1, v1, new Vector3f(0, -1, 0)
+                    new Vector3f(x0, y0, z0),
+                    new Vector3f(x1, y0, z0),
+                    new Vector3f(x1, y0, z1),
+                    new Vector3f(x0, y0, z1),
+                    u0, v1, u1, v0,
+                    new Vector3f(0, -1, 0)
             ));
             case "down" -> out.add(new BedrockPerFaceQuad(
                     new Vector3f(x0, y1, z1), new Vector3f(x1, y1, z1), new Vector3f(x1, y1, z0), new Vector3f(x0, y1, z0),
-                    u0, v0, u1, v1, new Vector3f(0, 1, 0)
+                    u0, v1, u1, v0, new Vector3f(0, 1, 0)
             ));
         }
     }

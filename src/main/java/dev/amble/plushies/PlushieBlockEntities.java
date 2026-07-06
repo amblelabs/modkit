@@ -21,6 +21,7 @@ public class PlushieBlockEntities implements BlockEntityContainer {
                 PlushieBlocks.CLASSIC_MARKETABLE_PLUSHIE,
                 PlushieBlocks.BEN_MARKETABLE_PLUSHIE,
                 PlushieBlocks.NYX_MARKETABLE_PLUSHIE,
+                PlushieBlocks.MAX_MARKETABLE_PLUSHIE,
                 PlushieBlocks.RHYNO_MARKETABLE_PLUSHIE,
                 PlushieBlocks.MONKE_MARKETABLE_PLUSHIE,
                 PlushieBlocks.KKING_MARKETABLE_PLUSHIE,
