@@ -2,6 +2,9 @@ package dev.amble.plushies;
 
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.animation.AnimatedBlockEntity;
+import dev.amble.lib.blockentity.ABlockEntity;
+import dev.amble.lib.client.bedrock.BedrockAnimationReference;
+import dev.amble.lib.client.bedrock.BedrockAnimationRegistry;
 import dev.amble.lib.client.bedrock.BedrockModelReference;
 import lombok.Getter;
 import net.minecraft.block.Block;
@@ -10,11 +13,15 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.AnimationState;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class MarketablePlushieBlockEntity extends BlockEntity implements AnimatedBlockEntity, BlockEntityTicker<MarketablePlushieBlockEntity> {
+public class MarketablePlushieBlockEntity extends ABlockEntity implements AnimatedBlockEntity {
 
     @Getter
     private final AnimationState animationState = new AnimationState();
@@ -54,7 +61,17 @@ public class MarketablePlushieBlockEntity extends BlockEntity implements Animate
     }
 
     @Override
-    public void tick(World world, BlockPos pos, BlockState state, MarketablePlushieBlockEntity blockEntity) {
+    public void tick(World world, BlockPos pos, BlockState state) {
         this.age++;
+    }
+
+    @Override
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        if (world.isClient()) return ActionResult.SUCCESS;
+
+        BedrockAnimationReference ref = new BedrockAnimationReference("squish", "loqor");
+        this.playAnimation(ref);
+        System.out.println(this.getCurrentAnimation());
+        return ActionResult.SUCCESS;
     }
 }

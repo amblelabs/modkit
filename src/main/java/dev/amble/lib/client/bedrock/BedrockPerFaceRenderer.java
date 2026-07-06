@@ -41,7 +41,7 @@ public final class BedrockPerFaceRenderer {
         matrices.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
 
         for (BedrockModel.PerFaceCube cube : deferred) {
-            ModelPart bonePart = partsByName.get(cube.boneName());
+            ModelPart bonePart = partsByName.get(cube.partName());
             if (bonePart == null) continue;
 
             matrices.push();

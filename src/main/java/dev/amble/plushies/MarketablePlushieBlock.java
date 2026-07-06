@@ -1,14 +1,21 @@
 package dev.amble.plushies;
 
+import dev.amble.lib.block.ABlock;
+import dev.amble.lib.block.ABlockSettings;
+import dev.amble.lib.block.behavior.base.BlockWithEntityBehavior;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RotationPropertyHelper;
 import net.minecraft.util.shape.VoxelShape;
@@ -17,7 +24,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class MarketablePlushieBlock extends Block implements BlockEntityProvider {
+public class MarketablePlushieBlock extends ABlock implements BlockEntityProvider {
 
     public static final int MAX_ROTATION_INDEX = RotationPropertyHelper.getMax();
     private static final int MAX_ROTATIONS;
@@ -26,8 +33,8 @@ public class MarketablePlushieBlock extends Block implements BlockEntityProvider
     protected static final VoxelShape SHAPE;
     private final String modelId;
 
-    public MarketablePlushieBlock(Settings settings, String modelId) {
-        super(settings);
+    public MarketablePlushieBlock(ABlockSettings settings, String modelId) {
+        super(settings, new BlockWithEntityBehavior.Ticking(MarketablePlushieBlockEntity::new));
         this.modelId = modelId;
         this.setDefaultState(this.stateManager.getDefaultState()
                 .with(ROTATION, 0)

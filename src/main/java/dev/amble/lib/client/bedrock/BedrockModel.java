@@ -101,9 +101,15 @@ public class BedrockModel implements Identifiable {
 
 				List<Cube> boneCubes = bone.cubes;
 				if (boneCubes != null) {
+					int counter = 0; // IMPORTANT: same naming source for runtime children
+
 					for (Cube cube : boneCubes) {
-						ModelPartBuilder subPart = (cube.rotation != null) ? ModelPartBuilder.create() : modelPart;
+						boolean hasCubeRotation = cube.rotation != null;
+						ModelPartBuilder subPart = hasCubeRotation ? ModelPartBuilder.create() : modelPart;
 						List<Float> pivot = (cube.pivot != null) ? cube.pivot : bone.pivot;
+
+						// runtime part name this cube will actually live under
+						String targetPartName = bone.name;
 
 						if (cube.uv != null && cube.size != null && cube.origin != null) {
 							float oX = cube.origin.get(0) - pivot.get(0);
@@ -113,7 +119,6 @@ public class BedrockModel implements Identifiable {
 							float sY = cube.size.get(1);
 							float sZ = cube.size.get(2);
 
-							// Standard Box UVs (works with vanilla cuboid path)
 							if (cube.uv.box() != null && !cube.uv.box().isEmpty()) {
 								int uvX = cube.uv.box().get(0);
 								int uvY = cube.uv.box().get(1);
@@ -125,17 +130,12 @@ public class BedrockModel implements Identifiable {
 
 								if (cube.mirror) subPart.mirrored(false);
 							} else {
-								// Per-face UV path: do NOT emit fake thin cuboids.
-								// Store for exact float-UV custom rendering pass.
-
-								// Per-face UV path: defer for custom float-UV rendering
 								List<Float> cubePivot = cube.pivot != null ? cube.pivot : bone.pivot;
 								List<Float> cubeRot = cube.rotation != null ? cube.rotation : List.of(0F, 0F, 0F);
 								List<Float> cubeScale = List.of(1F, 1F, 1F);
 
 								deferredPerFaceCubes.add(new PerFaceCube(
-										bone.name,
-										bone.pivot,
+										targetPartName,
 										oX, oY, oZ,
 										sX, sY, sZ,
 										cube.inflate,
@@ -148,7 +148,7 @@ public class BedrockModel implements Identifiable {
 							}
 						}
 
-						if (subPart != modelPart) {
+						if (hasCubeRotation) {
 							modelTransforms.add(ModelTransform.of(
 									-(bone.pivot.get(0) - cube.pivot.get(0)),
 									bone.pivot.get(1) - cube.pivot.get(1),
@@ -158,6 +158,7 @@ public class BedrockModel implements Identifiable {
 									(float) Math.toRadians(cube.rotation.get(2))
 							));
 							subParts.add(subPart);
+							counter++; // increment only when child part is actually created
 						}
 					}
 				}
@@ -283,8 +284,7 @@ public class BedrockModel implements Identifiable {
 	 * Deferred data for exact per-face float-UV rendering.
 	 */
 	public record PerFaceCube(
-			String boneName,
-			List<Float> bonePivot,
+			String partName,
 			float x, float y, float z,
 			float sizeX, float sizeY, float sizeZ,
 			float inflate,

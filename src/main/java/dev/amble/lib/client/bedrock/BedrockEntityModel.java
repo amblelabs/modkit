@@ -43,7 +43,7 @@ public class BedrockEntityModel<T extends Entity & AnimatedEntity> extends net.m
 			if (children == null) return;
 
 			for (Map.Entry<String, ModelPart> e : children.entrySet()) {
-				partsByName.putIfAbsent(e.getKey(), e.getValue());
+				partsByName.put(e.getKey(), e.getValue());
 				indexPartChildren(e.getValue());
 			}
 		} catch (Exception ignored) {
@@ -74,6 +74,9 @@ public class BedrockEntityModel<T extends Entity & AnimatedEntity> extends net.m
 
 		matrices.push();
 		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180f));
+
+		this.setAngles(null, 0);
+
 		BedrockPerFaceRenderer.render(
 				this.root,
 				this.model,
