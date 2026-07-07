@@ -14,12 +14,6 @@ import java.util.Map;
 public final class BedrockPerFaceRenderer {
     private BedrockPerFaceRenderer() {}
 
-    /**
-     * Renders deferred per-face cubes with:
-     * - recursive subgroup lookup fix
-     * - correct transform order
-     * - single unit conversion (/16) at root only
-     */
     public static void render(ModelPart root,
                               BedrockModel model,
                               Map<String, ModelPart> partsByName,
@@ -84,7 +78,7 @@ public final class BedrockPerFaceRenderer {
                 indexChildrenRecursive(e.getValue(), out);
             }
         } catch (Throwable ignored) {
-            // If field name changes in mappings, we fail soft and keep existing map.
+
         }
     }
 
@@ -131,13 +125,11 @@ public final class BedrockPerFaceRenderer {
         switch (dir) {
             case "north" -> out.add(new BedrockPerFaceQuad(
                     new Vector3f(x1, y0, z0), new Vector3f(x0, y0, z0), new Vector3f(x0, y1, z0), new Vector3f(x1, y1, z0),
-                    // rotate/flip for front plane alignment
                     u1, v0, u0, v1,
                     new Vector3f(0, 0, -1)
             ));
             case "south" -> out.add(new BedrockPerFaceQuad(
                     new Vector3f(x0, y0, z1), new Vector3f(x1, y0, z1), new Vector3f(x1, y1, z1), new Vector3f(x0, y1, z1),
-                    // keep opposite side consistent
                     u1, v0, u0, v1,
                     new Vector3f(0, 0, 1)
             ));
@@ -163,8 +155,6 @@ public final class BedrockPerFaceRenderer {
             ));
         }
     }
-
-    // add helper record + methods inside class
 
     private record Scale3(float x, float y, float z) {}
 

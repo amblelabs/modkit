@@ -53,7 +53,6 @@ public class BedrockModel implements Identifiable {
 			Geometry geometry = this.geometry.get(0);
 			List<Bone> geometryBones = new ArrayList<>(geometry.bones);
 
-			// Add locator bones and root locator
 			for (Bone bone : geometryBones) {
 				if (bone.locators != null) {
 					for (Map.Entry<String, LocatorBone> entry : bone.locators.entrySet()) {
@@ -101,14 +100,11 @@ public class BedrockModel implements Identifiable {
 
 				List<Cube> boneCubes = bone.cubes;
 				if (boneCubes != null) {
-					int counter = 0; // IMPORTANT: same naming source for runtime children
-
 					for (Cube cube : boneCubes) {
 						boolean hasCubeRotation = cube.rotation != null;
 						ModelPartBuilder subPart = hasCubeRotation ? ModelPartBuilder.create() : modelPart;
 						List<Float> pivot = (cube.pivot != null) ? cube.pivot : bone.pivot;
 
-						// runtime part name this cube will actually live under
 						String targetPartName = bone.name;
 
 						if (cube.uv != null && cube.size != null && cube.origin != null) {
@@ -158,7 +154,6 @@ public class BedrockModel implements Identifiable {
 									(float) Math.toRadians(cube.rotation.get(2))
 							));
 							subParts.add(subPart);
-							counter++; // increment only when child part is actually created
 						}
 					}
 				}
@@ -275,14 +270,11 @@ public class BedrockModel implements Identifiable {
 
 	public record Face(
 			@SerializedName("uv")
-			List<Float> uv,      // per-face uv is float
+			List<Float> uv,
 			@SerializedName("uv_size")
-			List<Float> uvSize   // per-face uv_size is float
+			List<Float> uvSize
 	) {}
 
-	/**
-	 * Deferred data for exact per-face float-UV rendering.
-	 */
 	public record PerFaceCube(
 			String partName,
 			float x, float y, float z,
