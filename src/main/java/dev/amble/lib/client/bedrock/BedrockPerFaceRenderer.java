@@ -56,9 +56,9 @@ public final class BedrockPerFaceRenderer {
 
             matrices.translate(px, -py, pz);
 
-            matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(rx));
-            matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(ry));
-            matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(rz));
+            matrices.multiply(RotationAxis.POSITIVE_X.rotation(bonePart.pitch == 0 ? (float) Math.toRadians(rx) : bonePart.pitch));
+            matrices.multiply(RotationAxis.POSITIVE_Y.rotation(bonePart.yaw == 0 ? (float) Math.toRadians(ry) : bonePart.yaw));
+            matrices.multiply(RotationAxis.POSITIVE_Z.rotation(bonePart.roll == 0 ? (float) Math.toRadians(rz) : bonePart.roll));
 
             MatrixStack.Entry entry = matrices.peek();
             for (BedrockPerFaceQuad q : buildQuads(cube, textureWidth, textureHeight)) {

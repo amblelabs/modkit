@@ -4,7 +4,6 @@
 		"loqor": {
 			"loop": "hold_on_last_frame",
 			"animation_length": 0.4167,
-			"override_previous_animation": true,
 			"bones": {
 				"homunculus": {
 					"position": {

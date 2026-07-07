@@ -50,7 +50,7 @@ public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEnt
 		// hardcoded but i lowkey dgaf :al_clueless: - Loqor
 		if (entity instanceof MarketablePlushieBlockEntity marketablePlushieBlockEntity) {
 			boolean stacked = marketablePlushieBlockEntity.getCachedState().get(MarketablePlushieBlock.STACKED);
-			float scale = stacked ? 3 : 1.0f;
+			float scale = stacked ? 3 : 1.5f;
 			matrices.scale(scale, scale, scale);
 		}
 

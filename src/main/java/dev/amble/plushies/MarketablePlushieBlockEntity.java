@@ -22,6 +22,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class MarketablePlushieBlockEntity extends ABlockEntity implements AnimatedBlockEntity {
 
     @Getter
