@@ -26,6 +26,7 @@ import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEntity> implements BlockEntityRenderer<T> {
+	// Change this its bad
 	private final Map<Identifier, BedrockEntityModel<?>> modelCache = new HashMap<>();
 
 	public BedrockBlockEntityRenderer() {}
