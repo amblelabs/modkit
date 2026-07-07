@@ -6,7 +6,7 @@ import dev.amble.lib.block.behavior.api.BlockBehaviors;
 import dev.amble.lib.block.behavior.base.*;
 import dev.amble.lib.blockentity.ABlockEntity;
 import net.minecraft.block.Block;
-import net.miencraft.block.BlockEntityProvider;
+import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
