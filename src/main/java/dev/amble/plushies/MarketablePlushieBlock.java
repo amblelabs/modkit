@@ -5,6 +5,7 @@ import dev.amble.lib.block.ABlockSettings;
 import dev.amble.lib.block.behavior.base.BlockWithEntityBehavior;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.StateManager;
@@ -27,11 +28,12 @@ import org.jetbrains.annotations.Nullable;
 public class MarketablePlushieBlock extends ABlock implements BlockEntityProvider {
 
     public static final int MAX_ROTATION_INDEX = RotationPropertyHelper.getMax();
-    private static final int MAX_ROTATIONS;
-    public static final IntProperty ROTATION;
+    private static final int MAX_ROTATIONS = MAX_ROTATION_INDEX + 1;
+    public static final IntProperty ROTATION = Properties.ROTATION;
     public static final BooleanProperty STACKED = BooleanProperty.of("stacked");
-    protected static final VoxelShape SHAPE;
+    protected static final VoxelShape SHAPE = Block.createCuboidShape(4.0F, 0.0F, 4.0F, 12.0F, 8.0F, 12.0F);
     private final String modelId;
+
 
     public MarketablePlushieBlock(ABlockSettings settings, String modelId) {
         super(settings, new BlockWithEntityBehavior.Ticking(MarketablePlushieBlockEntity::new));
@@ -103,7 +105,7 @@ public class MarketablePlushieBlock extends ABlock implements BlockEntityProvide
     }
 
     @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable net.minecraft.entity.LivingEntity placer, net.minecraft.item.ItemStack itemStack) {
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, net.minecraft.item.ItemStack itemStack) {
         if (world.isClient) return;
         boolean sameAbove = world.getBlockState(pos.up()).isOf(this);
         if (state.get(STACKED) != sameAbove) {
@@ -131,11 +133,5 @@ public class MarketablePlushieBlock extends ABlock implements BlockEntityProvide
             }
         }
         super.onStateReplaced(state, world, pos, newState, moved);
-    }
-
-    static {
-        MAX_ROTATIONS = MAX_ROTATION_INDEX + 1;
-        ROTATION = Properties.ROTATION;
-        SHAPE = Block.createCuboidShape(4.0F, 0.0F, 4.0F, 12.0F, 8.0F, 12.0F);
     }
 }

@@ -54,7 +54,7 @@ public class BedrockModel implements Identifiable {
 			List<Bone> geometryBones = new ArrayList<>(geometry.bones);
 
 			// Add locator bones and root locator
-			for (Bone bone : new ArrayList<>(geometryBones)) {
+			for (Bone bone : geometryBones) {
 				if (bone.locators != null) {
 					for (Map.Entry<String, LocatorBone> entry : bone.locators.entrySet()) {
 						Bone locatorBone = Bone.empty();

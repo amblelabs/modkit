@@ -5,6 +5,7 @@ import dev.amble.lib.animation.AnimatedInstance;
 import dev.amble.lib.client.bedrock.BedrockEntityModel;
 import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.client.bedrock.BedrockModelReference;
+import dev.amble.lib.client.bedrock.BedrockModelRegistry;
 import dev.amble.plushies.MarketablePlushieBlock;
 import dev.amble.plushies.MarketablePlushieBlockEntity;
 import net.fabricmc.api.EnvType;
@@ -26,8 +27,6 @@ import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEntity> implements BlockEntityRenderer<T> {
-	// Change this its bad
-	private final Map<Identifier, BedrockEntityModel<?>> modelCache = new HashMap<>();
 
 	public BedrockBlockEntityRenderer() {}
 
@@ -96,15 +95,6 @@ public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEnt
 		}
 
 		Identifier modelId = ref.id();
-		BedrockEntityModel<?> cached = modelCache.get(modelId);
-		if (cached != null) return cached;
-
-		BedrockModel bedrock = ref.get().orElseThrow(
-				() -> new IllegalStateException("BedrockModel " + modelId + " not found for block entity " + entity)
-		);
-
-		BedrockEntityModel<?> created = new BedrockEntityModel<>(bedrock);
-		modelCache.put(modelId, created);
-		return created;
-	}
+        return new BedrockEntityModel<>(BedrockModelRegistry.getInstance().get(modelId));
+    }
 }

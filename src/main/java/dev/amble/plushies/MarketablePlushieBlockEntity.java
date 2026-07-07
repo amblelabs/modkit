@@ -72,10 +72,10 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (world.isClient()) return ActionResult.SUCCESS;
 
-        BedrockAnimationReference ref = new BedrockAnimationReference("squish", "loqor");
+        String path = "squish";
+        BedrockAnimationReference ref = new BedrockAnimationReference(path, path);
         world.playSound(null, pos, PlushieSounds.BOOP, SoundCategory.BLOCKS, 0.4f, world.getRandom().nextBoolean() ? 1.0f : 0.9f);
         this.playAnimation(ref);
-        System.out.println(this.getCurrentAnimation());
         return ActionResult.SUCCESS;
     }
 }
