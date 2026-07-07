@@ -35,10 +35,6 @@ public class AmbleKit implements ModInitializer {
         ServerLifecycleHooks.init();
 		SkinTracker.init();
 		AnimationTracker.init();
-        RegistryContainer.register(PlushieBlocks.class, MOD_ID);
-        RegistryContainer.register(PlushieBlockEntities.class, MOD_ID);
-        RegistryContainer.register(PlushieItemGroups.class, MOD_ID);
-        RegistryContainer.register(PlushieSounds.class, MOD_ID);
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> {
 			SetSkinCommand.register(dispatcher);
