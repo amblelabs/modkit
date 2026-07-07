@@ -32,12 +32,9 @@ public final class BedrockPerFaceRenderer {
         List<BedrockModel.PerFaceCube> deferred = model.deferredPerFaceCubes();
         if (deferred.isEmpty()) return;
 
-        // Group fix: ensure nested children are indexed too.
-        // (non-destructive; keeps existing entries)
         indexChildrenRecursive(root, partsByName);
 
         matrices.push();
-        // One global conversion from model units -> MC model units
         matrices.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
 
         for (BedrockModel.PerFaceCube cube : deferred) {
@@ -54,11 +51,8 @@ public final class BedrockPerFaceRenderer {
             float ry = cube.cubeRotation().get(1);
             float rz = cube.cubeRotation().get(2);
 
-            matrices.scale(
-                    cube.cubeScale().get(0),
-                    cube.cubeScale().get(1),
-                    cube.cubeScale().get(2)
-            );
+            Scale3 s = effectiveScaleForPartName(root, cube.partName());
+            matrices.scale(s.x(), s.y(), s.z());
 
             matrices.translate(px, -py, pz);
 
@@ -86,7 +80,7 @@ public final class BedrockPerFaceRenderer {
             if (children == null || children.isEmpty()) return;
 
             for (Map.Entry<String, ModelPart> e : children.entrySet()) {
-                out.putIfAbsent(e.getKey(), e.getValue());
+                out.put(e.getKey(), e.getValue());
                 indexChildrenRecursive(e.getValue(), out);
             }
         } catch (Throwable ignored) {
@@ -167,6 +161,49 @@ public final class BedrockPerFaceRenderer {
                     new Vector3f(x0, y1, z1), new Vector3f(x1, y1, z1), new Vector3f(x1, y1, z0), new Vector3f(x0, y1, z0),
                     u0, v1, u1, v0, new Vector3f(0, 1, 0)
             ));
+        }
+    }
+
+    // add helper record + methods inside class
+
+    private record Scale3(float x, float y, float z) {}
+
+    private static Scale3 effectiveScaleForPartName(ModelPart root, String targetName) {
+        Scale3 out = findScaleRecursive(root, "root", targetName, 1.0f, 1.0f, 1.0f);
+        return out != null ? out : new Scale3(1.0f, 1.0f, 1.0f);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Scale3 findScaleRecursive(ModelPart node,
+                                             String nodeName,
+                                             String targetName,
+                                             float accX, float accY, float accZ) {
+        float nextX = accX * node.xScale;
+        float nextY = accY * node.yScale;
+        float nextZ = accZ * node.zScale;
+
+        if (nodeName.equals(targetName)) {
+            return new Scale3(nextX, nextY, nextZ);
+        }
+
+        Map<String, ModelPart> children = getChildren(node);
+        if (children == null || children.isEmpty()) return null;
+
+        for (Map.Entry<String, ModelPart> e : children.entrySet()) {
+            Scale3 found = findScaleRecursive(e.getValue(), e.getKey(), targetName, nextX, nextY, nextZ);
+            if (found != null) return found;
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, ModelPart> getChildren(ModelPart part) {
+        try {
+            Field childrenField = ModelPart.class.getDeclaredField("children");
+            childrenField.setAccessible(true);
+            return (Map<String, ModelPart>) childrenField.get(part);
+        } catch (Throwable ignored) {
+            return null;
         }
     }
 }

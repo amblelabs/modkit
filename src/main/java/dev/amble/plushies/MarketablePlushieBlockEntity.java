@@ -14,6 +14,7 @@ import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -70,6 +71,7 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
         if (world.isClient()) return ActionResult.SUCCESS;
 
         BedrockAnimationReference ref = new BedrockAnimationReference("squish", "loqor");
+        world.playSound(null, pos, PlushieSounds.BOOP, SoundCategory.BLOCKS, 0.4f, world.getRandom().nextBoolean() ? 1.0f : 0.9f);
         this.playAnimation(ref);
         System.out.println(this.getCurrentAnimation());
         return ActionResult.SUCCESS;

@@ -3,9 +3,6 @@ package dev.amble.lib;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.amble.lib.animation.AnimationTracker;
-import dev.amble.lib.client.bedrock.BedrockAnimation;
-import dev.amble.lib.client.bedrock.BedrockAnimationAdapter;
-import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.command.PlayAnimationCommand;
 import dev.amble.lib.command.SetSkinCommand;
 import dev.amble.lib.container.RegistryContainer;
@@ -13,8 +10,7 @@ import dev.amble.lib.skin.SkinTracker;
 import dev.amble.plushies.PlushieBlockEntities;
 import dev.amble.plushies.PlushieBlocks;
 import dev.amble.plushies.PlushieItemGroups;
-import dev.drtheo.multidim.MultiDimMod;
-import dev.drtheo.scheduler.SchedulerMod;
+import dev.amble.plushies.PlushieSounds;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.loader.api.FabricLoader;
@@ -42,6 +38,7 @@ public class AmbleKit implements ModInitializer {
         RegistryContainer.register(PlushieBlocks.class, MOD_ID);
         RegistryContainer.register(PlushieBlockEntities.class, MOD_ID);
         RegistryContainer.register(PlushieItemGroups.class, MOD_ID);
+        RegistryContainer.register(PlushieSounds.class, MOD_ID);
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, access, env) -> {
 			SetSkinCommand.register(dispatcher);

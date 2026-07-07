@@ -9,6 +9,7 @@ import dev.amble.plushies.MarketablePlushieBlock;
 import dev.amble.plushies.MarketablePlushieBlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.RenderLayer;
@@ -35,7 +36,11 @@ public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEnt
 
 	@Override
 	public void render(T entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
+		boolean bl = entity instanceof MarketablePlushieBlockEntity;
 		BedrockEntityModel<?> model = getOrCreateModel(entity);
+
+		BlockState state = entity.getWorld().getBlockState(entity.getPos().down());
+		if (bl && state.getBlock() == entity.getCachedState().getBlock() && state.get(MarketablePlushieBlock.STACKED)) return;
 
 		matrices.push();
 		matrices.translate(0.5D, 0.0D, 0.5D);
