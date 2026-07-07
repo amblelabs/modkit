@@ -4,6 +4,9 @@
 		"squish": {
 			"loop": "hold_on_last_frame",
 			"animation_length": 0.4167,
+			"metadata": {
+				"cumulative": true
+			},
 			"bones": {
 				"homunculus": {
 					"position": {

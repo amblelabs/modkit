@@ -7,7 +7,6 @@ import net.minecraft.block.entity.BlockEntityType;
 
 public class PlushieBlockEntities implements BlockEntityContainer {
 
-    @HasBedrockModel
     public static final BlockEntityType<MarketablePlushieBlockEntity> MARKETABLE_PLUSHIE_BLOCK_ENTITY_TYPE =
             FabricBlockEntityTypeBuilder.create(MarketablePlushieBlockEntity::new,
                 PlushieBlocks.LOQOR_MARKETABLE_PLUSHIE,

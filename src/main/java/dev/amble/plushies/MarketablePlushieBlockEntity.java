@@ -50,6 +50,11 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
     }
 
     @Override
+    public String getTexturePrefix() {
+        return "block";
+    }
+
+    @Override
     public @Nullable BedrockModelReference getModel() {
         Block block = this.getCachedState().getBlock();
         if (block instanceof MarketablePlushieBlock plushieBlock) {

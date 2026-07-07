@@ -3,8 +3,8 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [64, 64],
 	"textures": {
-		"0": "amblekit:item/rhyno",
-		"particle": "amblekit:item/rhyno"
+		"0": "amblekit:block/rhyno",
+		"particle": "amblekit:block/rhyno"
 	},
 	"elements": [
 		{

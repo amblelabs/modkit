@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "amblekit:item/loqor"
+    "all": "amblekit:block/loqor"
   }
 }

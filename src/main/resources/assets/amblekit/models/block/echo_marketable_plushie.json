@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "amblekit:item/echo"
+    "all": "amblekit:block/echo"
   }
 }

@@ -36,23 +36,12 @@ public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEnt
 
 	@Override
 	public void render(T entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-		boolean bl = entity instanceof MarketablePlushieBlockEntity;
 		BedrockEntityModel<?> model = getOrCreateModel(entity);
-
-		BlockState state = entity.getWorld().getBlockState(entity.getPos().down());
-		if (bl && state.getBlock() == entity.getCachedState().getBlock() && state.get(MarketablePlushieBlock.STACKED)) return;
 
 		matrices.push();
 		matrices.translate(0.5D, 0.0D, 0.5D);
 		matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180F));
 		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(entity.getRenderYaw()));
-
-		// hardcoded but i lowkey dgaf :al_clueless: - Loqor
-		if (entity instanceof MarketablePlushieBlockEntity marketablePlushieBlockEntity) {
-			boolean stacked = marketablePlushieBlockEntity.getCachedState().get(MarketablePlushieBlock.STACKED);
-			float scale = stacked ? 3 : 1.5f;
-			matrices.scale(scale, scale, scale);
-		}
 
 		if (entity.getWorld() != null) {
 			int sky = entity.getWorld().getLightLevel(LightType.SKY, entity.getPos().up().up());

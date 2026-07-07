@@ -100,7 +100,7 @@ public class BedrockAnimation {
 	 * Gets or builds a cached map of bone names to ModelParts for O(1) lookups.
 	 * Uses WeakHashMap so entries are automatically cleaned up when the root ModelPart is GC'd.
 	 */
-	private static Map<String, ModelPart> getBoneMap(ModelPart root) {
+	public static Map<String, ModelPart> getBoneMap(ModelPart root) {
 		return BONE_CACHE.computeIfAbsent(root, r -> {
 			Map<String, ModelPart> map = new HashMap<>();
 			buildBoneMap(r, map);
@@ -229,14 +229,14 @@ public class BedrockAnimation {
 					if (metadata.cumulative()) {
 						// traverse includes self
 						bone.traverse().forEach(child -> {
-							child.xScale = (float) scale.x;
-							child.yScale = (float) scale.y;
-							child.zScale = (float) scale.z;
+							child.xScale *= (float) scale.x;
+							child.yScale *= (float) scale.y;
+							child.zScale *= (float) scale.z;
 						});
 					} else {
-						bone.xScale = (float) scale.x;
-						bone.yScale = (float) scale.y;
-						bone.zScale = (float) scale.z;
+						bone.xScale *= (float) scale.x;
+						bone.yScale *= (float) scale.y;
+						bone.zScale *= (float) scale.z;
 					}
 				}
 			} catch (Exception e) {

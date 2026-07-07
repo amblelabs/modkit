@@ -3,8 +3,8 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [64, 64],
 	"textures": {
-		"0": "amblekit:item/max",
-		"particle": "amblekit:item/max"
+		"0": "amblekit:block/max",
+		"particle": "amblekit:block/max"
 	},
 	"elements": [
 		{

@@ -3,8 +3,8 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [64, 64],
 	"textures": {
-		"0": "amblekit:item/addie",
-		"particle": "amblekit:item/addie"
+		"0": "amblekit:block/addie",
+		"particle": "amblekit:block/addie"
 	},
 	"elements": [
 		{
