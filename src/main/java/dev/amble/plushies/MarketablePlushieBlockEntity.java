@@ -26,6 +26,8 @@ import java.util.Objects;
 
 public class MarketablePlushieBlockEntity extends ABlockEntity implements AnimatedBlockEntity {
 
+    private static final BedrockAnimationReference ANIMATION_REFERENCE = new BedrockAnimationReference("squish", "squish");
+
     @Getter
     private final AnimationState animationState = new AnimationState();
 
@@ -76,11 +78,8 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (world.isClient()) return ActionResult.SUCCESS;
-
-        // Squishy animation for the squishable plushies
-        BedrockAnimationReference ref = new BedrockAnimationReference("squish", "squish");
         world.playSound(null, pos, PlushieSounds.BOOP, SoundCategory.BLOCKS, 0.4f, world.getRandom().nextBoolean() ? 1.0f : 0.9f);
-        this.playAnimation(ref);
+        this.playAnimation(ANIMATION_REFERENCE);
         return ActionResult.SUCCESS;
     }
 }

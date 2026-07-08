@@ -48,12 +48,11 @@ public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEnt
 			light = LightmapTextureManager.pack(0, sky);
 		}
 
-		AnimatedInstance instance = entity;
-		model.setAngles(instance, entity.getAge() + tickDelta);
+        model.setAngles(entity, entity.getAge() + tickDelta);
 
 		model.render(
 				matrices,
-				vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(getTexture(entity))),
+				vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(this.getTexture(entity))),
 				light,
 				overlay,
 				1.0f, 1.0f, 1.0f, 1.0f

@@ -21,7 +21,7 @@ import dev.amble.lib.mixin.AbstractBlockAccessor;
 
 public abstract class BlockContainer implements RegistryContainer<Block> {
 
-    private List<Item> items;
+    public List<Item> items;
 
     @Override
     public void start(int fields) {

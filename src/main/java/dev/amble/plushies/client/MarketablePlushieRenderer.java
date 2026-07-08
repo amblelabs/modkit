@@ -18,10 +18,12 @@ import net.minecraft.util.math.RotationAxis;
 import net.minecraft.world.LightType;
 
 public class MarketablePlushieRenderer<T extends MarketablePlushieBlockEntity> extends BedrockBlockEntityRenderer<T> {
-    public MarketablePlushieRenderer() {}
-
     public MarketablePlushieRenderer(BlockEntityRendererFactory.Context context) {
         this();
+    }
+
+    public MarketablePlushieRenderer() {
+
     }
 
     @Override
