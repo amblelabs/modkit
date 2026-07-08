@@ -17,13 +17,12 @@ import java.util.Map;
 public class PlushieBlocks extends BlockContainer {
 
     public static final List<String> DEVS = List.of(
-            "loqor",
-            "theo", "addie", "saturn",
-            "avery", "wanzz", "ember",
-            "max", "lake", "classic",
-            "ben", "nyx", "rhyno",
-            "monke", "kking", "cosmic",
-            "dian", "tree", "echo"
+            "loqor", "theo", "addie", "saturn",
+            "avery", "wanzz", "ember", "max",
+            "lake", "classic", "pursephone", "ben",
+            "nyx", "rhyno", "monke", "kking",
+            "cosmic", "dian", "tree", "echo",
+            "lucien"
     );
 
     public static final Map<String, Block> MARKETABLE_PLUSHIES = new LinkedHashMap<>();
