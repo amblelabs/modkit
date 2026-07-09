@@ -8,6 +8,7 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public final class BedrockPerFaceRenderer {
 
@@ -22,8 +23,9 @@ public final class BedrockPerFaceRenderer {
         matrices.push();
         matrices.scale(1.0F / 16.0F, 1.0F / 16.0F, 1.0F / 16.0F);
 
+        Map<String, ModelPart> boneMap = BedrockAnimation.getBoneMap(root);
         for (BedrockModel.PerFaceCube cube : deferred) {
-            ModelPart bonePart = BedrockAnimation.getBoneMap(root).get(cube.partName());
+            ModelPart bonePart = boneMap.get(cube.partName());
             if (bonePart == null) continue;
 
             matrices.push();

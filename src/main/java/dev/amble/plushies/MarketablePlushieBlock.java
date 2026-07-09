@@ -1,22 +1,23 @@
 package dev.amble.plushies;
 
+import dev.amble.lib.AmbleKit;
 import dev.amble.lib.block.ABlock;
 import dev.amble.lib.block.ABlockSettings;
 import dev.amble.lib.block.behavior.base.BlockWithEntityBehavior;
+import dev.amble.lib.client.bedrock.BedrockEntityModel;
+import dev.amble.lib.client.bedrock.BedrockModelReference;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RotationPropertyHelper;
 import net.minecraft.util.shape.VoxelShape;
@@ -34,6 +35,8 @@ public class MarketablePlushieBlock extends ABlock implements BlockEntityProvide
     protected static final VoxelShape SHAPE = Block.createCuboidShape(4.0F, 0.0F, 4.0F, 12.0F, 8.0F, 12.0F);
     private final String modelId;
 
+    @Environment(EnvType.CLIENT)
+    public BedrockEntityModel<?> model;
 
     public MarketablePlushieBlock(ABlockSettings settings, String modelId) {
         super(settings, new BlockWithEntityBehavior.Ticking(MarketablePlushieBlockEntity::new));
@@ -41,6 +44,11 @@ public class MarketablePlushieBlock extends ABlock implements BlockEntityProvide
         this.setDefaultState(this.stateManager.getDefaultState()
                 .with(ROTATION, 0)
                 .with(STACKED, false));
+    }
+
+    @Environment(EnvType.CLIENT)
+    public BedrockModelReference getModel() {
+        return new BedrockModelReference(AmbleKit.MOD_ID, this.modelId);
     }
 
     @Override
@@ -88,10 +96,6 @@ public class MarketablePlushieBlock extends ABlock implements BlockEntityProvide
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(ROTATION, STACKED);
-    }
-
-    public String getModelId() {
-        return this.modelId;
     }
 
     @Override

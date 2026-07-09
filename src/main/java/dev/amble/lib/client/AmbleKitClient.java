@@ -4,11 +4,8 @@ import dev.amble.lib.client.bedrock.BedrockAnimationRegistry;
 import dev.amble.lib.client.bedrock.BedrockModelRegistry;
 import dev.amble.lib.register.AmbleRegistries;
 import dev.amble.lib.skin.client.SkinGrabber;
-import dev.amble.plushies.PlushieBlockEntities;
-import dev.amble.plushies.client.MarketablePlushieRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 
 import dev.amble.lib.api.AmbleKitClientInitializer;

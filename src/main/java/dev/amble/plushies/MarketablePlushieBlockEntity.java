@@ -1,17 +1,15 @@
 package dev.amble.plushies;
 
-import dev.amble.lib.AmbleKit;
 import dev.amble.lib.animation.AnimatedBlockEntity;
 import dev.amble.lib.blockentity.ABlockEntity;
-import dev.amble.lib.client.bedrock.BedrockAnimationReference;
-import dev.amble.lib.client.bedrock.BedrockAnimationRegistry;
-import dev.amble.lib.client.bedrock.BedrockModelReference;
+import dev.amble.lib.client.bedrock.*;
 import lombok.Getter;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundCategory;
@@ -22,16 +20,12 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 public class MarketablePlushieBlockEntity extends ABlockEntity implements AnimatedBlockEntity {
 
     private static final BedrockAnimationReference ANIMATION_REFERENCE = new BedrockAnimationReference("squish", "squish");
 
     @Getter
     private final AnimationState animationState = new AnimationState();
-
-    private int age = 0;
 
     public MarketablePlushieBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -42,8 +36,9 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
     }
 
     @Override
+    @Environment(EnvType.CLIENT)
     public int getAge() {
-        return this.age;
+        return MinecraftClient.getInstance().player.age;
     }
 
     @Override
@@ -60,7 +55,7 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
     public @Nullable BedrockModelReference getModel() {
         Block block = this.getCachedState().getBlock();
         if (block instanceof MarketablePlushieBlock plushieBlock) {
-            return new BedrockModelReference(AmbleKit.MOD_ID, plushieBlock.getModelId());
+            return plushieBlock.getModel();
         }
         return null;
     }
@@ -68,11 +63,6 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
     @Override
     public float getRenderYaw() {
         return this.getCachedState().get(MarketablePlushieBlock.ROTATION) * 22.5f;
-    }
-
-    @Override
-    public void tick(World world, BlockPos pos, BlockState state) {
-        this.age++;
     }
 
     @Override

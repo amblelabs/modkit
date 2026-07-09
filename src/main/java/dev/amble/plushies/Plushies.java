@@ -8,7 +8,6 @@ public class Plushies implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        //RegistryContainer.register(PlushieBlocks.class, AmbleKit.MOD_ID);
         PlushieBlocks.registerAll(AmbleKit.MOD_ID);
         RegistryContainer.register(PlushieBlockEntities.class, AmbleKit.MOD_ID);
         RegistryContainer.register(PlushieItemGroups.class, AmbleKit.MOD_ID);

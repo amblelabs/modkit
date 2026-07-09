@@ -206,6 +206,14 @@ public class BedrockModel implements Identifiable {
 	public static class Geometry {
 		public Description description;
 		public List<Bone> bones;
+
+		@Override
+		public String toString() {
+			return "Geometry{" +
+					"description=" + description +
+					", bones=" + bones +
+					'}';
+		}
 	}
 
 	public static class Description {
@@ -220,6 +228,18 @@ public class BedrockModel implements Identifiable {
 		public float visibleBoundsHeight;
 		@SerializedName("visible_bounds_offset")
 		public List<Float> visibleBoundsOffset;
+
+		@Override
+		public String toString() {
+			return "Description{" +
+					"identifier='" + identifier + '\'' +
+					", textureWidth=" + textureWidth +
+					", textureHeight=" + textureHeight +
+					", visibleBoundsWidth=" + visibleBoundsWidth +
+					", visibleBoundsHeight=" + visibleBoundsHeight +
+					", visibleBoundsOffset=" + visibleBoundsOffset +
+					'}';
+		}
 	}
 
 	public static class Bone {
@@ -245,6 +265,18 @@ public class BedrockModel implements Identifiable {
 
 		public static Bone empty() {
 			return new Bone();
+		}
+
+		@Override
+		public String toString() {
+			return "Bone{" +
+					"name='" + name + '\'' +
+					", parent='" + parent + '\'' +
+					", pivot=" + pivot +
+					", rotation=" + rotation +
+					", cubes=" + cubes +
+					", locators=" + locators +
+					'}';
 		}
 	}
 
@@ -350,6 +382,14 @@ public class BedrockModel implements Identifiable {
 						arr.get(2).getAsFloat()
 				);
 			}
+		}
+
+		@Override
+		public String toString() {
+			return "LocatorBone{" +
+					"offset=" + offset +
+					", rotation=" + rotation +
+					'}';
 		}
 	}
 }

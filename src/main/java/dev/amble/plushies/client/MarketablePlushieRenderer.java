@@ -1,12 +1,10 @@
 package dev.amble.plushies.client;
 
-import dev.amble.lib.animation.AnimatedInstance;
 import dev.amble.lib.animation.client.BedrockBlockEntityRenderer;
 import dev.amble.lib.client.bedrock.BedrockEntityModel;
-import dev.amble.lib.client.bedrock.BedrockModelReference;
-import dev.amble.lib.client.bedrock.BedrockModelRegistry;
 import dev.amble.plushies.MarketablePlushieBlock;
 import dev.amble.plushies.MarketablePlushieBlockEntity;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.RenderLayer;
@@ -18,21 +16,28 @@ import net.minecraft.util.math.RotationAxis;
 import net.minecraft.world.LightType;
 
 public class MarketablePlushieRenderer<T extends MarketablePlushieBlockEntity> extends BedrockBlockEntityRenderer<T> {
+
+    private static final float MAX_SCALE = 3.0f;
+    private static final float NORMAL_SCALE = 1.5f;
+
     public MarketablePlushieRenderer(BlockEntityRendererFactory.Context context) {
-        this();
-    }
-
-    public MarketablePlushieRenderer() {
-
+        super(context);
     }
 
     @Override
     public void render(T entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-        boolean bl = entity instanceof MarketablePlushieBlockEntity;
-        BedrockEntityModel<?> model = getOrCreateModel(entity);
+        BlockState state = entity.getCachedState();
+        Block block = state.getBlock();
 
-        BlockState state = entity.getWorld().getBlockState(entity.getPos().down());
-        if (bl && state.getBlock() == entity.getCachedState().getBlock() && state.get(MarketablePlushieBlock.STACKED)) return;
+        if (!(block instanceof MarketablePlushieBlock plushieBlock)) return;
+
+        if (plushieBlock.model == null) plushieBlock.model = refreshModel(entity);
+
+        BedrockEntityModel<?> model = plushieBlock.model;
+
+        BlockState downState = entity.getWorld().getBlockState(entity.getPos().down());
+        if (state.getBlock() == entity.getCachedState().getBlock() && downState.get(MarketablePlushieBlock.STACKED))
+            return;
 
         matrices.push();
         matrices.translate(0.5D, 0.0D, 0.5D);
@@ -40,7 +45,7 @@ public class MarketablePlushieRenderer<T extends MarketablePlushieBlockEntity> e
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(entity.getRenderYaw()));
 
         boolean stacked = entity.getCachedState().get(MarketablePlushieBlock.STACKED);
-        float scale = stacked ? 3 : 1.5f;
+        float scale = stacked ? MAX_SCALE : NORMAL_SCALE;
         matrices.scale(scale, scale, scale);
 
         if (entity.getWorld() != null) {
@@ -48,8 +53,7 @@ public class MarketablePlushieRenderer<T extends MarketablePlushieBlockEntity> e
             light = LightmapTextureManager.pack(0, sky);
         }
 
-        AnimatedInstance instance = entity;
-        model.setAngles(instance, entity.getAge() + tickDelta);
+        model.setAngles(entity, entity.getAge() + tickDelta);
 
         model.render(
                 matrices,

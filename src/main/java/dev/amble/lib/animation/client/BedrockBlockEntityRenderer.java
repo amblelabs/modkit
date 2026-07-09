@@ -1,16 +1,11 @@
 package dev.amble.lib.animation.client;
 
 import dev.amble.lib.animation.AnimatedBlockEntity;
-import dev.amble.lib.animation.AnimatedInstance;
 import dev.amble.lib.client.bedrock.BedrockEntityModel;
-import dev.amble.lib.client.bedrock.BedrockModel;
 import dev.amble.lib.client.bedrock.BedrockModelReference;
 import dev.amble.lib.client.bedrock.BedrockModelRegistry;
-import dev.amble.plushies.MarketablePlushieBlock;
-import dev.amble.plushies.MarketablePlushieBlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.RenderLayer;
@@ -22,21 +17,17 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.world.LightType;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Environment(EnvType.CLIENT)
 public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEntity> implements BlockEntityRenderer<T> {
 
-	public BedrockBlockEntityRenderer() {}
+	protected BedrockEntityModel model;
 
 	public BedrockBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
-		this();
 	}
 
 	@Override
 	public void render(T entity, float tickDelta, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
-		BedrockEntityModel<?> model = getOrCreateModel(entity);
+		if (this.model == null) this.refreshModel(entity);
 
 		matrices.push();
 		matrices.translate(0.5D, 0.0D, 0.5D);
@@ -76,13 +67,13 @@ public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEnt
 		return entity.getTexture();
 	}
 
-	protected BedrockEntityModel<?> getOrCreateModel(T entity) {
+	protected BedrockEntityModel refreshModel(T entity) {
 		BedrockModelReference ref = entity.getModel();
 		if (ref == null) {
 			throw new IllegalStateException("BlockEntity " + entity + " does not have a BedrockModelReference");
 		}
-
 		Identifier modelId = ref.id();
-        return new BedrockEntityModel<>(BedrockModelRegistry.getInstance().get(modelId));
-    }
+		this.model = new BedrockEntityModel<>(BedrockModelRegistry.getInstance().get(modelId));
+		return this.model;
+	}
 }
