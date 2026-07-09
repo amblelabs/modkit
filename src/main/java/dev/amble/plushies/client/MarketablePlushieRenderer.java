@@ -34,7 +34,8 @@ public class MarketablePlushieRenderer<T extends MarketablePlushieBlockEntity> e
         BedrockEntityModel<?> model = plushieBlock.model == null ? plushieBlock.model = refreshModel(entity) : plushieBlock.model;
 
         BlockState downState = entity.getWorld().getBlockState(entity.getPos().down());
-        if (downState.get(MarketablePlushieBlock.STACKED))
+        Block downBlock = downState.getBlock();
+        if (downBlock instanceof MarketablePlushieBlock && downState.get(MarketablePlushieBlock.STACKED))
             return;
 
         matrices.push();
