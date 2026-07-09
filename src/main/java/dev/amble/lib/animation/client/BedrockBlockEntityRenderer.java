@@ -73,7 +73,6 @@ public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEnt
 			throw new IllegalStateException("BlockEntity " + entity + " does not have a BedrockModelReference");
 		}
 		Identifier modelId = ref.id();
-		this.model = new BedrockEntityModel<>(BedrockModelRegistry.getInstance().get(modelId));
-		return this.model;
+		return this.model = new BedrockEntityModel<>(BedrockModelRegistry.getInstance().get(modelId));
 	}
 }
