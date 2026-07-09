@@ -9,6 +9,6 @@ public class PlushieBlockEntities implements BlockEntityContainer {
 
     public static final BlockEntityType<MarketablePlushieBlockEntity> MARKETABLE_PLUSHIE_BLOCK_ENTITY_TYPE =
             FabricBlockEntityTypeBuilder.create(MarketablePlushieBlockEntity::new,
-                    PlushieBlocks.allMarketablePlushieBlocks()
+                    PlushieBlocks.getAllMarketablePlushies()
             ).build();
 }

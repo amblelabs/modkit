@@ -28,6 +28,10 @@ public class PlushieBlocks extends BlockContainer {
 
     public static final ArrayList<Block> MARKETABLE_PLUSHIES = new ArrayList<>();
 
+    public static Block[] getAllMarketablePlushies() {
+        return MARKETABLE_PLUSHIES.toArray(new Block[0]);
+    }
+
     @Override
     public Item.Settings createBlockItemSettings(Block block) {
         return new AItemSettings().group(PlushieItemGroups.PLUSHIES);
