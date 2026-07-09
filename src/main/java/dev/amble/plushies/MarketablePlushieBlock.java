@@ -3,6 +3,7 @@ package dev.amble.plushies;
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.block.ABlock;
 import dev.amble.lib.block.ABlockSettings;
+import dev.amble.lib.blockentity.ABlockEntity;
 import dev.amble.lib.client.bedrock.BedrockEntityModel;
 import dev.amble.lib.client.bedrock.BedrockModelReference;
 import net.fabricmc.api.EnvType;
@@ -10,13 +11,18 @@ import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemStack;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RotationPropertyHelper;
 import net.minecraft.util.shape.VoxelShape;
@@ -25,7 +31,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class MarketablePlushieBlock extends ABlock implements BlockEntityProvider {
+public class MarketablePlushieBlock extends Block implements BlockEntityProvider {
 
     public static final int MAX_ROTATION_INDEX = RotationPropertyHelper.getMax();
     private static final int MAX_ROTATIONS = MAX_ROTATION_INDEX + 1;
@@ -63,6 +69,14 @@ public class MarketablePlushieBlock extends ABlock implements BlockEntityProvide
     @Override
     public @Nullable BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return new MarketablePlushieBlockEntity(PlushieBlockEntities.MARKETABLE_PLUSHIE_BLOCK_ENTITY_TYPE, pos, state);
+    }
+
+    @Override
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        if (world.getBlockEntity(pos) instanceof MarketablePlushieBlockEntity be)
+            return be.onUse(state, world, pos, player, hand, hit);
+
+        return super.onUse(state, world, pos, player, hand, hit);
     }
 
     @Override
@@ -108,7 +122,9 @@ public class MarketablePlushieBlock extends ABlock implements BlockEntityProvide
     }
 
     @Override
-    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, net.minecraft.item.ItemStack itemStack) {
+    public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+        if (world.getBlockEntity(pos) instanceof MarketablePlushieBlockEntity be)
+            be.onPlaced(world, pos, state, placer, itemStack);
         if (world.isClient()) return;
         boolean sameAbove = world.getBlockState(pos.up()).isOf(this);
         if (state.get(STACKED) != sameAbove) {
