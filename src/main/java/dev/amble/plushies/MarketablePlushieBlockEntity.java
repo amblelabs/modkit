@@ -38,7 +38,8 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
     @Override
     @Environment(EnvType.CLIENT)
     public int getAge() {
-        return MinecraftClient.getInstance().player.age;
+        MinecraftClient client = MinecraftClient.getInstance();
+        return client.player != null ? client.player.age : 0;
     }
 
     @Override
@@ -55,7 +56,7 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
     public @Nullable BedrockModelReference getModel() {
         Block block = this.getCachedState().getBlock();
         if (block instanceof MarketablePlushieBlock plushieBlock) {
-            return plushieBlock.getModel();
+            return plushieBlock.getModelReference();
         }
         return null;
     }

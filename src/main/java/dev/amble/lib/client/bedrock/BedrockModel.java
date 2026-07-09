@@ -18,6 +18,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.*;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -288,7 +289,20 @@ public class BedrockModel implements Identifiable {
 			UV uv,
 			float inflate,
 			boolean mirror
-	) {}
+	) {
+		@Override
+		public @NotNull String toString() {
+			return "Cube{" +
+					"origin=" + origin +
+					", size=" + size +
+					", pivot=" + pivot +
+					", rotation=" + rotation +
+					", uv=" + uv +
+					", inflate=" + inflate +
+					", mirror=" + mirror +
+					'}';
+		}
+	}
 
 	public record UV(
 			List<Integer> box, // box uv remains int

@@ -9,5 +9,5 @@ import net.minecraft.item.ItemStack;
 public class PlushieItemGroups implements ItemGroupContainer {
 
     public static final AItemGroup PLUSHIES = AItemGroup.builder(AmbleKit.id("item_group"))
-            .icon(() -> new ItemStack(PlushieBlocks.MARKETABLE_PLUSHIES.getOrDefault("loqor", Blocks.SAND))).build();
+            .icon(() -> new ItemStack(PlushieBlocks.MARKETABLE_PLUSHIES.get(0) == null ? Blocks.SAND : PlushieBlocks.MARKETABLE_PLUSHIES.get(0))).build();
 }

@@ -3,7 +3,6 @@ package dev.amble.plushies;
 import dev.amble.lib.AmbleKit;
 import dev.amble.lib.block.ABlock;
 import dev.amble.lib.block.ABlockSettings;
-import dev.amble.lib.block.behavior.base.BlockWithEntityBehavior;
 import dev.amble.lib.client.bedrock.BedrockEntityModel;
 import dev.amble.lib.client.bedrock.BedrockModelReference;
 import net.fabricmc.api.EnvType;
@@ -33,22 +32,22 @@ public class MarketablePlushieBlock extends ABlock implements BlockEntityProvide
     public static final IntProperty ROTATION = Properties.ROTATION;
     public static final BooleanProperty STACKED = BooleanProperty.of("stacked");
     protected static final VoxelShape SHAPE = Block.createCuboidShape(4.0F, 0.0F, 4.0F, 12.0F, 8.0F, 12.0F);
-    private final String modelId;
+    private final BedrockModelReference modelRef;
 
     @Environment(EnvType.CLIENT)
     public BedrockEntityModel<?> model;
 
     public MarketablePlushieBlock(ABlockSettings settings, String modelId) {
-        super(settings, new BlockWithEntityBehavior.Ticking(MarketablePlushieBlockEntity::new));
-        this.modelId = modelId;
+        super(settings);
+        this.modelRef = new BedrockModelReference(AmbleKit.MOD_ID, modelId);
         this.setDefaultState(this.stateManager.getDefaultState()
                 .with(ROTATION, 0)
                 .with(STACKED, false));
     }
 
     @Environment(EnvType.CLIENT)
-    public BedrockModelReference getModel() {
-        return new BedrockModelReference(AmbleKit.MOD_ID, this.modelId);
+    public BedrockModelReference getModelReference() {
+        return this.modelRef;
     }
 
     @Override
@@ -100,7 +99,7 @@ public class MarketablePlushieBlock extends ABlock implements BlockEntityProvide
 
     @Override
     public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, BlockPos sourcePos, boolean notify) {
-        if (world.isClient) return;
+        if (world.isClient()) return;
 
         boolean sameAbove = world.getBlockState(pos.up()).isOf(this);
         if (state.get(STACKED) != sameAbove) {
@@ -110,7 +109,7 @@ public class MarketablePlushieBlock extends ABlock implements BlockEntityProvide
 
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, net.minecraft.item.ItemStack itemStack) {
-        if (world.isClient) return;
+        if (world.isClient()) return;
         boolean sameAbove = world.getBlockState(pos.up()).isOf(this);
         if (state.get(STACKED) != sameAbove) {
             world.setBlockState(pos, state.with(STACKED, sameAbove), Block.NOTIFY_LISTENERS);
@@ -128,7 +127,7 @@ public class MarketablePlushieBlock extends ABlock implements BlockEntityProvide
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
         if (state.isOf(newState.getBlock())) return;
 
-        if (!world.isClient) {
+        if (!world.isClient()) {
             BlockPos below = pos.down();
             BlockState belowState = world.getBlockState(below);
             if (belowState.isOf(this)) {

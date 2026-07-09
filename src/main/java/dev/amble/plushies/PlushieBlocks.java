@@ -10,6 +10,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,11 +26,7 @@ public class PlushieBlocks extends BlockContainer {
             "lucien"
     );
 
-    public static final Map<String, Block> MARKETABLE_PLUSHIES = new LinkedHashMap<>();
-
-    public static Block[] allMarketablePlushieBlocks() {
-        return MARKETABLE_PLUSHIES.values().toArray(new Block[0]);
-    }
+    public static final ArrayList<Block> MARKETABLE_PLUSHIES = new ArrayList<>();
 
     @Override
     public Item.Settings createBlockItemSettings(Block block) {
@@ -41,20 +38,18 @@ public class PlushieBlocks extends BlockContainer {
         self.start(DEVS.size());
 
         for (String name : DEVS) {
-            Block block = new MarketablePlushieBlock(new ABlockSettings(), name);
+            ABlockSettings settings = new ABlockSettings();
+            Block block = new MarketablePlushieBlock(settings, name);
             Identifier id = new Identifier(namespace, name + "_marketable_plushie");
 
             Registry.register(Registries.BLOCK, id, block);
 
-            Item.Settings itemSettings = null;
-            if (((AbstractBlockAccessor) block).getSettings() instanceof ABlockSettings abs)
-                itemSettings = abs.itemSettings();
+            Item item = self.createBlockItem(block, settings.itemSettings());
 
-            Item item = self.createBlockItem(block, itemSettings);
             Registry.register(Registries.ITEM, id, item);
             self.items.add(item);
 
-            MARKETABLE_PLUSHIES.put(name, block);
+            MARKETABLE_PLUSHIES.add(block);
         }
 
         self.finish();

@@ -31,12 +31,10 @@ public class MarketablePlushieRenderer<T extends MarketablePlushieBlockEntity> e
 
         if (!(block instanceof MarketablePlushieBlock plushieBlock)) return;
 
-        if (plushieBlock.model == null) plushieBlock.model = refreshModel(entity);
-
-        BedrockEntityModel<?> model = plushieBlock.model;
+        BedrockEntityModel<?> model = plushieBlock.model == null ? plushieBlock.model = refreshModel(entity) : plushieBlock.model;
 
         BlockState downState = entity.getWorld().getBlockState(entity.getPos().down());
-        if (state.getBlock() == entity.getCachedState().getBlock() && downState.get(MarketablePlushieBlock.STACKED))
+        if (downState.get(MarketablePlushieBlock.STACKED))
             return;
 
         matrices.push();
@@ -44,7 +42,7 @@ public class MarketablePlushieRenderer<T extends MarketablePlushieBlockEntity> e
         matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees(180F));
         matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(entity.getRenderYaw()));
 
-        boolean stacked = entity.getCachedState().get(MarketablePlushieBlock.STACKED);
+        boolean stacked = state.get(MarketablePlushieBlock.STACKED);
         float scale = stacked ? MAX_SCALE : NORMAL_SCALE;
         matrices.scale(scale, scale, scale);
 
