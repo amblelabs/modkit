@@ -6,6 +6,7 @@ import dev.amble.lib.block.behavior.api.BlockBehaviors;
 import dev.amble.lib.block.behavior.base.*;
 import dev.amble.lib.blockentity.ABlockEntity;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -31,7 +32,7 @@ import java.util.List;
 
 @ApiStatus.Experimental
 @SuppressWarnings("deprecation")
-public class ABlock extends Block {
+public class ABlock extends Block implements BlockEntityProvider {
 
     private final RenderBlockBehavior render;
     private final BlockPlacementBehavior placement;
@@ -135,15 +136,9 @@ public class ABlock extends Block {
         super.onPlaced(world, pos, state, placer, stack);
     }
 
+    @Override
     public @Nullable BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return entity.createBlockEntity(pos, state);
-    }
-    
-    /**
-     * Omega-hack to trick the remapper.
-     */
-    public @Nullable BlockEntity method_10123(BlockPos pos, BlockState state) {
-        return createBlockEntity(pos, state);
     }
 
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
