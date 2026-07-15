@@ -47,11 +47,6 @@ public class MarketablePlushieRenderer<T extends MarketablePlushieBlockEntity> e
         float scale = stacked ? MAX_SCALE : NORMAL_SCALE;
         matrices.scale(scale, scale, scale);
 
-        if (entity.getWorld() != null) {
-            int sky = entity.getWorld().getLightLevel(LightType.SKY, entity.getPos().up().up());
-            light = LightmapTextureManager.pack(0, sky);
-        }
-
         model.setAngles(entity, entity.getAge() + tickDelta);
 
         model.render(
