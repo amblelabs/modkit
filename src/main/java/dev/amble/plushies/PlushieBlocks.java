@@ -23,7 +23,7 @@ public class PlushieBlocks extends BlockContainer {
             "lake", "classic", "pursephone", "ben",
             "nyx", "rhyno", "monke", "kking",
             "cosmic", "dian", "tree", "echo",
-            "lucien", "maggie", "peanut"
+            "lucien", "maggie", "segfault", "peanut"
     );
 
     public static final ArrayList<Block> MARKETABLE_PLUSHIES = new ArrayList<>();
