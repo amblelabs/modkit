@@ -1,5 +1,6 @@
 package dev.amble.plushies;
 
+import dev.amble.lib.animation.HasBedrockModel;
 import dev.amble.lib.block.ABlockSettings;
 import dev.amble.lib.container.impl.BlockContainer;
 import dev.amble.lib.item.AItemSettings;
@@ -58,4 +59,6 @@ public class PlushieBlocks extends BlockContainer {
 
         self.finish();
     }
+
+    public static final Block GIFT_BOX = new GiftBoxBlock(ABlockSettings.create().itemSettings(new AItemSettings().group(PlushieItemGroups.PLUSHIES).maxCount(16)).breakInstantly());
 }

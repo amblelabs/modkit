@@ -11,4 +11,10 @@ public class PlushieBlockEntities implements BlockEntityContainer {
             FabricBlockEntityTypeBuilder.create(MarketablePlushieBlockEntity::new,
                     PlushieBlocks.getAllMarketablePlushies()
             ).build();
+
+    @HasBedrockModel
+    public static final BlockEntityType<GiftBoxBlockEntity> GIFT_BOX_BLOCK_ENTITY_TYPE =
+            FabricBlockEntityTypeBuilder.create(GiftBoxBlockEntity::new,
+                    PlushieBlocks.GIFT_BOX
+            ).build();
 }
