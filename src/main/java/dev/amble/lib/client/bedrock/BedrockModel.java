@@ -12,12 +12,13 @@ package dev.amble.lib.client.bedrock;
 
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.reflect.TypeToken;
 import dev.amble.lib.api.Identifiable;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.*;
 import net.minecraft.util.Identifier;
-
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,18 +34,18 @@ public class BedrockModel implements Identifiable {
 	@SerializedName("minecraft:geometry")
 	public List<Geometry> geometry;
 	private transient Identifier id;
+	private final transient List<PerFaceCube> deferredPerFaceCubes = new ArrayList<>();
 
 	public static BedrockModel from(JsonObject json, Identifier id) {
 		Gson gson = BedrockAnimation.GSON;
-
 		BedrockModel model = gson.fromJson(json, BedrockModel.class);
-
 		model.id = id;
-
 		return model;
 	}
 
 	public TexturedModelData create() {
+		deferredPerFaceCubes.clear();
+
 		ModelData modelData = new ModelData();
 		Map<String, ModelPartData> parts = new HashMap<>();
 		Map<String, Bone> bones = new HashMap<>();
@@ -53,7 +54,6 @@ public class BedrockModel implements Identifiable {
 			Geometry geometry = this.geometry.get(0);
 			List<Bone> geometryBones = new ArrayList<>(geometry.bones);
 
-			// Add locator bones and root locator
 			for (Bone bone : geometryBones) {
 				if (bone.locators != null) {
 					for (Map.Entry<String, LocatorBone> entry : bone.locators.entrySet()) {
@@ -67,7 +67,7 @@ public class BedrockModel implements Identifiable {
 				}
 			}
 			Bone rootLocator = Bone.empty();
-			rootLocator.name = "internal_locator__" + "root";
+			rootLocator.name = "internal_locator__root";
 			geometryBones.add(rootLocator);
 
 			for (Bone bone : geometryBones) {
@@ -102,34 +102,50 @@ public class BedrockModel implements Identifiable {
 				List<Cube> boneCubes = bone.cubes;
 				if (boneCubes != null) {
 					for (Cube cube : boneCubes) {
-						ModelPartBuilder subPart = (cube.rotation != null) ? ModelPartBuilder.create() : modelPart;
+						boolean hasCubeRotation = cube.rotation != null;
+						ModelPartBuilder subPart = hasCubeRotation ? ModelPartBuilder.create() : modelPart;
 						List<Float> pivot = (cube.pivot != null) ? cube.pivot : bone.pivot;
 
-						if (cube.uv != null) {
-							int uvX = cube.uv.get(0);
-							int uvY = cube.uv.get(1);
+						String targetPartName = bone.name;
 
-							subPart.uv(uvX, uvY);
-						}
-						if (cube.mirror) {
-							subPart.mirrored();
-						}
-						if (cube.size != null && cube.origin != null) {
-							subPart.cuboid(
-									cube.origin.get(0) - pivot.get(0),
-									-(cube.origin.get(1) - pivot.get(1) + cube.size.get(1)),
-									cube.origin.get(2) - pivot.get(2),
-									cube.size.get(0),
-									cube.size.get(1),
-									cube.size.get(2),
-									new Dilation(cube.inflate)
-							);
-						}
-						if (cube.mirror) {
-							subPart.mirrored(false);
+						if (cube.uv != null && cube.size != null && cube.origin != null) {
+							float oX = cube.origin.get(0) - pivot.get(0);
+							float oY = -(cube.origin.get(1) - pivot.get(1) + cube.size.get(1));
+							float oZ = cube.origin.get(2) - pivot.get(2);
+							float sX = cube.size.get(0);
+							float sY = cube.size.get(1);
+							float sZ = cube.size.get(2);
+
+							if (cube.uv.box() != null && !cube.uv.box().isEmpty()) {
+								int uvX = cube.uv.box().get(0);
+								int uvY = cube.uv.box().get(1);
+
+								subPart.uv(uvX, uvY);
+								if (cube.mirror) subPart.mirrored();
+
+								subPart.cuboid(oX, oY, oZ, sX, sY, sZ, new Dilation(cube.inflate));
+
+								if (cube.mirror) subPart.mirrored(false);
+							} else {
+								List<Float> cubePivot = cube.pivot != null ? cube.pivot : bone.pivot;
+								List<Float> cubeRot = cube.rotation != null ? cube.rotation : List.of(0F, 0F, 0F);
+								List<Float> cubeScale = List.of(1F, 1F, 1F);
+
+								deferredPerFaceCubes.add(new PerFaceCube(
+										targetPartName,
+										oX, oY, oZ,
+										sX, sY, sZ,
+										cube.inflate,
+										cube.mirror,
+										cube.uv,
+										cubePivot,
+										cubeRot,
+										cubeScale
+								));
+							}
 						}
 
-						if (subPart != modelPart) {
+						if (hasCubeRotation) {
 							modelTransforms.add(ModelTransform.of(
 									-(bone.pivot.get(0) - cube.pivot.get(0)),
 									bone.pivot.get(1) - cube.pivot.get(1),
@@ -143,11 +159,7 @@ public class BedrockModel implements Identifiable {
 					}
 				}
 
-				parts.put(bone.name, parentPart.addChild(
-						bone.name,
-						modelPart,
-						modelTransform
-				));
+				parts.put(bone.name, parentPart.addChild(bone.name, modelPart, modelTransform));
 
 				int counter = 0;
 				for (int index = 0; index < subParts.size(); index++) {
@@ -167,10 +179,13 @@ public class BedrockModel implements Identifiable {
 		} catch (Exception e) {
 			if (geometry != null && !geometry.isEmpty()) {
 				throw new IllegalArgumentException("Error creating LayerDefinition with identifier " + geometry.get(0).description.identifier, e);
-			} else {
-				throw new IllegalArgumentException("Error creating LayerDefinition", e);
 			}
+			throw new IllegalArgumentException("Error creating LayerDefinition", e);
 		}
+	}
+
+	public List<PerFaceCube> deferredPerFaceCubes() {
+		return deferredPerFaceCubes;
 	}
 
 	@Override
@@ -186,7 +201,6 @@ public class BedrockModel implements Identifiable {
 		if (this.id == null) {
 			throw new IllegalStateException("Model identifier is not set.");
 		}
-
 		return this.id;
 	}
 
@@ -250,6 +264,10 @@ public class BedrockModel implements Identifiable {
 			this.locators = locators;
 		}
 
+		public static Bone empty() {
+			return new Bone();
+		}
+
 		@Override
 		public String toString() {
 			return "Bone{" +
@@ -261,10 +279,6 @@ public class BedrockModel implements Identifiable {
 					", locators=" + locators +
 					'}';
 		}
-
-		public static Bone empty() {
-			return new Bone();
-		}
 	}
 
 	public record Cube(
@@ -272,11 +286,12 @@ public class BedrockModel implements Identifiable {
 			List<Float> size,
 			List<Float> pivot,
 			List<Float> rotation,
-			List<Integer> uv,
+			UV uv,
 			float inflate,
-			boolean mirror) {
+			boolean mirror
+	) {
 		@Override
-		public String toString() {
+		public @NotNull String toString() {
 			return "Cube{" +
 					"origin=" + origin +
 					", size=" + size +
@@ -289,17 +304,65 @@ public class BedrockModel implements Identifiable {
 		}
 	}
 
+	public record UV(
+			List<Integer> box, // box uv remains int
+			Face north,
+			Face east,
+			Face south,
+			Face west,
+			Face up,
+			Face down
+	) {}
+
+	public record Face(
+			@SerializedName("uv")
+			List<Float> uv,
+			@SerializedName("uv_size")
+			List<Float> uvSize
+	) {}
+
+	public record PerFaceCube(
+			String partName,
+			float x, float y, float z,
+			float sizeX, float sizeY, float sizeZ,
+			float inflate,
+			boolean mirror,
+			UV uv,
+			List<Float> cubePivot,
+			List<Float> cubeRotation,
+			List<Float> cubeScale
+	) {}
+
+	public static class UVAdapter implements JsonDeserializer<UV> {
+		@Override
+		public UV deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
+			if (json.isJsonArray()) {
+				return new UV(
+						context.deserialize(json, new TypeToken<List<Integer>>() {}.getType()),
+						null, null, null, null, null, null
+				);
+			}
+
+			JsonObject obj = json.getAsJsonObject();
+			return new UV(
+					null,
+					face(obj, "north", context),
+					face(obj, "east", context),
+					face(obj, "south", context),
+					face(obj, "west", context),
+					face(obj, "up", context),
+					face(obj, "down", context)
+			);
+		}
+
+		private static Face face(JsonObject obj, String name, JsonDeserializationContext ctx) {
+			return obj.has(name) ? ctx.deserialize(obj.get(name), Face.class) : null;
+		}
+	}
+
 	public static class LocatorBone {
 		public List<Float> offset = List.of(0F, 0F, 0F);
 		public List<Float> rotation = List.of(0F, 0F, 0F);
-
-		@Override
-		public String toString() {
-			return "LocatorBone{" +
-					"offset=" + offset +
-					", rotation=" + rotation +
-					'}';
-		}
 
 		public static class Adapter implements JsonDeserializer<LocatorBone> {
 			@Override
@@ -316,13 +379,10 @@ public class BedrockModel implements Identifiable {
 					JsonArray offsetArr = obj.has("offset") ? obj.getAsJsonArray("offset") : null;
 					JsonArray rotationArr = obj.has("rotation") ? obj.getAsJsonArray("rotation") : null;
 
-					offset = offsetArr != null
-							? toFloatList(offsetArr)
-							: Arrays.asList(0F, 0F, 0F);
-					rotation = rotationArr != null
-							? toFloatList(rotationArr)
-							: Arrays.asList(0F, 0F, 0F);
+					offset = offsetArr != null ? toFloatList(offsetArr) : Arrays.asList(0F, 0F, 0F);
+					rotation = rotationArr != null ? toFloatList(rotationArr) : Arrays.asList(0F, 0F, 0F);
 				}
+
 				LocatorBone bone = new LocatorBone();
 				bone.offset = offset;
 				bone.rotation = rotation;
@@ -336,6 +396,14 @@ public class BedrockModel implements Identifiable {
 						arr.get(2).getAsFloat()
 				);
 			}
+		}
+
+		@Override
+		public String toString() {
+			return "LocatorBone{" +
+					"offset=" + offset +
+					", rotation=" + rotation +
+					'}';
 		}
 	}
 }

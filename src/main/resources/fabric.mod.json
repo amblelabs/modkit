@@ -17,10 +17,12 @@
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"dev.amble.lib.AmbleKit"
+			"dev.amble.lib.AmbleKit",
+			"dev.amble.plushies.Plushies"
 		],
 		"client": [
-			"dev.amble.lib.client.AmbleKitClient"
+			"dev.amble.lib.client.AmbleKitClient",
+			"dev.amble.plushies.client.PlushiesClient"
 		]
 	},
 	"mixins": [

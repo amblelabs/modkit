@@ -1,0 +1,7 @@
+{
+  "secret/boop": {
+    "sounds": [
+      "amblekit:secret/boop"
+    ]
+  }
+}

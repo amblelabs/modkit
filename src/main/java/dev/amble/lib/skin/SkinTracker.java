@@ -13,18 +13,13 @@ import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.WorldSavePath;
-import net.minecraft.world.PersistentState;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -65,7 +60,7 @@ public class SkinTracker extends HashMap<UUID, SkinData> {
 	@Environment(EnvType.CLIENT)
 	private static void initClient() {
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-			// getInstance().clear();
+			getInstance().clear();
 		});
 
 		ClientPlayNetworking.registerGlobalReceiver(SYNC_KEY, ((client, handler, buf, responseSender) -> {

@@ -133,7 +133,7 @@ public class BedrockAnimationAdapter implements JsonDeserializer<BedrockAnimatio
 			}
 
 			// Whether translations are cumulative (apply to children) - default false
-			boolean cumulative = jsonObj.has("cumulative") && jsonObj.get("cumulative").getAsBoolean();
+			boolean cumulative = jsonMetadata.has("cumulative") && jsonMetadata.get("cumulative").getAsBoolean();
 			metadata = metadata.withCumulative(cumulative);
 
 			metadata = metadata.withExcess(jsonMetadata);

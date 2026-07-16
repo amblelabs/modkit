@@ -8,14 +8,21 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.RotationAxis;
+
+import java.util.List;
 
 public class BedrockEntityModel<T extends Entity & AnimatedEntity> extends EntityModel<T> implements AnimatedEntityModel {
 	private final BedrockModel model;
 	private final ModelPart root;
+	private final int textureWidth;
+	private final int textureHeight;
 
 	public BedrockEntityModel(BedrockModel model) {
 		this.model = model;
 		this.root = model.create().createModel();
+		this.textureWidth = model.geometry.get(0).description.textureWidth;
+		this.textureHeight = model.geometry.get(0).description.textureHeight;
 	}
 
 	@Override
@@ -32,6 +39,25 @@ public class BedrockEntityModel<T extends Entity & AnimatedEntity> extends Entit
 	@Override
 	public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay, float red, float green, float blue, float alpha) {
 		this.getPart().render(matrices, vertices, light, overlay, red, green, blue, alpha);
+
+		List<BedrockModel.PerFaceCube> deferred = model.deferredPerFaceCubes();
+		if (deferred.isEmpty()) return;
+
+		matrices.push();
+		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180f));
+
+		BedrockPerFaceRenderer.render(
+				this.root,
+				deferred,
+				matrices,
+				vertices,
+				light,
+				overlay,
+				red, green, blue, alpha,
+				this.textureWidth,
+				this.textureHeight
+		);
+		matrices.pop();
 	}
 
 	@Override
