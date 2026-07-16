@@ -18,6 +18,9 @@ import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.IntProperty;
 import net.minecraft.state.property.Properties;
+import net.minecraft.block.Waterloggable;
+import net.minecraft.fluid.FluidState;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
@@ -31,24 +34,28 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class MarketablePlushieBlock extends Block implements BlockEntityProvider {
+public class MarketablePlushieBlock extends AWaterloggableBlock implements BlockEntityProvider {
 
+    public static final IntProperty ROTATION = Properties.ROTATION;
     public static final int MAX_ROTATION_INDEX = RotationPropertyHelper.getMax();
     private static final int MAX_ROTATIONS = MAX_ROTATION_INDEX + 1;
-    public static final IntProperty ROTATION = Properties.ROTATION;
+
     public static final BooleanProperty STACKED = BooleanProperty.of("stacked");
     protected static final VoxelShape SHAPE = Block.createCuboidShape(4.0F, 0.0F, 4.0F, 12.0F, 8.0F, 12.0F);
+
     private final BedrockModelReference modelRef;
 
     @Environment(EnvType.CLIENT)
     public BedrockEntityModel<?> model;
 
     public MarketablePlushieBlock(ABlockSettings settings, String modelId) {
-        super(settings);
+        super(settings, new BlockWithEntityBehavior.Ticking(MarketablePlushieBlockEntity::new));
+        
         this.modelRef = new BedrockModelReference(AmbleKit.MOD_ID, modelId);
         this.setDefaultState(this.stateManager.getDefaultState()
                 .with(ROTATION, 0)
-                .with(STACKED, false));
+                .with(STACKED, false)
+                .with(Properties.WATERLOGGED, false));
     }
 
     @Environment(EnvType.CLIENT)
@@ -89,11 +96,14 @@ public class MarketablePlushieBlock extends Block implements BlockEntityProvider
         BlockPos pos = ctx.getBlockPos();
         World world = ctx.getWorld();
 
+        FluidState fluidState = ctx.getWorld().getFluidState(ctx.getBlockPos());
+        
         boolean sameAbove = world.getBlockState(pos.up()).isOf(this);
 
         return this.getDefaultState()
                 .with(ROTATION, RotationPropertyHelper.fromYaw(ctx.getPlayerYaw()))
-                .with(STACKED, sameAbove);
+                .with(STACKED, sameAbove)
+                .with(WATERLOGGED, fluidState.getFluid() == Fluids.WATER);
     }
 
     @Override
@@ -108,7 +118,12 @@ public class MarketablePlushieBlock extends Block implements BlockEntityProvider
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(ROTATION, STACKED);
+        builder.add(ROTATION, STACKED, Properties.WATERLOGGED);
+    }
+
+    @Override
+    public FluidState getFluidState(BlockState state) {
+        return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
     }
 
     @Override
@@ -152,5 +167,11 @@ public class MarketablePlushieBlock extends Block implements BlockEntityProvider
             }
         }
         super.onStateReplaced(state, world, pos, newState, moved);
+    }
+
+    @Override
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+        if (state.get(WATERLOGGED)) world.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+        return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
     }
 }
