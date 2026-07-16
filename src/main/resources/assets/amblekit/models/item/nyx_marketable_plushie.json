@@ -3,8 +3,8 @@
 	"credit": "Made with Blockbench",
 	"texture_size": [64, 64],
 	"textures": {
-		"0": "amblekit:block/nyx",
-		"particle": "amblekit:block/nyx"
+		"0": "block/nyx",
+		"particle": "block/nyx"
 	},
 	"elements": [
 		{
