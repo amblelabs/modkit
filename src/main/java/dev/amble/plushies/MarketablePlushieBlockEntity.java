@@ -44,6 +44,10 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
 
     @Override
     public String getTexturePrefix() {
+        Block block = this.getCachedState().getBlock();
+        if (block instanceof MarketablePlushieBlock plushieBlock) {
+            return plushieBlock.getTexturePrefix();
+        }
         return "block";
     }
 
@@ -51,7 +55,7 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
     public @Nullable BedrockModelReference getModel() {
         Block block = this.getCachedState().getBlock();
         if (block instanceof MarketablePlushieBlock plushieBlock) {
-            return plushieBlock.getModelReference();
+            return plushieBlock.getModel();
         }
         return null;
     }

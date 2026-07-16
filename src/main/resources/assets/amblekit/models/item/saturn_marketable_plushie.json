@@ -1,78 +1,5 @@
 {
-	"format_version": "1.21.11",
-	"credit": "Made with Blockbench",
-	"texture_size": [64, 64],
-	"textures": {
-		"0": "amblekit:block/saturn",
-		"particle": "amblekit:block/saturn"
-	},
-	"elements": [
-		{
-			"from": [5, 0, 5],
-			"to": [11, 6, 11],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 0, 8]},
-			"faces": {
-				"north": {"uv": [0, 2, 2, 4], "texture": "#0"},
-				"east": {"uv": [2, 2, 4, 4], "texture": "#0"},
-				"south": {"uv": [4, 2, 6, 4], "texture": "#0"},
-				"west": {"uv": [6, 2, 8, 4], "texture": "#0"},
-				"up": {"uv": [4, 2, 2, 0], "texture": "#0"},
-				"down": {"uv": [6, 0, 4, 2], "texture": "#0"}
-			}
-		},
-		{
-			"from": [4.8, -0.2, 4.8],
-			"to": [11.2, 6.2, 11.2],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 0, 8]},
-			"faces": {
-				"north": {"uv": [8, 2, 10, 4], "texture": "#0"},
-				"east": {"uv": [10, 2, 12, 4], "texture": "#0"},
-				"south": {"uv": [12, 2, 14, 4], "texture": "#0"},
-				"west": {"uv": [14, 2, 16, 4], "texture": "#0"},
-				"up": {"uv": [12, 2, 10, 0], "texture": "#0"},
-				"down": {"uv": [14, 0, 12, 2], "texture": "#0"}
-			}
-		},
-		{
-			"from": [0.999, 2.999, 0.999],
-			"to": [15.001, 3.001, 15.001],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 0, 8]},
-			"faces": {
-				"north": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"east": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"south": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"west": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"up": {"uv": [4.25, 8.5, 0, 4.25], "texture": "#0"},
-				"down": {"uv": [8.5, 4.25, 4.25, 8.5], "texture": "#0"}
-			}
-		},
-		{
-			"from": [2.249, 3.149, 2.249],
-			"to": [13.751, 3.151, 13.751],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 0, 8]},
-			"faces": {
-				"north": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"east": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"south": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"west": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"up": {"uv": [4.25, 12.75, 0, 8.5], "texture": "#0"},
-				"down": {"uv": [8.5, 8.5, 4.25, 12.75], "texture": "#0"}
-			}
-		},
-		{
-			"from": [2.249, 2.849, 2.249],
-			"to": [13.751, 2.851, 13.751],
-			"rotation": {"angle": 0, "axis": "y", "origin": [8, 0, 8]},
-			"faces": {
-				"north": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"east": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"south": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"west": {"uv": [12.5, 0, 16, 0], "texture": "#0"},
-				"up": {"uv": [4.25, 12.75, 0, 8.5], "texture": "#0"},
-				"down": {"uv": [8.5, 8.5, 4.25, 12.75], "texture": "#0"}
-			}
-		}
-	],
+	"parent": "minecraft:builtin/entity",
 	"display": {
 		"thirdperson_righthand": {
 			"rotation": [0, 160, 0],
@@ -113,32 +40,5 @@
 			"rotation": [0, -180, 0],
 			"translation": [0, 3.5, -2.75]
 		}
-	},
-	"groups": [
-		{
-			"name": "homunculus",
-			"origin": [8, 4, 9.5],
-			"scope": 0,
-			"color": 0,
-			"children": [
-				{
-					"name": "hover",
-					"origin": [8, 4, 9.5],
-					"scope": 0,
-					"color": 0,
-					"children": [
-						0,
-						1,
-						{
-							"name": "rings",
-							"origin": [8, 4, 9.5],
-							"scope": 0,
-							"color": 0,
-							"children": [2, 3, 4]
-						}
-					]
-				}
-			]
-		}
-	]
+	}
 }

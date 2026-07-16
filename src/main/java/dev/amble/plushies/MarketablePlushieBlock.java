@@ -1,6 +1,7 @@
 package dev.amble.plushies;
 
 import dev.amble.lib.AmbleKit;
+import dev.amble.lib.animation.BedrockModelProvider;
 import dev.amble.lib.block.ABlock;
 import dev.amble.lib.block.ABlockSettings;
 import dev.amble.lib.block.AWaterloggableBlock;
@@ -38,7 +39,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class MarketablePlushieBlock extends AWaterloggableBlock implements BlockEntityProvider {
+public class MarketablePlushieBlock extends AWaterloggableBlock implements BlockEntityProvider, BedrockModelProvider {
 
     public static final IntProperty ROTATION = Properties.ROTATION;
     public static final int MAX_ROTATION_INDEX = RotationPropertyHelper.getMax();
@@ -62,8 +63,13 @@ public class MarketablePlushieBlock extends AWaterloggableBlock implements Block
                 .with(Properties.WATERLOGGED, false));
     }
 
-    @Environment(EnvType.CLIENT)
-    public BedrockModelReference getModelReference() {
+    @Override
+    public String getTexturePrefix() {
+        return "block";
+    }
+
+    @Override
+    public BedrockModelReference getModel() {
         return this.modelRef;
     }
 

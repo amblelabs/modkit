@@ -20,7 +20,7 @@ import net.minecraft.world.LightType;
 @Environment(EnvType.CLIENT)
 public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEntity> implements BlockEntityRenderer<T> {
 
-	protected BedrockEntityModel model;
+	protected BedrockEntityModel<?> model;
 
 	public BedrockBlockEntityRenderer(BlockEntityRendererFactory.Context context) {
 	}
@@ -62,12 +62,12 @@ public class BedrockBlockEntityRenderer<T extends BlockEntity & AnimatedBlockEnt
 		return entity.getTexture();
 	}
 
-	protected BedrockEntityModel refreshModel(T entity) {
+    protected BedrockEntityModel<?> refreshModel(T entity) {
 		BedrockModelReference ref = entity.getModel();
 		if (ref == null) {
 			throw new IllegalStateException("BlockEntity " + entity + " does not have a BedrockModelReference");
 		}
-		Identifier modelId = ref.id();
-		return this.model = new BedrockEntityModel<>(BedrockModelRegistry.getInstance().get(modelId));
+		return this.model = new BedrockEntityModel<>(ref.get().orElseThrow(() ->
+				new IllegalStateException("BedrockModel " + ref.id() + " not found for block entity " + entity)));
 	}
 }
