@@ -70,16 +70,16 @@ There are more datagen utilities akin to this.
   ```
   repositories {
       maven {
-          url "https://jitpack.io"
+          url "https://maven.amblelabs.dev"
   
-          metadataSources {
-              artifact() // Look directly for artifact
+          content {
+              includeGroup "dev.amblelabs"
           }
       }
   }
 
   dependencies {
-      modImplementation("com.github.amblelabs:modkit:${project.modkit_version}") {
+      modImplementation("dev.amblelabs:modkit:${project.modkit_version}") {
           exclude(group: "net.fabricmc.fabric-api")
       }
   }
@@ -88,17 +88,18 @@ There are more datagen utilities akin to this.
   ```
     repositories {
       maven {
-          url = uri("https://jitpack.io")
-          metadataSources {
-              artifact() // Look directly for artifact
+          url "https://maven.amblelabs.dev"
+  
+          content {
+              includeGroup "dev.amblelabs"
           }
       }
-      mavenCentral()
   }
   
-  
   dependencies {
-      modImplementation("com.github.amblelabs:modkit:${project.property("modkit_version")}")
+      modImplementation("dev.amblelabs:modkit:${project.modkit_version}") {
+          exclude(group: "net.fabricmc.fabric-api")
+      }
   }
   ```
 
