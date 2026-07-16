@@ -4,6 +4,7 @@ import dev.amble.lib.AmbleKit;
 import dev.amble.lib.block.ABlock;
 import dev.amble.lib.block.ABlockSettings;
 import dev.amble.lib.block.AWaterloggableBlock;
+import dev.amble.lib.block.behavior.base.BlockWithEntityBehavior;
 import dev.amble.lib.blockentity.ABlockEntity;
 import dev.amble.lib.client.bedrock.BedrockEntityModel;
 import dev.amble.lib.client.bedrock.BedrockModelReference;
