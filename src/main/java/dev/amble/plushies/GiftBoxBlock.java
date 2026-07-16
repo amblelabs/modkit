@@ -55,7 +55,7 @@ public class GiftBoxBlock extends Block implements BlockEntityProvider {
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         Block[] blocks = PlushieBlocks.getAllMarketablePlushies();
-        int randomBlock = world.getRandom().nextBetween(0, blocks.length);
+        int randomBlock = world.getRandom().nextBetween(0, blocks.length - 1);
         ItemStack stack = new ItemStack(blocks[randomBlock]);
         ItemEntity itemEntity = new ItemEntity(world, pos.getX(), pos.getY() + 0.3d, pos.getZ(), stack);
         itemEntity.setPickupDelay(40);
