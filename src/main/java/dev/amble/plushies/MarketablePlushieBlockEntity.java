@@ -3,13 +3,9 @@ package dev.amble.plushies;
 import dev.amble.lib.animation.AnimatedBlockEntity;
 import dev.amble.lib.blockentity.ABlockEntity;
 import dev.amble.lib.client.bedrock.*;
-import lombok.Getter;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.AnimationState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundCategory;
@@ -24,8 +20,9 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
 
     private static final BedrockAnimationReference ANIMATION_REFERENCE = new BedrockAnimationReference("squish", "squish");
 
-    @Getter
     private final AnimationState animationState = new AnimationState();
+
+    private int age = 0;
 
     public MarketablePlushieBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -36,10 +33,8 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
     }
 
     @Override
-    @Environment(EnvType.CLIENT)
     public int getAge() {
-        MinecraftClient client = MinecraftClient.getInstance();
-        return client.player != null ? client.player.age : 0;
+        return age;
     }
 
     @Override
@@ -59,6 +54,12 @@ public class MarketablePlushieBlockEntity extends ABlockEntity implements Animat
             return plushieBlock.getModelReference();
         }
         return null;
+    }
+
+    @Override
+    public void tick(World world, BlockPos pos, BlockState state) {
+        super.tick(world, pos, state);
+        age++;
     }
 
     @Override
