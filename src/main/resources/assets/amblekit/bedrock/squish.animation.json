@@ -2,7 +2,7 @@
 	"format_version": "1.8.0",
 	"animations": {
 		"squish": {
-			"loop": "hold_on_last_frame",
+			"loop": "none",
 			"animation_length": 0.2083,
 			"metadata": {
 				"cumulative": true
