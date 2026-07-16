@@ -86,7 +86,7 @@ There are more datagen utilities akin to this.
   ```
   or if you are using kotlin
   ```
-    repositories {
+  repositories {
       maven {
           url "https://maven.amblelabs.dev"
   
