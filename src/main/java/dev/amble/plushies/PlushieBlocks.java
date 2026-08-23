@@ -5,6 +5,7 @@ import dev.amble.lib.block.ABlockSettings;
 import dev.amble.lib.container.impl.BlockContainer;
 import dev.amble.lib.item.AItemSettings;
 import dev.amble.lib.mixin.AbstractBlockAccessor;
+import dev.amble.plushies.item.PlushieHelmetItem;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -49,8 +50,7 @@ public class PlushieBlocks extends BlockContainer {
 
             Registry.register(Registries.BLOCK, id, block);
 
-            Item item = self.createBlockItem(block, settings.itemSettings());
-
+            Item item = new PlushieHelmetItem(block, new AItemSettings().group(PlushieItemGroups.PLUSHIES));
             Registry.register(Registries.ITEM, id, item);
             self.items.add(item);
 
