@@ -13,8 +13,10 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Equipment;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.state.StateManager;
@@ -39,7 +41,7 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class MarketablePlushieBlock extends AWaterloggableBlock implements BlockEntityProvider, BedrockModelProvider {
+public class MarketablePlushieBlock extends AWaterloggableBlock implements BlockEntityProvider, BedrockModelProvider, Equipment {
 
     public static final IntProperty ROTATION = Properties.ROTATION;
     public static final int MAX_ROTATION_INDEX = RotationPropertyHelper.getMax();
@@ -76,6 +78,11 @@ public class MarketablePlushieBlock extends AWaterloggableBlock implements Block
     @Override
     public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
         return SHAPE;
+    }
+
+    @Override
+    public EquipmentSlot getSlotType() {
+        return EquipmentSlot.HEAD;
     }
 
     @Override

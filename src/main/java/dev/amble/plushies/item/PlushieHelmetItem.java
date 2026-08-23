@@ -1,4 +1,4 @@
-package dev.amble.plushies.item; // 根据你的包结构调整
+package dev.amble.plushies.item; // 请根据实际情况调整包名
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.EquipmentSlot;
@@ -20,18 +20,16 @@ public class PlushieHelmetItem extends BlockItem {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
-        // 检查头盔槽是否为空
-        ItemStack headStack = user.getInventory().armor.get(EquipmentSlot.HEAD.getEntitySlotId());
-        if (headStack.isEmpty()) {
-            // 将手上的物品复制一份放入头盔槽，并移除手上的物品
-            user.getInventory().armor.set(EquipmentSlot.HEAD.getEntitySlotId(), stack.copy());
+        // 头盔槽为空时直接装备
+        if (user.getEquippedStack(EquipmentSlot.HEAD).isEmpty()) {
+            user.equipStack(EquipmentSlot.HEAD, stack.copy());
             stack.setCount(0);
             world.playSound(null, user.getX(), user.getY(), user.getZ(),
                     SoundEvents.ITEM_ARMOR_EQUIP_GENERIC,
                     SoundCategory.PLAYERS, 1.0f, 1.0f);
             return TypedActionResult.success(stack);
         }
-        // 槽位已被占用，执行原逻辑（即尝试放置方块）
+        // 头盔槽被占用时，执行原 BlockItem 的放置逻辑
         return super.use(world, user, hand);
     }
 }
