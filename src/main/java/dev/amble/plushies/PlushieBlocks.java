@@ -1,11 +1,8 @@
 package dev.amble.plushies;
 
-import dev.amble.lib.animation.HasBedrockModel;
 import dev.amble.lib.block.ABlockSettings;
 import dev.amble.lib.container.impl.BlockContainer;
 import dev.amble.lib.item.AItemSettings;
-import dev.amble.lib.mixin.AbstractBlockAccessor;
-import dev.amble.plushies.item.PlushieHelmetItem;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
@@ -13,9 +10,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class PlushieBlocks extends BlockContainer {
 
@@ -50,7 +45,7 @@ public class PlushieBlocks extends BlockContainer {
 
             Registry.register(Registries.BLOCK, id, block);
 
-            Item item = new PlushieHelmetItem(block, new AItemSettings().group(PlushieItemGroups.PLUSHIES));
+            Item item = self.createBlockItem(block, settings.itemSettings());
             Registry.register(Registries.ITEM, id, item);
             self.items.add(item);
 
