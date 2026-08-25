@@ -15,12 +15,12 @@ import java.util.List;
 public class PlushieBlocks extends BlockContainer {
 
     public static final List<String> DEVS = List.of(
-            "loqor", "theo", "addie", "saturn",
-            "avery", "wanzz", "ember", "max",
+            "loqor", "theo", "saturn",
+            "avery", "wanzz", "ember808", "max",
             "lake", "classic", "pursephone", "ben",
             "nyx", "rhyno", "monke", "kking", "rat",
             "cosmic", "dian", "tree", "echo",
-            "lucien", "maggie", "segfault", "peanut", "tardis"
+            "lucien", "maggie", "ember", "peanut", "tardis"
     );
 
     public static final ArrayList<Block> MARKETABLE_PLUSHIES = new ArrayList<>();
