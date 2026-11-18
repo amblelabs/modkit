@@ -15,7 +15,7 @@ import java.util.List;
 public class PlushieBlocks extends BlockContainer {
 
     public static final List<String> DEVS = List.of(
-            "loqor", "theo", "saturn",
+            "loqor", "theo", "addie", "saturn",
             "skye", "wanzz", "ember808", "max",
             "lake", "classic", "pursephone", "ben",
             "nyx", "rhyno", "monke", "kking", "rat",
