@@ -16,7 +16,7 @@ public class PlushieBlocks extends BlockContainer {
 
     public static final List<String> DEVS = List.of(
             "loqor", "theo", "saturn",
-            "avery", "wanzz", "ember808", "max",
+            "skye", "wanzz", "ember808", "max",
             "lake", "classic", "pursephone", "ben",
             "nyx", "rhyno", "monke", "kking", "rat",
             "cosmic", "dian", "tree", "echo",
