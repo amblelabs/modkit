@@ -18,7 +18,7 @@ public class PlushieBlocks extends BlockContainer {
             "loqor", "theo", "addie", "saturn",
             "skye", "wanzz", "ember808", "max",
             "lake", "classic", "pursephone", "ben",
-            "nyx", "rhyno", "monke", "kking", "rat",
+            "jelly", "rhyno", "monke", "kking", "rat",
             "cosmic", "dian", "tree", "echo",
             "lucien", "maggie", "ember", "peanut", "tardis"
     );
